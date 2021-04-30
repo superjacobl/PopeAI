@@ -1,0 +1,78 @@
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.exe
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.deps.json
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.runtimeconfig.json
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.runtimeconfig.dev.json
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\ref\Valour Bot.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Valour Bot.pdb
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.Net.Http.Formatting.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Authentication.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Authorization.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Authorization.Policy.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Connections.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Hosting.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Connections.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Connections.Client.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Connections.Common.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Extensions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Features.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Routing.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.Routing.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.Client.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.Client.Core.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.Common.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.Core.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.WebSockets.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.AspNetCore.WebUtilities.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Http.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Logging.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.ObjectPool.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Options.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Primitives.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Net.Http.Headers.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Newtonsoft.Json.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Newtonsoft.Json.Bson.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.IO.Pipelines.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.Json.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.Net.WebSockets.WebSocketProtocol.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.Text.Json.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.csprojAssemblyReference.cache
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.AssemblyInfoInputs.cache
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.AssemblyInfo.cs
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.csproj.CoreCompileInputs.cache
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.csproj.CopyComplete
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\ref\Valour Bot.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.pdb
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\obj\Debug\net5.0\Valour Bot.genruntimeconfig.cache
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\SpookVooper.Api.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Caching.Abstractions.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Microsoft.Extensions.Caching.Memory.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\MySqlConnector.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Pomelo.EntityFrameworkCore.MySql.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Cryptography.ECDSA.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\Secp256k1.Net.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\native\win-x64\secp256k1.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\native\win-x86\secp256k1.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\native\linux-x64\libsecp256k1.so
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\native\osx-x64\libsecp256k1.dylib
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\runtimes\linux-x64\native\libsecp256k1.so
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\runtimes\osx-x64\native\libsecp256k1.dylib
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\runtimes\win-x64\native\secp256k1.dll
+C:\Users\Jacob\source\repos\Valour Bot\Valour Bot\bin\Debug\net5.0\runtimes\win-x86\native\secp256k1.dll
