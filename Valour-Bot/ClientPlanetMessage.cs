@@ -13,7 +13,7 @@ namespace PopeAI
         /// <summary>
         /// The user's ID
         /// </summary>
-        public ulong AuthorId { get; set; }
+        public ulong Author_Id { get; set; }
 
         /// <summary>
         /// String representation of message
@@ -28,18 +28,18 @@ namespace PopeAI
         /// <summary>
         /// Id of the channel this message belonged to
         /// </summary>
-        public ulong ChannelId { get; set; }
+        public ulong Channel_Id { get; set; }
 
         /// <summary>
         /// Index of the message
         /// </summary>
-        public ulong MessageIndex { get; set; }
+        public ulong Message_Index { get; set; }
 
-        public ulong PlanetId { get; set; }
+        public ulong Planet_Id { get; set; }
 
         public async Task<ClientPlanetUser> GetAuthorAsync()
         {
-            ClientPlanetUser planetUser = await PlanetUserCache.GetPlanetUserAsync(AuthorId, PlanetId);
+            ClientPlanetUser planetUser = await PlanetUserCache.GetPlanetUserAsync(Author_Id, Planet_Id);
 
             return planetUser;
         }

@@ -20,17 +20,17 @@ namespace PopeAI
         /// <summary>
         /// The Id of the planet this channel belongs to
         /// </summary>
-        public ulong PlanetId { get; set; }
+        public ulong Planet_Id { get; set; }
 
         /// <summary>
         /// The amount of messages ever sent in the channel
         /// </summary>
-        public ulong MessageCount { get; set; }
+        public ulong Message_Count { get; set; }
 
         /// <summary>
         /// The id of the parent category, is null if theres no parent
         /// </summary>
-        public ulong? ParentId { get; set;}
+        public ulong? Parent_Id { get; set;}
 
         /// <summary>
         /// Is the position in the category/channel list

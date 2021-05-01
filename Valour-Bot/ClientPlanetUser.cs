@@ -21,12 +21,12 @@ namespace PopeAI
         /// <summary>
         /// The url for the user's profile picture
         /// </summary>
-        public string PfpUrl { get; set; }
+        public string Pfp_Url { get; set; }
 
         /// <summary>
         /// The Date and Time that the user joined Valour
         /// </summary>
-        public DateTime JoinDateTime { get; set; }
+        public DateTime Join_DateTime { get; set; }
 
         /// <summary>
         /// True if the user is a bot

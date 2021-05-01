@@ -17,7 +17,7 @@ namespace PopeAI
         /// <summary>
         /// The Id of the owner of this planet
         /// </summary>
-        public ulong OwnerId { get; set; }
+        public ulong Owner_Id { get; set; }
 
         /// <summary>
         /// The name of the planet
@@ -27,7 +27,7 @@ namespace PopeAI
         /// <summary>
         /// The image url for the planet 
         /// </summary>
-        public string ImageUrl { get; set; }
+        public string Image_Url { get; set; }
 
         /// <summary>
         /// The description of the planet
@@ -42,17 +42,17 @@ namespace PopeAI
         /// <summary>
         /// The amount of members on the planet
         /// </summary>
-        public uint MemberCount { get; set; }
+        public uint Member_Count { get; set; }
 
         /// <summary>
         /// The default role for the planet
         /// </summary>
-        public ulong DefaultRoleId { get; set; }
+        public ulong Default_Role_Id { get; set; }
 
         /// <summary>
         /// The id of the main channel of the planet
         /// </summary>
-        public ulong MainChannelId { get; set; }
+        public ulong Main_Channel_Id { get; set; }
 
         static HttpClient client = new HttpClient();
 

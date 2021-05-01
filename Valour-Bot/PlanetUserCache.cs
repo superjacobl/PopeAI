@@ -28,7 +28,7 @@ namespace PopeAI
                 return new ClientPlanetUser()
                 {
                     Id = 0,
-                    JoinDateTime = DateTime.UtcNow,
+                    Join_DateTime = DateTime.UtcNow,
                     Planet_Id = planet_id,
                     Nickname = "Valour AI"
                 };

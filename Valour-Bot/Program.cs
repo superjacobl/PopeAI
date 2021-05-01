@@ -81,7 +81,7 @@ namespace PopeAI
         {
             ClientPlanetMessage message = JsonConvert.DeserializeObject<ClientPlanetMessage>(json);
 
-            string dictkey = $"{message.AuthorId}-{message.PlanetId}";
+            string dictkey = $"{message.Author_Id}-{message.Planet_Id}";
 
             bool IsVaild = false;
 
@@ -108,17 +108,17 @@ namespace PopeAI
                 MessagesPerMinuteInARow.Add(dictkey, 1);
             }
 
-            await Context.AddStat("Message", 1, message.PlanetId, Context);
+            await Context.AddStat("Message", 1, message.Planet_Id, Context);
 
-            if (message.AuthorId == ulong.Parse(Client.Config.BotId)) {
+            if (message.Author_Id == ulong.Parse(Client.Config.BotId)) {
                 return;
             }
 
-            User user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.AuthorId && x.PlanetId == message.PlanetId);
+            User user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
 
             ulong xp = 1 + MessagesPerMinuteInARow[dictkey];
 
-            await Context.AddStat("UserMessage", 1, message.PlanetId, Context);
+            await Context.AddStat("UserMessage", 1, message.Planet_Id, Context);
 
             if (user == null) {
                 user = new User();
@@ -127,11 +127,11 @@ namespace PopeAI
                     num = (ulong)rnd.Next(1,int.MaxValue);
                 }
                 user.Id = num;
-                user.PlanetId = message.PlanetId;
-                user.UserId = message.AuthorId;
+                user.PlanetId = message.Planet_Id;
+                user.UserId = message.Author_Id;
                 user.Coins += xp*2;
                 user.Xp += xp;
-                await Context.AddStat("Coins", (double)xp*2, message.PlanetId, Context);
+                await Context.AddStat("Coins", (double)xp*2, message.Planet_Id, Context);
                 await Context.Users.AddAsync(user);
                 await Context.SaveChangesAsync();
             }
@@ -139,7 +139,7 @@ namespace PopeAI
             if (IsVaild) {
                 user.Xp += xp;
                 user.Coins += xp*2;
-                await Context.AddStat("Coins", (double)xp*2, message.PlanetId, Context);
+                await Context.AddStat("Coins", (double)xp*2, message.Planet_Id, Context);
                 await Context.SaveChangesAsync();
             
             }
@@ -160,51 +160,51 @@ namespace PopeAI
                     foreach (Help help in Context.Helps.Skip(skip).Take(10)) {
                         content += $"| {help.Message} |\n";
                     }
-                    await PostMessage(message.ChannelId, message.PlanetId, content);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
                 }
                 if (command == "isdiscordgood") {
-                    await PostMessage(message.ChannelId, message.PlanetId, $"no, dickcord is bad!");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"no, dickcord is bad!");
                 }
                 if (command == "xp") {
-                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.AuthorId && x.PlanetId == message.PlanetId);
-                    await PostMessage(message.ChannelId, message.PlanetId, $"{ClientUser.Nickname}'s xp: {(ulong)user.Xp}");
+                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s xp: {(ulong)user.Xp}");
                 }
 
                 if (command == "coins") {
-                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.AuthorId && x.PlanetId == message.PlanetId);
-                    await PostMessage(message.ChannelId, message.PlanetId, $"{ClientUser.Nickname}'s coins: {(ulong)user.Coins}");
+                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s coins: {(ulong)user.Coins}");
                 }
 
                 if (command == "roll") {
                     if (ops.Count < 3) {
-                        await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /roll <from> <to>");
+                        await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roll <from> <to>");
                         return;
                     }
                     int from = int.Parse(ops[1]);
                     int to = int.Parse(ops[2]);
                     int num = rnd.Next(from, to);
-                    await PostMessage(message.ChannelId, message.PlanetId, $"Roll: {num}");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Roll: {num}");
                 }
 
 
                 if (command == "leaderboard") {
-                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.PlanetId).OrderByDescending(x => x.Xp).Take(10).ToList());
+                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Xp).Take(10).ToList());
                     string content = "| nickname | xp |\n| :- | :-\n";
                     foreach(User USER in users) {
-                        ClientPlanetUser clientuser = await USER.GetAuthor(message.PlanetId);
+                        ClientPlanetUser clientuser = await USER.GetAuthor(message.Planet_Id);
                         content += $"{clientuser.Nickname} | {(ulong)USER.Xp} xp\n";
                     }
-                    await PostMessage(message.ChannelId, message.PlanetId, content);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
                 }
 
                 if (command == "richest") {
-                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.PlanetId).OrderByDescending(x => x.Coins).Take(10).ToList());
+                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Coins).Take(10).ToList());
                     string content = "| nickname | coins |\n| :- | :-\n";
                     foreach(User USER in users) {
-                        ClientPlanetUser clientuser = await USER.GetAuthor(message.PlanetId);
+                        ClientPlanetUser clientuser = await USER.GetAuthor(message.Planet_Id);
                         content += $"{clientuser.Nickname} | {(ulong)USER.Coins} coins\n";
                     }
-                    await PostMessage(message.ChannelId, message.PlanetId, content);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
                 }
 
                 if (command == "testgraph") {
@@ -219,23 +219,23 @@ namespace PopeAI
                     data.Add(460);
                     data.Add(516);
                     data.Add(594);
-                    await PostGraph(message.ChannelId, message.PlanetId, data, "Messages");
+                    await PostGraph(message.Channel_Id, message.Planet_Id, data, "Messages");
                 }
 
                 if (command == "userid") {
-                    await PostMessage(message.ChannelId, message.PlanetId, $"Your UserId is {message.AuthorId}");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Your UserId is {message.Author_Id}");
                 }
 
                 if (command == "planetid") {
-                    await PostMessage(message.ChannelId, message.PlanetId, $"This Planet's Id is {message.PlanetId}");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"This Planet's Id is {message.Planet_Id}");
                 }
                 
                 if (command == "channelid") {
-                    await PostMessage(message.ChannelId, message.PlanetId, $"This Channel's id is {message.ChannelId}");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"This Channel's id is {message.Channel_Id}");
                 }
 
                 if (command == "memberid") {
-                    await PostMessage(message.ChannelId, message.PlanetId, $"Your MemberId is {ClientUser.Id}");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Your MemberId is {ClientUser.Id}");
                 }
 
                 if (command == "gamble") {
@@ -247,17 +247,17 @@ namespace PopeAI
 
                         case "Red": case "Blue": case "Green": case "Black":
                             if (ops.Count < 3) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Command Useage: /gamble <color> <bet>");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Useage: /gamble <color> <bet>");
                                 break;
                             }
-                            User User = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.AuthorId && x.PlanetId == message.PlanetId);
+                            User User = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
                             double bet = (double)ulong.Parse(ops[2]);
                             if (user.Coins < (double)bet) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Bet must not be above your coins!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be above your coins!");
                                 break;
                             }
                             if (bet == 0) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Bet must not be 0!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be 0!");
                                 break;
                             }
                             ulong choice = 0;
@@ -312,16 +312,16 @@ namespace PopeAI
                             if (Winner == choice) {
                                 User.Coins += amount;
                                 data.Add($"You won {Math.Round(amount-bet)} coins!");
-                                await Context.AddStat("Coins", amount-bet, message.PlanetId, Context);
+                                await Context.AddStat("Coins", amount-bet, message.Planet_Id, Context);
                             }
                             else {
                                 data.Add($"You did not win.");
-                                await Context.AddStat("Coins", 0-bet, message.PlanetId, Context);
+                                await Context.AddStat("Coins", 0-bet, message.Planet_Id, Context);
                             }
                             
                             
 
-                            Task task = Task.Run(async () => SlowMessages( data,message.ChannelId, message.PlanetId));
+                            Task task = Task.Run(async () => SlowMessages( data,message.Channel_Id, message.Planet_Id));
 
                             await Context.SaveChangesAsync();
 
@@ -329,19 +329,19 @@ namespace PopeAI
 
                         default:
                             string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 3.2x bet |\n| Blue  | 35%    | 3.2x bet |\n| Green | 20%    | 6.5x bet   |\n| Black | 10%     | 15x bet  |";
-                            await PostMessage(message.ChannelId, message.PlanetId, content);
+                            await PostMessage(message.Channel_Id, message.Planet_Id, content);
                             break;
                     }
                 }
 
                 if (command == "charity") {
                     if (ops.Count == 1) {
-                        await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /charity <amount to give>");
+                        await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /charity <amount to give>");
                         return;
                     }
                     int amount = int.Parse(ops[1]);
                     if (amount > user.Coins) {
-                        await PostMessage(message.ChannelId, message.PlanetId, "You can not donate more coins than you currently have!");
+                        await PostMessage(message.Channel_Id, message.Planet_Id, "You can not donate more coins than you currently have!");
                         return;
                     }
                     user.Coins -= amount;
@@ -349,7 +349,7 @@ namespace PopeAI
                     foreach(User USER in Context.Users) {
                         USER.Coins += CoinsPer;
                     }
-                    await PostMessage(message.ChannelId, message.PlanetId, $"Gave {Math.Round((decimal)CoinsPer, 2)} coins to every user!");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Gave {Math.Round((decimal)CoinsPer, 2)} coins to every user!");
                     await Context.SaveChangesAsync();
                     
                 }
@@ -365,34 +365,34 @@ namespace PopeAI
                             foreach(User USER in Context.Users) {
                                 total += (int)USER.Coins;
                             }
-                            await PostMessage(message.ChannelId, message.PlanetId, $"Eco cap: {total} coins");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Eco cap: {total} coins");
                             break;
                         default:
-                            await PostMessage(message.ChannelId, message.PlanetId, "Available Commands: /eco cap");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, "Available Commands: /eco cap");
                             break;
                     }
                 }
 
                 if (command == "forcerolepayout") {
                     if (await ClientUser.IsOwner() != true) {
-                        await PostMessage(message.ChannelId, message.PlanetId, $"Only the owner of this server can use this command!");
+                        await PostMessage(message.Channel_Id, message.Planet_Id, $"Only the owner of this server can use this command!");
                         return;
                     }
                     await Context.UpdateRoleIncomes(planets, true, Context);
 
-                    await PostMessage(message.ChannelId, message.PlanetId, "Successfully forced a role payout.");
+                    await PostMessage(message.Channel_Id, message.Planet_Id, "Successfully forced a role payout.");
 
                 }
 
                 if (command == "dice") {
                     if (ops.Count == 1) {
-                        await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /dice <bet>");
+                        await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /dice <bet>");
                         return;
                     }
                     else {
                         ulong bet = ulong.Parse(ops[1]);
                         if (user.Coins < (double)bet) {
-                            await PostMessage(message.ChannelId, message.PlanetId, "Bet must not be above your coins!");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be above your coins!");
                             return;
                         }
                         int usernum1 = rnd.Next(1, 6);
@@ -415,18 +415,18 @@ namespace PopeAI
                             if (usernum1+usernum2 > opnum1+opnum2) {
                                 data.Add($"You won {bet} coins!");
                                 user.Coins += bet;
-                                await Context.AddStat("Coins", bet, message.PlanetId, Context);
+                                await Context.AddStat("Coins", bet, message.Planet_Id, Context);
                             }
                             else {
                                 data.Add($"You lost {bet} coins.");
                                 user.Coins -= bet;
-                                await Context.AddStat("Coins", 0-bet, message.PlanetId, Context);
+                                await Context.AddStat("Coins", 0-bet, message.Planet_Id, Context);
                             }
                         }
 
                         await Context.SaveChangesAsync();
 
-                        Task task = Task.Run(async () => SlowMessages( data,message.ChannelId, message.PlanetId));
+                        Task task = Task.Run(async () => SlowMessages( data,message.Channel_Id, message.Planet_Id));
                     }
                     
                 }
@@ -440,25 +440,25 @@ namespace PopeAI
                         case "set":
 
                             if (await ClientUser.IsOwner() != true) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Only the owner of this server can use this command!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Only the owner of this server can use this command!");
                                 break;
                             }
 
                             if (ops.Count < 3) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /roleincome set <hourly income/cost> <rolename>");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roleincome set <hourly income/cost> <rolename>");
                                 break;
                             }
 
                             string rolename = message.Content.Replace($"{Client.Config.CommandSign}roleincome set {ops[2]} ", "");
 
-                            RoleIncomes roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.PlanetId);
+                            RoleIncomes roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.Planet_Id);
 
                             if (roleincome == null) {
 
-                                ClientRole clientrole = await planets.FirstOrDefault(x => x.Id == message.PlanetId).GetRoleAsync(rolename);
+                                ClientRole clientrole = await planets.FirstOrDefault(x => x.Id == message.Planet_Id).GetRoleAsync(rolename);
 
                                 if (clientrole == null) {
-                                    await PostMessage(message.ChannelId, message.PlanetId, $"Could not find role {rolename}!");
+                                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Could not find role {rolename}!");
                                     break;
                                 }
 
@@ -466,7 +466,7 @@ namespace PopeAI
 
                                 roleincome.Income = double.Parse(ops[2]);
                                 roleincome.RoleId = clientrole.Id;
-                                roleincome.PlanetId = message.PlanetId;
+                                roleincome.PlanetId = message.Planet_Id;
                                 roleincome.RoleName = clientrole.Name;
                                 roleincome.LastPaidOut = DateTime.UtcNow;
 
@@ -474,7 +474,7 @@ namespace PopeAI
 
                                 Context.SaveChanges();
 
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
 
                                 break;
                             }
@@ -482,7 +482,7 @@ namespace PopeAI
                             else {
                                 roleincome.Income = double.Parse(ops[2]);
                                 await Context.SaveChangesAsync();
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
                             }
 
                             break;
@@ -492,27 +492,27 @@ namespace PopeAI
                         default:
 
                             if (ops[1] == "") {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Commands:\n/roleincome set <hourly income/cost> <rolename>\n/roleincome <rolename>");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Commands:\n/roleincome set <hourly income/cost> <rolename>\n/roleincome <rolename>");
                                 break;
                             }
                         
                             rolename = message.Content.Replace($"{Client.Config.CommandSign}roleincome ", "");
 
-                            ClientRole role = await planets.FirstOrDefault(x => x.Id == message.PlanetId).GetRoleAsync(rolename);
+                            ClientRole role = await planets.FirstOrDefault(x => x.Id == message.Planet_Id).GetRoleAsync(rolename);
 
                             if (role == null) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Could not find role {rolename}");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Could not find role {rolename}");
                                 break;
                             }
 
-                            roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.PlanetId);
+                            roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.Planet_Id);
 
                             if (roleincome == null) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Hourly Income/Cost has not been set for role {rolename}");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Hourly Income/Cost has not been set for role {rolename}");
                                 break;
                             }
 
-                            await PostMessage(message.ChannelId, message.PlanetId, $"Hourly Income/Cost for {rolename} is {roleincome.Income} coins");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Hourly Income/Cost for {rolename} is {roleincome.Income} coins");
 
                             break;
 
@@ -528,21 +528,21 @@ namespace PopeAI
                         case "addrole":
 
                             if (ops.Count < 3) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /shop addrole <cost> <rolename>");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /shop addrole <cost> <rolename>");
                                 break;
                             }
 
                             if (await ClientUser.IsOwner() != true) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Only the owner of this server can use this command!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Only the owner of this server can use this command!");
                                 break;
                             }
 
                             string rolename = message.Content.Replace($"{Client.Config.CommandSign}shop addrole {ops[2]} ", "");
 
-                            ClientRole role = await planets.FirstOrDefault(x => x.Id == message.PlanetId).GetRoleAsync(rolename);
+                            ClientRole role = await planets.FirstOrDefault(x => x.Id == message.Planet_Id).GetRoleAsync(rolename);
 
                             if (role == null) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Could not find role {rolename}!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Could not find role {rolename}!");
                                 break;
                             }
 
@@ -555,7 +555,7 @@ namespace PopeAI
 
                             reward.Id = num;
                             reward.Cost = double.Parse(ops[2]);
-                            reward.PlanetId = message.PlanetId;
+                            reward.PlanetId = message.Planet_Id;
                             reward.RoleId = role.Id;
                             reward.RoleName = rolename;
 
@@ -563,39 +563,39 @@ namespace PopeAI
 
                             Context.SaveChanges();
 
-                            await PostMessage(message.ChannelId, message.PlanetId, $"Added {rolename} to the shop!");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Added {rolename} to the shop!");
 
                             break;
 
                         case "buy":
                             if (ops.Count < 2) {
-                                await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /shop buy <rolename>");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /shop buy <rolename>");
                                 break;
                             }
 
                             rolename = message.Content.Replace($"{Client.Config.CommandSign}shop buy ", "");
 
-                            reward = await Context.ShopRewards.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.PlanetId);
+                            reward = await Context.ShopRewards.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.Planet_Id);
 
                             if (reward == null) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"Could not find shopreward {rolename}!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Could not find shopreward {rolename}!");
                                 break;
                             }
 
-                            User User = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.AuthorId && x.PlanetId == message.PlanetId);
+                            User User = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
 
                             if (User.Coins < reward.Cost) {
-                                await PostMessage(message.ChannelId, message.PlanetId, $"You need {reward.Cost-User.Coins} more coins to buy this role!");
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"You need {reward.Cost-User.Coins} more coins to buy this role!");
                                 break;
                             }
 
                             User.Coins -= reward.Cost;
 
-                            await Context.AddStat("Coins", 0-reward.Cost, message.PlanetId, Context);
+                            await Context.AddStat("Coins", 0-reward.Cost, message.Planet_Id, Context);
 
                             await ClientUser.GiveRole(reward.RoleName);
 
-                            await PostMessage(message.ChannelId, message.PlanetId, $"Gave you {reward.RoleName}!");
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Gave you {reward.RoleName}!");
 
                             await Context.SaveChangesAsync();
 
@@ -606,13 +606,13 @@ namespace PopeAI
                         default:
                             string content = "| Rolename | Cost |\n| :- | :-\n";
 
-                            List<ShopReward> rewards = await Task.Run(() => Context.ShopRewards.Where(x => x.PlanetId == message.PlanetId).OrderByDescending(x => x.Cost).ToList());
+                            List<ShopReward> rewards = await Task.Run(() => Context.ShopRewards.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Cost).ToList());
 
                             foreach (ShopReward Reward in rewards) {
                                 content += $"{Reward.RoleName} | {(ulong)Reward.Cost} xp\n";
                             }
 
-                            await PostMessage(message.ChannelId, message.PlanetId, content);
+                            await PostMessage(message.Channel_Id, message.Planet_Id, content);
 
                             break;
 
@@ -688,11 +688,11 @@ namespace PopeAI
         {
             ClientPlanetMessage message = new ClientPlanetMessage()
             {
-                ChannelId = channelid,
+                Channel_Id = channelid,
                 Content = msg,
                 TimeSent = DateTime.UtcNow,
-                AuthorId = ulong.Parse(Client.Config.BotId),
-                PlanetId = planetid
+                Author_Id = ulong.Parse(Client.Config.BotId),
+                Planet_Id = planetid
             };
 
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(message);
