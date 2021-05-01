@@ -155,12 +155,12 @@ namespace PopeAI
             
             }
 
-            if (message.Content.Substring(0,1) == "/") {
+            if (message.Content.Substring(0,1) == Client.config.CommandSign) {
                 string command = message.Content.Split(" ")[0];
                 command = command.Replace("\n", "");
                 List<string> ops = message.Content.Split(" ").ToList();
-                command = command.Replace("/","");
-                
+                command = command.Replace(Client.config.CommandSign,"");
+
                 if (command == "help") {
                     int skip = 0;
                     if (ops.Count() == 2) {
@@ -460,7 +460,7 @@ namespace PopeAI
                                 break;
                             }
 
-                            string rolename = message.Content.Replace($"/roleincome set {ops[2]} ", "");
+                            string rolename = message.Content.Replace($"{Client.config.CommandSign}roleincome set {ops[2]} ", "");
 
                             RoleIncome roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.Planet_Id);
 
@@ -507,7 +507,7 @@ namespace PopeAI
                                 break;
                             }
                         
-                            rolename = message.Content.Replace($"/roleincome ", "");
+                            rolename = message.Content.Replace($"{Client.config.CommandSign}roleincome ", "");
 
                             ClientRole role = await planets.FirstOrDefault(x => x.Id == message.Planet_Id).GetRoleAsync(rolename);
 
@@ -548,7 +548,7 @@ namespace PopeAI
                                 break;
                             }
 
-                            string rolename = message.Content.Replace($"/shop addrole {ops[2]} ", "");
+                            string rolename = message.Content.Replace($"{Client.config.CommandSign}shop addrole {ops[2]} ", "");
 
                             ClientRole role = await planets.FirstOrDefault(x => x.Id == message.Planet_Id).GetRoleAsync(rolename);
 
@@ -584,7 +584,7 @@ namespace PopeAI
                                 break;
                             }
 
-                            rolename = message.Content.Replace($"/shop buy ", "");
+                            rolename = message.Content.Replace($"{Client.config.CommandSign}shop buy ", "");
 
                             reward = await Context.ShopRewards.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.Planet_Id);
 

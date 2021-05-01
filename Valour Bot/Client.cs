@@ -33,6 +33,8 @@ namespace PopeAI
 
         [JsonProperty]
         public string Database { get; set; }
+        [JsonProperty]
+        public string CommandSign { get; set; }
 
 
         public Config()
