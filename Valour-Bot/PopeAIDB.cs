@@ -40,7 +40,7 @@ namespace PopeAI.Database
         public DbSet<CurrentStat> CurrentStats { get; set; }
 
         public DbSet<Stat> Stats { get; set; }
-        public DbSet<RoleIncome> RoleIncomes { get; set; }
+        public DbSet<RoleIncomes> RoleIncomes { get; set; }
         public DbSet<Help> Helps { get; set; }
 
         public PopeAIDB(DbContextOptions options)
@@ -76,17 +76,17 @@ namespace PopeAI.Database
             await Context.SaveChangesAsync();
         }
         public async Task UpdateRoleIncomes(List<Planet> planets, bool force, PopeAIDB Context) {
-            RoleIncome first = await Context.RoleIncomes.FirstOrDefaultAsync();
+            RoleIncomes first = await Context.RoleIncomes.FirstOrDefaultAsync();
             if (first == null) {
-                first = new RoleIncome();
+                first = new RoleIncomes();
                 first.LastPaidOut = DateTime.UtcNow;
                 first.RoleId = 0;
             }
             if (DateTime.UtcNow > first.LastPaidOut.AddHours(1) || first.RoleId == 0 || force) {
                 List<PlanetMemberInfo> memberinfo = new List<PlanetMemberInfo>();
-                Dictionary<ulong, RoleIncome> RoleIncomeRoleIds = new Dictionary<ulong, RoleIncome>();
+                Dictionary<ulong, RoleIncomes> RoleIncomeRoleIds = new Dictionary<ulong, RoleIncomes>();
                 List<ulong> PlanetIds = new List<ulong>();
-                foreach (RoleIncome roleincome in Context.RoleIncomes) {
+                foreach (RoleIncomes roleincome in Context.RoleIncomes) {
                     RoleIncomeRoleIds.Add(roleincome.RoleId, roleincome);
                     roleincome.LastPaidOut = DateTime.UtcNow;
                     if (PlanetIds.Contains(roleincome.PlanetId) == false) {
@@ -100,7 +100,7 @@ namespace PopeAI.Database
                     foreach (PlanetMemberInfo member in memberinfo) {
                         foreach (ulong roleid in member.RoleIds) {
                             if (RoleIncomeRoleIds.ContainsKey(roleid)) {
-                                RoleIncome roleincome = RoleIncomeRoleIds[roleid];
+                                RoleIncomes roleincome = RoleIncomeRoleIds[roleid];
                                 (await Context.Users.FirstOrDefaultAsync(x => x.UserId == member.Member.UserId && x.PlanetId == member.Member.PlanetId)).Coins += roleincome.Income;
                                 current.NewCoins += roleincome.Income;
                             }
@@ -112,7 +112,7 @@ namespace PopeAI.Database
         }
 
         public async Task UpdateStats(PopeAIDB Context) {
-            Stat first = await Context.Stats.LastOrDefaultAsync();
+            Stat first = await Context.Stats.FirstOrDefaultAsync();
             if (first == null) {
                 first = new Stat();
                 first.Time = DateTime.UtcNow;

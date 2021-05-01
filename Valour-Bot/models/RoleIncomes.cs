@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PopeAI.Models
 {
-    public class RoleIncome
+    public class RoleIncomes
     {
         [Key]
         public ulong RoleId {get; set;}

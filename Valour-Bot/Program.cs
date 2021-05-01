@@ -451,7 +451,7 @@ namespace PopeAI
 
                             string rolename = message.Content.Replace($"{Client.Config.CommandSign}roleincome set {ops[2]} ", "");
 
-                            RoleIncome roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.PlanetId);
+                            RoleIncomes roleincome = await Context.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == message.PlanetId);
 
                             if (roleincome == null) {
 
@@ -462,7 +462,7 @@ namespace PopeAI
                                     break;
                                 }
 
-                                roleincome = new RoleIncome();
+                                roleincome = new RoleIncomes();
 
                                 roleincome.Income = double.Parse(ops[2]);
                                 roleincome.RoleId = clientrole.Id;
