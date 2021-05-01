@@ -79,7 +79,7 @@ namespace PopeAI
 
         static async Task OnMessageRecieve(string json)
         {
-            ClientPlanetMessage message = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientPlanetMessage>(json);
+            ClientPlanetMessage message = JsonConvert.DeserializeObject<ClientPlanetMessage>(json);
 
             string dictkey = $"{message.AuthorId}-{message.PlanetId}";
 
@@ -152,7 +152,7 @@ namespace PopeAI
 
                 if (command == "help") {
                     int skip = 0;
-                    if (ops.Count() == 2) {
+                    if (ops.Count == 2) {
                         skip = int.Parse(ops[1]);
                         skip *= 10;
                     }
@@ -176,7 +176,7 @@ namespace PopeAI
                 }
 
                 if (command == "roll") {
-                    if (ops.Count() < 3) {
+                    if (ops.Count < 3) {
                         await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /roll <from> <to>");
                         return;
                     }
@@ -239,14 +239,14 @@ namespace PopeAI
                 }
 
                 if (command == "gamble") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         ops.Add("");
                     }
                     switch (ops[1])
                     {
 
                         case "Red": case "Blue": case "Green": case "Black":
-                            if (ops.Count() < 3) {
+                            if (ops.Count < 3) {
                                 await PostMessage(message.ChannelId, message.PlanetId, "Command Useage: /gamble <color> <bet>");
                                 break;
                             }
@@ -335,7 +335,7 @@ namespace PopeAI
                 }
 
                 if (command == "charity") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /charity <amount to give>");
                         return;
                     }
@@ -355,7 +355,7 @@ namespace PopeAI
                 }
 
                 if (command == "eco") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         ops.Add("");
                     }
                     switch (ops[1])
@@ -385,7 +385,7 @@ namespace PopeAI
                 }
 
                 if (command == "dice") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /dice <bet>");
                         return;
                     }
@@ -432,7 +432,7 @@ namespace PopeAI
                 }
 
                 if (command == "roleincome") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         ops.Add("");
                     }
                     switch (ops[1])
@@ -444,7 +444,7 @@ namespace PopeAI
                                 break;
                             }
 
-                            if (ops.Count() < 3) {
+                            if (ops.Count < 3) {
                                 await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /roleincome set <hourly income/cost> <rolename>");
                                 break;
                             }
@@ -520,14 +520,14 @@ namespace PopeAI
                 }
 
                 if (command == "shop") {
-                    if (ops.Count() == 1) {
+                    if (ops.Count == 1) {
                         ops.Add("");
                     }
                     switch (ops[1])
                     {
                         case "addrole":
 
-                            if (ops.Count() < 3) {
+                            if (ops.Count < 3) {
                                 await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /shop addrole <cost> <rolename>");
                                 break;
                             }
@@ -568,7 +568,7 @@ namespace PopeAI
                             break;
 
                         case "buy":
-                            if (ops.Count() < 2) {
+                            if (ops.Count < 2) {
                                 await PostMessage(message.ChannelId, message.PlanetId, "Command Format: /shop buy <rolename>");
                                 break;
                             }
