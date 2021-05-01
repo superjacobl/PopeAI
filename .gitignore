@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /.vs
 /.vscode
 /Valour Bot/bin
@@ -12,7 +11,6 @@ Valour Bot/obj/Debug/net5.0/Valour Bot.csprojAssemblyReference.cache
 Valour Bot/obj/Debug/net5.0/Valour Bot.dll
 Valour Bot/obj/Debug/net5.0/Valour Bot.pdb
 Valour Bot/obj/Debug/net5.0/ref/Valour Bot.dll
-=======
 # User-specific files
 *.suo
 *.user
@@ -228,4 +226,3 @@ project.lock.json
 
 /Valour-Bot/PopeAIConfig/config.json
 global.json
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6

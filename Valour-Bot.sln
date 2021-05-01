@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30803.129
 MinimumVisualStudioVersion = 10.0.40219.1
-<<<<<<< HEAD:Valour Bot.sln
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Valour Bot", "Valour Bot\Valour Bot.csproj", "{61781AFD-5C23-472A-9A60-46C1CC245C62}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Valour.Net", "Valour.Net\Valour.Net.csproj", "{30A9FCB3-6C9B-4B81-A010-7EA17AB40FE6}"
-=======
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Valour-Bot", "Valour-Bot\Valour-Bot.csproj", "{61781AFD-5C23-472A-9A60-46C1CC245C62}"
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot.sln
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

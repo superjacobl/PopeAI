@@ -52,22 +52,12 @@ namespace PopeAI.Database
         public async Task AddStat(string name, double value, ulong PlanetId, PopeAIDB Context) {
             CurrentStat current = await Context.CurrentStats.FirstOrDefaultAsync(x => x.PlanetId == PlanetId);
             if (current == null) {
-<<<<<<< HEAD:Valour Bot/PopeAIDB.cs
                 CurrentStat newstat = new CurrentStat();
                 newstat.PlanetId = PlanetId;
                 newstat.NewCoins = 0;
                 newstat.MessagesSent = 0;
                 newstat.MessagesUsersSent = 0;
                 newstat.LastStatUpdate = DateTime.UtcNow;
-=======
-                CurrentStat newstat = new CurrentStat
-                {
-                    PlanetId = PlanetId,
-                    NewCoins = 0,
-                    MessagesSent = 0,
-                    MessagesUsersSent = 0
-                };
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot/PopeAIDB.cs
                 await Context.CurrentStats.AddAsync(newstat);
                 await Context.SaveChangesAsync();
                 current = await Context.CurrentStats.FirstAsync(x => x.PlanetId == PlanetId);
@@ -152,11 +142,7 @@ namespace PopeAI.Database
         }
 
         public async Task UpdateStats(PopeAIDB Context) {
-<<<<<<< HEAD:Valour Bot/PopeAIDB.cs
             CurrentStat first = await Context.CurrentStats.FirstOrDefaultAsync();
-=======
-            Stat first = await Context.Stats.FirstOrDefaultAsync();
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot/PopeAIDB.cs
             if (first == null) {
                 first = new CurrentStat();
                 first.LastStatUpdate = DateTime.UtcNow;

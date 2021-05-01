@@ -16,7 +16,7 @@ namespace PopeAI
 
         static HttpClient client = new HttpClient();
 
-        static Dictionary<string, DateTime> TimeSinceLastMessage = new Dictionary<string, DateTime>();
+        public static Dictionary<string, DateTime> timesincelastmessage = new Dictionary<string, DateTime>();
 
         static Dictionary<string, ulong> MessagesPerMinuteInARow = new Dictionary<string, ulong>();
 
@@ -45,7 +45,7 @@ namespace PopeAI
                             .ToArray();
         }
 
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             await Client.hubConnection.StartAsync();
 
@@ -115,7 +115,6 @@ namespace PopeAI
             ClientPlanetUser ClientUser = null;
             ClientUser = await message.GetAuthorAsync();
 
-<<<<<<< HEAD:Valour Bot/Program.cs
             if (MessagesThisMinute.ContainsKey(ClientUser.Id)) {
                 MessagesThisMinute[ClientUser.Id] += 1;
             }
@@ -126,11 +125,6 @@ namespace PopeAI
             if (timesincelastmessage.ContainsKey(dictkey)) {
                 if (timesincelastmessage[dictkey].AddSeconds(60) < DateTime.UtcNow) {
                     if (timesincelastmessage[dictkey].AddMinutes(5) < DateTime.UtcNow) {
-=======
-            if (TimeSinceLastMessage.ContainsKey(dictkey)) {
-                if (TimeSinceLastMessage[dictkey].AddSeconds(60) < DateTime.UtcNow) {
-                    if (TimeSinceLastMessage[dictkey].AddMinutes(5) < DateTime.UtcNow) {
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot/Program.cs
                         MessagesPerMinuteInARow[dictkey] = 0;
                     }
                     else {
@@ -140,12 +134,12 @@ namespace PopeAI
                     }
                     MessagesThisMinute[ClientUser.Id] = 1;
                     IsVaild = true;
-                    TimeSinceLastMessage[dictkey] = DateTime.UtcNow;
+                    timesincelastmessage[dictkey] = DateTime.UtcNow;
                 }
             }
             else {
                 IsVaild = true;
-                TimeSinceLastMessage.Add(dictkey, DateTime.UtcNow);
+                timesincelastmessage.Add(dictkey, DateTime.UtcNow);
                 MessagesPerMinuteInARow.Add(dictkey, 1);
             }
 
@@ -668,11 +662,7 @@ namespace PopeAI
                                 break;
                             }
 
-<<<<<<< HEAD:Valour Bot/Program.cs
                             if (ops.Count() < 4) {
-=======
-                            if (ops.Count < 3) {
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot/Program.cs
                                 await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roleincome set <hourly income/cost> <rolename>");
                                 break;
                             }
@@ -929,13 +919,8 @@ namespace PopeAI
 
             Console.WriteLine("SEND: \n" + json);
 
-<<<<<<< HEAD:Valour Bot/Program.cs
-            HttpResponseMessage httpresponse = await client.PostAsJsonAsync<ClientPlanetMessage>($"https://valour.gg/Channel/PostMessage?token={Client.config.authkey}", message);
-            
-=======
             HttpResponseMessage httpresponse = await client.PostAsJsonAsync<ClientPlanetMessage>($"https://valour.gg/Channel/PostMessage?token={Client.Config.AuthKey}", message);
-
->>>>>>> 21c70f288fe6f6c852deb9d95db2d905c5250cd6:Valour-Bot/Program.cs
+            
             TaskResult response = Newtonsoft.Json.JsonConvert.DeserializeObject<TaskResult>(await httpresponse.Content.ReadAsStringAsync());
 
             Console.WriteLine("Sending Message!");
