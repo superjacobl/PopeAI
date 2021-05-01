@@ -1,16 +1,3 @@
-/.vs
-/.vscode
-/Valour Bot/bin
-/Valour Bot/PopeAIConfig/config.json
-Valour Bot/obj/project.assets.json
-Valour Bot/obj/project.nuget.cache
-Valour Bot/obj/Valour Bot.csproj.nuget.dgspec.json
-Valour Bot/obj/Debug/net5.0/Valour Bot.csproj.CoreCompileInputs.cache
-Valour Bot/obj/Debug/net5.0/Valour Bot.csproj.FileListAbsolute.txt
-Valour Bot/obj/Debug/net5.0/Valour Bot.csprojAssemblyReference.cache
-Valour Bot/obj/Debug/net5.0/Valour Bot.dll
-Valour Bot/obj/Debug/net5.0/Valour Bot.pdb
-Valour Bot/obj/Debug/net5.0/ref/Valour Bot.dll
 # User-specific files
 *.suo
 *.user
