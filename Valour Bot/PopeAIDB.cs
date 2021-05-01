@@ -111,7 +111,7 @@ namespace PopeAI.Database
         }
 
         public async Task UpdateStats(PopeAIDB Context) {
-            Stat first = await Context.Stats.FirstOrDefaultAsync();
+            Stat first = await Context.Stats.LastOrDefaultAsync();
             if (first == null) {
                 first = new Stat();
                 first.Time = DateTime.UtcNow;
