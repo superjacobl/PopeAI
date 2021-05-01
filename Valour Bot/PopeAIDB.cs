@@ -43,6 +43,8 @@ namespace PopeAI.Database
         public DbSet<Stat> Stats { get; set; }
         public DbSet<RoleIncome> RoleIncomes { get; set; }
         public DbSet<Help> Helps { get; set; }
+        public DbSet<Lottery> Lotteries {get; set;}
+        public DbSet<LotteryTicket> LotteryTickets {get; set;}
 
         public PopeAIDB(DbContextOptions options)
         {
@@ -56,6 +58,7 @@ namespace PopeAI.Database
                 newstat.NewCoins = 0;
                 newstat.MessagesSent = 0;
                 newstat.MessagesUsersSent = 0;
+                newstat.LastStatUpdate = DateTime.UtcNow;
                 await Context.CurrentStats.AddAsync(newstat);
                 await Context.SaveChangesAsync();
                 current = await Context.CurrentStats.FirstAsync(x => x.PlanetId == PlanetId);
@@ -110,18 +113,46 @@ namespace PopeAI.Database
             await Context.SaveChangesAsync();
         }
 
+        public async Task UpdateLotteries(Dictionary<ulong, Lottery> lotterycache, PopeAIDB Context) {
+            foreach (Lottery lottery in Context.Lotteries) {
+                if (DateTime.UtcNow > lottery.EndDate) {
+                    lotterycache.Remove(lottery.PlanetId);
+                    int total = (int)await Context.LotteryTickets.SumAsync(x => (double)x.Tickets);
+                    Random rnd = new Random();
+                    ulong WinningTicketNum = (ulong)rnd.Next(1, total+1);
+                    ulong currentnum = 1;
+                    foreach (LotteryTicket ticket in Context.LotteryTickets.Where(x => x.PlanetId == lottery.PlanetId)) {
+                        if (currentnum+ticket.Tickets >= WinningTicketNum) {
+                            if (lottery.Type == "message") {
+                                await Context.AddStat("Coins", lottery.Jackpot, lottery.PlanetId, Context);
+                            }
+                            User winninguser = await Context.Users.FirstOrDefaultAsync(x => x.PlanetId == lottery.PlanetId && x.UserId == ticket.UserId);
+                            winninguser.Coins += lottery.Jackpot;
+                            ClientPlanetUser planetuser = await winninguser.GetAuthor(lottery.PlanetId);
+                            await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(ulong)lottery.Jackpot} coins!");
+                            Context.LotteryTickets.Remove(ticket);
+                        }
+                        else {
+                            currentnum += ticket.Tickets;
+                        }
+                    Context.Lotteries.Remove(lottery);
+                    }
+                }
+            }
+            await Context.SaveChangesAsync();
+        }
+
         public async Task UpdateStats(PopeAIDB Context) {
-            Stat first = await Context.Stats.LastOrDefaultAsync();
+            CurrentStat first = await Context.CurrentStats.FirstOrDefaultAsync();
             if (first == null) {
-                first = new Stat();
-                first.Time = DateTime.UtcNow;
-                first.Id = 0;
+                first = new CurrentStat();
+                first.LastStatUpdate = DateTime.UtcNow;
             }
             if (Context.CurrentStats.Count() == 0) {
                 return;
             }
             Random rnd = new Random();
-            if (DateTime.UtcNow > first.Time.AddHours(1) || first.Id == 0) {
+            if (DateTime.UtcNow > first.LastStatUpdate.AddHours(1)) {
                 foreach (CurrentStat currentstat in Context.CurrentStats) {
                     Stat newstat = new Stat();
                     newstat.Time = DateTime.UtcNow;
@@ -138,6 +169,7 @@ namespace PopeAI.Database
                     currentstat.NewCoins = 0;
                     currentstat.MessagesSent = 0;
                     currentstat.MessagesUsersSent = 0;
+                    currentstat.LastStatUpdate = DateTime.UtcNow;
                 }
             }
             await Context.SaveChangesAsync();

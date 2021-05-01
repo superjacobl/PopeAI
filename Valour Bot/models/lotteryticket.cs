@@ -8,14 +8,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PopeAI.Models
 {
-    public class CurrentStat
+    public class LotteryTicket
     {
         [Key]
+        public string Id {get; set;}
         public ulong PlanetId {get; set;}
-        public double NewCoins {get; set;}
-        public ulong MessagesSent {get; set;}
-        public ulong MessagesUsersSent {get; set;}
-        public DateTime LastStatUpdate {get; set;}
-
+        public ulong UserId {get; set;}
+        public ulong Tickets {get; set;}
     }
 }

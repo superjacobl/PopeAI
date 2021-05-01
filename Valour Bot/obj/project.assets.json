@@ -1948,6 +1948,19 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XDocument.dll": {}
         }
+      },
+      "Valour.Net/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v5.0",
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.3"
+        },
+        "compile": {
+          "bin/placeholder/Valour.Net.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Valour.Net.dll": {}
+        }
       }
     }
   },
@@ -6435,6 +6448,11 @@
         "system.xml.xdocument.4.3.0.nupkg.sha512",
         "system.xml.xdocument.nuspec"
       ]
+    },
+    "Valour.Net/1.0.0": {
+      "type": "project",
+      "path": "../Valour.Net/Valour.Net.csproj",
+      "msbuildProject": "../Valour.Net/Valour.Net.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -6455,7 +6473,8 @@
       "System.Net.Http.Json >= 5.0.0",
       "System.Text.Encoding >= 4.3.0",
       "System.Text.Encodings.Web >= 5.0.0",
-      "System.Text.Json >= 5.0.1"
+      "System.Text.Json >= 5.0.1",
+      "Valour.Net >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -6489,7 +6508,11 @@
       "frameworks": {
         "net5.0": {
           "targetAlias": "net5.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\Jacob\\source\\repos\\Valour Bot\\Valour.Net\\Valour.Net.csproj": {
+              "projectPath": "C:\\Users\\Jacob\\source\\repos\\Valour Bot\\Valour.Net\\Valour.Net.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

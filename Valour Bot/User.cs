@@ -17,6 +17,7 @@ namespace PopeAI
         public double Xp {get; set;}
         public ulong PlanetId {get; set;}
         public double Coins {get; set;}
+        public DateTime LastHourly {get; set;}
 
         public async Task<ClientPlanetUser> GetAuthor(ulong Planet_Id) {
             ClientPlanetUser planetUser = await PlanetUserCache.GetPlanetUserAsync(UserId, Planet_Id);

@@ -39,7 +39,14 @@ namespace PopeAI
 
         static Random rnd = new Random();
 
+        public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>(); 
+
         static List<Planet> planets {get; set;}
+        public static Dictionary<ulong, int> MessagesThisMinute = new Dictionary<ulong, int>();
+
+        // cache of lotteries
+
+        static Dictionary<ulong, Lottery> lotterycache = new Dictionary<ulong, Lottery>();
 
 
         public static byte[] StringToByteArray(string hex) {
@@ -70,6 +77,9 @@ namespace PopeAI
             Client.hubConnection.On<string>("Relay", OnMessageRecieve);
             //await Channel.CreateChannel("Coding", 735703679107073, 735703679107072);
             Console.WriteLine("Hello World!");
+            foreach (Lottery lottery in Context.Lotteries) {
+                lotterycache.Add(lottery.PlanetId, lottery);
+            }
 
             Task task = Task.Run(async () => UpdateHourly( Context));
 
@@ -82,11 +92,28 @@ namespace PopeAI
 
         static async Task UpdateHourly(PopeAIDB Context) {
             while (true) {
+                await Context.UpdateLotteries(lotterycache, Context);
                 await Context.UpdateStats(Context);
                 await Context.UpdateRoleIncomes(planets, false, Context);
                 await Task.Delay(60000);
             }
         }
+
+        static string ScrambleWord(string word) 
+        { 
+            char[] chars = new char[word.Length]; 
+            Random rand = new Random(); 
+            int index = 0; 
+            while (word.Length > 0) 
+            { // Get a random number between 0 and the length of the word. 
+                int next = rand.Next(0, word.Length - 1); // Take the character from the random position 
+                                                        //and add to our char array. 
+                chars[index] = word[next];                // Remove the character from the word. 
+                word = word.Substring(0, next) + word.Substring(next + 1); 
+                ++index; 
+            } 
+            return new String(chars); 
+        }  
 
         static async Task OnMessageRecieve(string json)
         {
@@ -99,6 +126,13 @@ namespace PopeAI
             ClientPlanetUser ClientUser = null;
             ClientUser = await message.GetAuthorAsync();
 
+            if (MessagesThisMinute.ContainsKey(ClientUser.Id)) {
+                MessagesThisMinute[ClientUser.Id] += 1;
+            }
+            else {
+                MessagesThisMinute.Add(ClientUser.Id, 1);
+            }
+
             if (timesincelastmessage.ContainsKey(dictkey)) {
                 if (timesincelastmessage[dictkey].AddSeconds(60) < DateTime.UtcNow) {
                     if (timesincelastmessage[dictkey].AddMinutes(5) < DateTime.UtcNow) {
@@ -109,6 +143,7 @@ namespace PopeAI
                             MessagesPerMinuteInARow[dictkey] += 1;
                         }
                     }
+                    MessagesThisMinute[ClientUser.Id] = 1;
                     IsVaild = true;
                     timesincelastmessage[dictkey] = DateTime.UtcNow;
                 }
@@ -123,6 +158,10 @@ namespace PopeAI
 
             if (message.Author_Id == ulong.Parse(Client.config.BotId)) {
                 return;
+            }
+
+            if (MessagesThisMinute[ClientUser.Id] > 30) {
+                await PostMessage(message.Channel_Id, message.Planet_Id, $"Stop spamming {ClientUser.Nickname}!");
             }
 
             User user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
@@ -145,6 +184,28 @@ namespace PopeAI
                 await Context.AddStat("Coins", (double)xp*2, message.Planet_Id, Context);
                 await Context.Users.AddAsync(user);
                 await Context.SaveChangesAsync();
+            }
+
+            if (ScrambledWords.ContainsKey(ClientUser.Id)) {
+                if (ScrambledWords[ClientUser.Id] == message.Content.ToLower()) {
+                    double reward = (double)rnd.Next(1,20);
+                    await Context.AddStat("Coins", reward, message.Planet_Id, Context);
+                    user.Coins += reward;
+                    await Context.SaveChangesAsync();
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Correct! Your reward is {reward} coins.");
+                }
+                else {
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Incorrect. The correct word was {ScrambledWords[ClientUser.Id]}");
+                }
+                ScrambledWords.Remove(ClientUser.Id);
+            }
+
+            if (lotterycache.ContainsKey(message.Planet_Id)) {
+                if (lotterycache[message.Planet_Id].Type == "message") {
+                    Lottery lottery = await Context.Lotteries.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id);
+                    lottery.Jackpot += lottery.JackpotIncreasePerMesage;
+                    await lottery.AddTickets(message.Author_Id, 1, message.Planet_Id, Context);
+                }
             }
 
             if (IsVaild) {
@@ -181,9 +242,63 @@ namespace PopeAI
                     await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s xp: {(ulong)user.Xp}");
                 }
 
+                if (command == "unscramble") {
+                    List<string> words = new List<string>();
+                    words.AddRange("people,history,way,art,world,information,map,two,family,government,health,system,computer,meat,year,thanks,music,person,reading,method,data,food,understanding,theory,law,bird,problem,software,control,power,love,internet,phone,television,science,library,nature,fact,product,idea,temperature,investment,area,society,story,activity,industry".Split(","));
+                    string pickedword = words[rnd.Next(0,words.Count())];
+                    string scrambed = ScrambleWord(pickedword);
+                    ScrambledWords.Add(ClientUser.Id, pickedword);
+                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Unscramble {scrambed} for a reward! (reply with the unscrambed word)");
+                }
+
                 if (command == "coins") {
                     user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
                     await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s coins: {(ulong)user.Coins}");
+                }
+
+                if (command == "stats") {
+                    if (ops.Count() == 1) {
+                        ops.Add("");
+                    }
+                    switch (ops[1])
+                    {
+                        case "coins":
+                            List<Stat> stats = await Task.Run(() => Context.Stats.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Time).Take(8).ToList());
+                            List<int> data = new List<int>();
+                            foreach (Stat stat in stats) {
+                                data.Add((int)stat.NewCoins);
+                            }
+                            await PostGraph(message.Channel_Id, message.Planet_Id, data, "coins");
+                            break;
+                        case "messages":
+                            stats = await Task.Run(() => Context.Stats.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Time).Take(8).ToList());
+                            data = new List<int>();
+                            foreach (Stat stat in stats) {
+                                data.Add((int)stat.MessagesSent);
+                            }
+                            await PostGraph(message.Channel_Id, message.Planet_Id, data, "messages");
+                            break;
+                        default:
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Available Commands: /stats messages, /stats coins");
+                            break;
+                    }
+                }
+
+                if (command == "hourly") {
+                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
+                    int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
+                    if (minutesleft <= 0) {
+                        double payout = (double)rnd.Next(30,50);
+                        user.Coins += payout;
+                        user.LastHourly = DateTime.UtcNow;
+                        await Context.AddStat("Coins", payout, message.Planet_Id, Context);
+                        await Context.SaveChangesAsync();
+                        await PostMessage(message.Channel_Id, message.Planet_Id, $"Your got {payout} coins!");
+                    }
+                    else {
+                        await PostMessage(message.Channel_Id, message.Planet_Id, $"You must wait {minutesleft} minutes before you can get another payout");
+                        return;
+                    }
                 }
 
                 if (command == "roll") {
@@ -442,6 +557,109 @@ namespace PopeAI
                     
                 }
 
+                if (command == "lottery") {
+                    if (ops.Count() == 1) {
+                        ops.Add("");
+                    }
+                    switch (ops[1])
+                    {
+                        case "timeleft":
+                            Lottery lottery = await Context.Lotteries.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id);
+                            if (lottery == null) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"There is no lottery currently going on!");
+                                break;
+                            }
+                            TimeSpan timeleft = lottery.EndDate.Subtract(DateTime.UtcNow);
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"{timeleft.Hours} hours left");
+                            break;
+                        case "tickets":
+                            LotteryTicket ticket = await Context.LotteryTickets.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id && x.UserId == message.Author_Id);
+                            if (ticket == null) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"There is no lottery currently going on!");
+                                break;
+                            }
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"You have {ticket.Tickets} tickets");
+                            break;
+                        case "jackpot":
+                            lottery = await Context.Lotteries.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id);
+                            if (lottery == null) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"There is no lottery currently going on!");
+                                break;
+                            }
+                            await PostMessage(message.Channel_Id, message.Planet_Id, $"The current jackpot is {lottery.Jackpot}");
+                            break;
+                        case "create":
+
+                            if (await ClientUser.IsOwner() != true) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, $"Only the owner of this server can use this command!");
+                                break;
+                            }
+
+                            if (ops.Count() < 4) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /lottery create coin <hours> or /lottery create message <how many coins will each message add> <hours>");
+                                break;
+                            }
+
+                            string type = ops[2];
+
+                            int HoursToLast = 0;
+
+                            if (type == "message") {
+                                if (ops.Count() < 5) {
+                                    await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /lottery create message <how many coins will each message add> <hours>");
+                                    break;
+                                }
+                                HoursToLast = int.Parse(ops[4]);
+                            }
+                            else {
+                                HoursToLast = int.Parse(ops[3]);
+                            }
+
+                            if (HoursToLast > 24) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "You can not have a lottery last more than 24 hours!");
+                                break;
+                            }
+
+                            if (type != "coin" && type != "message") {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "Type must either by coin or message!");
+                                break;
+                            }
+
+                            // check if the planet is areadly doing a lottery
+
+                            lottery = await Context.Lotteries.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id);
+
+                            if (lottery != null) {
+                                await PostMessage(message.Channel_Id, message.Planet_Id, "You can not have two lotteries running at the same time!");
+                                break;
+                            }
+
+                            lottery = new Lottery();
+                            
+                            lottery.StartDate = DateTime.UtcNow;
+                            lottery.Type = type;
+                            lottery.PlanetId = message.Planet_Id;
+                            lottery.EndDate = DateTime.UtcNow.AddHours(HoursToLast);
+                            lottery.Jackpot = 0;
+                            lottery.ChannelId = message.Channel_Id;
+
+                            if (type == "message") {
+                                lottery.JackpotIncreasePerMesage = (double)int.Parse(ops[3]);
+                            }
+                            else {
+                                lottery.JackpotIncreasePerMesage = 0;
+                            }
+                            await Context.Lotteries.AddAsync(lottery);
+                            lotterycache.Add(lottery.PlanetId, lottery);
+                            await PostMessage(message.Channel_Id, message.Planet_Id, "Successfully created a lottery.");
+                            await Context.SaveChangesAsync();
+                            break;
+                        default:
+                            await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /lottery create coin <hours> or /lottery create message <how many coins will each message add> <hours>");
+                            break;
+                    }
+                }
+
                 if (command == "roleincome") {
                     if (ops.Count() == 1) {
                         ops.Add("");
@@ -455,7 +673,7 @@ namespace PopeAI
                                 break;
                             }
 
-                            if (ops.Count() < 3) {
+                            if (ops.Count() < 4) {
                                 await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roleincome set <hourly income/cost> <rolename>");
                                 break;
                             }
@@ -659,16 +877,18 @@ namespace PopeAI
             data = newdata;
 
             List<string> rows = new List<string>();
-            for(int i = 0; i < data.Count(); i++) {
+            for(int i = 0; i < 10; i++) {
                 rows.Add("");
             }
             string space = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
             foreach(int num in data) {
                 for(int i = 0; i < num;i++) {
                     rows[i] += "⬜";
+                    Console.WriteLine($"box: {i}");
                 }
-                for(int i = num; i < data.Count();i++) {
+                for(int i = num; i < 10;i++) {
                     rows[i] += space;
+                    Console.WriteLine(i);
                 }
             }
 
@@ -695,7 +915,7 @@ namespace PopeAI
             await PostMessage(channelid, planetid, content);
         }
 
-        static async Task PostMessage(ulong channelid, ulong planetid, string msg)
+        public static async Task PostMessage(ulong channelid, ulong planetid, string msg)
         {
             ClientPlanetMessage message = new ClientPlanetMessage()
             {
@@ -711,7 +931,7 @@ namespace PopeAI
             Console.WriteLine("SEND: \n" + json);
 
             HttpResponseMessage httpresponse = await client.PostAsJsonAsync<ClientPlanetMessage>($"https://valour.gg/Channel/PostMessage?token={Client.config.authkey}", message);
-
+            
             TaskResult response = Newtonsoft.Json.JsonConvert.DeserializeObject<TaskResult>(await httpresponse.Content.ReadAsStringAsync());
 
             Console.WriteLine("Sending Message!");
