@@ -212,3 +212,4 @@ project.lock.json
 *.Specs_*.html
 
 /Valour-Bot/PopeAIConfig/config.json
+global.json
