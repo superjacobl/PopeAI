@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HyOuPOox7+LJu089S1aUsoTLlU/6F9Eu5liQ1bj45Cuvr/VNZmp+Ayp02JdXcsFkuFg6dZonimPLMCJxJ1krbA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jacob\\source\\repos\\Valour Bot\\Valour.Net\\Valour.Net.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jacob\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
