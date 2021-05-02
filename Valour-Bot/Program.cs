@@ -8,6 +8,11 @@ using Newtonsoft.Json;
 using PopeAI.Database;
 using Microsoft.EntityFrameworkCore;
 using PopeAI.Models;
+using Valour.Net;
+using Valour.Net.Models;
+using Valour.Net.ModuleHandling;
+using Valour.Net.CommandHandling;
+using Valour.Net.CommandHandling.Attributes;
 
 namespace PopeAI
 {
@@ -28,8 +33,6 @@ namespace PopeAI
 
         static Random rnd = new Random();
 
-        public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>(); 
-
         static List<Planet> planets {get; set;}
         public static Dictionary<ulong, int> MessagesThisMinute = new Dictionary<ulong, int>();
 
@@ -47,24 +50,15 @@ namespace PopeAI
 
         public static async Task Main(string[] args)
         {
-            await Client.hubConnection.StartAsync();
 
-            //Get all the planets that we are in
+            ValourClient.BotPrefix = "/";
 
-            string json = await client.GetStringAsync($"https://valour.gg/Planet/GetPlanetMembership?user_id={Client.Config.BotId}&token={Client.Config.AuthKey}");
+            await ValourClient.Start("jacoblower26@gmail.com",Client.Config.BotPassword);
+            
+            ValourClient.OnMessage += async (message) => {
+                await OnMessageRecieve(message);
+            };
 
-            TaskResult<List<Planet>> result = JsonConvert.DeserializeObject<TaskResult<List<Planet>>>(json);
-
-            planets = result.Data;
-
-            foreach(Planet planet in planets) {
-                await Client.hubConnection.SendAsync("JoinPlanet", planet.Id, Client.Config.AuthKey);
-                foreach(Channel channel in await planet.GetChannelsAsync()) {
-                    await Client.hubConnection.SendAsync("JoinChannel", channel.Id, Client.Config.AuthKey);
-                }
-            }
-            Client.hubConnection.On<string>("Relay", OnMessageRecieve);
-            //await Channel.CreateChannel("Coding", 735703679107073, 735703679107072);
             Console.WriteLine("Hello World!");
             foreach (Lottery lottery in Context.Lotteries) {
                 lotterycache.Add(lottery.PlanetId, lottery);
@@ -88,31 +82,14 @@ namespace PopeAI
             }
         }
 
-        static string ScrambleWord(string word) 
-        { 
-            char[] chars = new char[word.Length]; 
-            Random rand = new Random(); 
-            int index = 0; 
-            while (word.Length > 0) 
-            { // Get a random number between 0 and the length of the word. 
-                int next = rand.Next(0, word.Length - 1); // Take the character from the random position 
-                                                        //and add to our char array. 
-                chars[index] = word[next];                // Remove the character from the word. 
-                word = word.Substring(0, next) + word.Substring(next + 1); 
-                ++index; 
-            } 
-            return new String(chars); 
-        }  
-
-        static async Task OnMessageRecieve(string json)
+        static async Task OnMessageRecieve(PlanetMessage message)
         {
-            ClientPlanetMessage message = JsonConvert.DeserializeObject<ClientPlanetMessage>(json);
 
             string dictkey = $"{message.Author_Id}-{message.Planet_Id}";
 
             bool IsVaild = false;
 
-            ClientPlanetUser ClientUser = null;
+            PlanetMember ClientUser = null;
             ClientUser = await message.GetAuthorAsync();
 
             if (MessagesThisMinute.ContainsKey(ClientUser.Id)) {
@@ -175,20 +152,6 @@ namespace PopeAI
                 await Context.SaveChangesAsync();
             }
 
-            if (ScrambledWords.ContainsKey(ClientUser.Id)) {
-                if (ScrambledWords[ClientUser.Id] == message.Content.ToLower()) {
-                    double reward = (double)rnd.Next(1,20);
-                    await Context.AddStat("Coins", reward, message.Planet_Id, Context);
-                    user.Coins += reward;
-                    await Context.SaveChangesAsync();
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Correct! Your reward is {reward} coins.");
-                }
-                else {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Incorrect. The correct word was {ScrambledWords[ClientUser.Id]}");
-                }
-                ScrambledWords.Remove(ClientUser.Id);
-            }
-
             if (lotterycache.ContainsKey(message.Planet_Id)) {
                 if (lotterycache[message.Planet_Id].Type == "message") {
                     Lottery lottery = await Context.Lotteries.FirstOrDefaultAsync(x => x.PlanetId == message.Planet_Id);
@@ -210,40 +173,6 @@ namespace PopeAI
                 command = command.Replace("\n", "");
                 List<string> ops = message.Content.Split(" ").ToList();
                 command = command.Replace(Client.Config.CommandSign,"");
-
-                if (command == "help") {
-                    int skip = 0;
-                    if (ops.Count == 2) {
-                        skip = int.Parse(ops[1]);
-                        skip *= 10;
-                    }
-                    string content = "| command |\n| :-: |\n";
-                    foreach (Help help in Context.Helps.Skip(skip).Take(10)) {
-                        content += $"| {help.Message} |\n";
-                    }
-                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
-                }
-                if (command == "isdiscordgood") {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"no, dickcord is bad!");
-                }
-                if (command == "xp") {
-                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s xp: {(ulong)user.Xp}");
-                }
-
-                if (command == "unscramble") {
-                    List<string> words = new List<string>();
-                    words.AddRange("people,history,way,art,world,information,map,two,family,government,health,system,computer,meat,year,thanks,music,person,reading,method,data,food,understanding,theory,law,bird,problem,software,control,power,love,internet,phone,television,science,library,nature,fact,product,idea,temperature,investment,area,society,story,activity,industry".Split(","));
-                    string pickedword = words[rnd.Next(0,words.Count())];
-                    string scrambed = ScrambleWord(pickedword);
-                    ScrambledWords.Add(ClientUser.Id, pickedword);
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Unscramble {scrambed} for a reward! (reply with the unscrambed word)");
-                }
-
-                if (command == "coins") {
-                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"{ClientUser.Nickname}'s coins: {(ulong)user.Coins}");
-                }
 
                 if (command == "stats") {
                     if (ops.Count() == 1) {
@@ -273,23 +202,6 @@ namespace PopeAI
                     }
                 }
 
-                if (command == "hourly") {
-                    user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
-                    int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
-                    if (minutesleft <= 0) {
-                        double payout = (double)rnd.Next(30,50);
-                        user.Coins += payout;
-                        user.LastHourly = DateTime.UtcNow;
-                        await Context.AddStat("Coins", payout, message.Planet_Id, Context);
-                        await Context.SaveChangesAsync();
-                        await PostMessage(message.Channel_Id, message.Planet_Id, $"Your got {payout} coins!");
-                    }
-                    else {
-                        await PostMessage(message.Channel_Id, message.Planet_Id, $"You must wait {minutesleft} minutes before you can get another payout");
-                        return;
-                    }
-                }
-
                 if (command == "roll") {
                     if (ops.Count < 3) {
                         await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roll <from> <to>");
@@ -299,27 +211,6 @@ namespace PopeAI
                     int to = int.Parse(ops[2]);
                     int num = rnd.Next(from, to);
                     await PostMessage(message.Channel_Id, message.Planet_Id, $"Roll: {num}");
-                }
-
-
-                if (command == "leaderboard") {
-                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Xp).Take(10).ToList());
-                    string content = "| nickname | xp |\n| :- | :-\n";
-                    foreach(User USER in users) {
-                        ClientPlanetUser clientuser = await USER.GetAuthor(message.Planet_Id);
-                        content += $"{clientuser.Nickname} | {(ulong)USER.Xp} xp\n";
-                    }
-                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
-                }
-
-                if (command == "richest") {
-                    List<User> users = await Task.Run(() => Context.Users.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Coins).Take(10).ToList());
-                    string content = "| nickname | coins |\n| :- | :-\n";
-                    foreach(User USER in users) {
-                        ClientPlanetUser clientuser = await USER.GetAuthor(message.Planet_Id);
-                        content += $"{clientuser.Nickname} | {(ulong)USER.Coins} coins\n";
-                    }
-                    await PostMessage(message.Channel_Id, message.Planet_Id, content);
                 }
 
                 if (command == "testgraph") {
@@ -336,139 +227,6 @@ namespace PopeAI
                     data.Add(594);
                     await PostGraph(message.Channel_Id, message.Planet_Id, data, "Messages");
                 }
-
-                if (command == "userid") {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Your UserId is {message.Author_Id}");
-                }
-
-                if (command == "planetid") {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"This Planet's Id is {message.Planet_Id}");
-                }
-                
-                if (command == "channelid") {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"This Channel's id is {message.Channel_Id}");
-                }
-
-                if (command == "memberid") {
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Your MemberId is {ClientUser.Id}");
-                }
-
-                if (command == "gamble") {
-                    if (ops.Count == 1) {
-                        ops.Add("");
-                    }
-                    switch (ops[1])
-                    {
-
-                        case "Red": case "Blue": case "Green": case "Black":
-                            if (ops.Count < 3) {
-                                await PostMessage(message.Channel_Id, message.Planet_Id, "Command Useage: /gamble <color> <bet>");
-                                break;
-                            }
-                            User User = await Context.Users.FirstOrDefaultAsync(x => x.UserId == message.Author_Id && x.PlanetId == message.Planet_Id);
-                            double bet = (double)ulong.Parse(ops[2]);
-                            if (user.Coins < (double)bet) {
-                                await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be above your coins!");
-                                break;
-                            }
-                            if (bet == 0) {
-                                await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be 0!");
-                                break;
-                            }
-                            ulong choice = 0;
-                            switch (ops[1])
-                            {
-                                case "Red":
-                                    choice = 0;
-                                    break;
-                                case "Blue":
-                                    choice = 1;
-                                    break;
-                                case "Green":
-                                    choice = 2;
-                                    break;
-                                case "Black":
-                                    choice = 3;
-                                    break;
-                                default:
-                                    choice = 0;
-                                    break;
-                            }
-                            ulong Winner = 0;
-                            int num = rnd.Next(1, 101);
-                            double muit = 3.2;
-                            string colorwon = "";
-                            switch (num)
-                            {
-                                case <= 35:
-                                    Winner = 0;
-                                    colorwon = "Red";
-                                    break;
-                                case <= 70:
-                                    Winner = 1;
-                                    colorwon = "Blue";
-                                    break;
-                                case <= 90:
-                                    muit = 6.5;
-                                    Winner = 2;
-                                    colorwon = "Green";
-                                    break;
-                                default:
-                                    Winner = 3;
-                                    muit = 15;
-                                    colorwon = "Black";
-                                    break;
-                            }
-                            double amount = bet*muit;
-                            User.Coins -= bet;
-                            List<string> data = new List<string>();
-                            data.Add($"You picked {ops[1]}");
-                            data.Add($"The color drawn is {colorwon}");
-                            if (Winner == choice) {
-                                User.Coins += amount;
-                                data.Add($"You won {Math.Round(amount-bet)} coins!");
-                                await Context.AddStat("Coins", amount-bet, message.Planet_Id, Context);
-                            }
-                            else {
-                                data.Add($"You did not win.");
-                                await Context.AddStat("Coins", 0-bet, message.Planet_Id, Context);
-                            }
-                            
-                            
-
-                            Task task = Task.Run(async () => SlowMessages( data,message.Channel_Id, message.Planet_Id));
-
-                            await Context.SaveChangesAsync();
-
-                            break;
-
-                        default:
-                            string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 3.2x bet |\n| Blue  | 35%    | 3.2x bet |\n| Green | 20%    | 6.5x bet   |\n| Black | 10%     | 15x bet  |";
-                            await PostMessage(message.Channel_Id, message.Planet_Id, content);
-                            break;
-                    }
-                }
-
-                if (command == "charity") {
-                    if (ops.Count == 1) {
-                        await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /charity <amount to give>");
-                        return;
-                    }
-                    int amount = int.Parse(ops[1]);
-                    if (amount > user.Coins) {
-                        await PostMessage(message.Channel_Id, message.Planet_Id, "You can not donate more coins than you currently have!");
-                        return;
-                    }
-                    user.Coins -= amount;
-                    double CoinsPer = amount/Context.Users.Count();
-                    foreach(User USER in Context.Users) {
-                        USER.Coins += CoinsPer;
-                    }
-                    await PostMessage(message.Channel_Id, message.Planet_Id, $"Gave {Math.Round((decimal)CoinsPer, 2)} coins to every user!");
-                    await Context.SaveChangesAsync();
-                    
-                }
-
                 if (command == "eco") {
                     if (ops.Count == 1) {
                         ops.Add("");
@@ -498,54 +256,6 @@ namespace PopeAI
                     await PostMessage(message.Channel_Id, message.Planet_Id, "Successfully forced a role payout.");
 
                 }
-
-                if (command == "dice") {
-                    if (ops.Count == 1) {
-                        await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /dice <bet>");
-                        return;
-                    }
-                    else {
-                        ulong bet = ulong.Parse(ops[1]);
-                        if (user.Coins < (double)bet) {
-                            await PostMessage(message.Channel_Id, message.Planet_Id, "Bet must not be above your coins!");
-                            return;
-                        }
-                        int usernum1 = rnd.Next(1, 6);
-                        int usernum2 = rnd.Next(1, 6);
-                        int opnum1 = rnd.Next(1, 6);
-                        int opnum2 = rnd.Next(1, 6);
-                        List<string> data = new List<string>();
-                        data.Add($"You throw the dice");
-                        data.Add($"You get **{usernum1}** and **{usernum2}**");
-                        data.Add($"Your opponent throws their dice, and gets **{opnum1}** and **{opnum2}**");
-
-                        // check for a tie
-
-                        if (usernum1+usernum2 == opnum1+opnum2) {
-                            data.Add($"It's a tie");
-                        }
-                        else {
-
-                            // user won
-                            if (usernum1+usernum2 > opnum1+opnum2) {
-                                data.Add($"You won {bet} coins!");
-                                user.Coins += bet;
-                                await Context.AddStat("Coins", bet, message.Planet_Id, Context);
-                            }
-                            else {
-                                data.Add($"You lost {bet} coins.");
-                                user.Coins -= bet;
-                                await Context.AddStat("Coins", 0-bet, message.Planet_Id, Context);
-                            }
-                        }
-
-                        await Context.SaveChangesAsync();
-
-                        Task task = Task.Run(async () => SlowMessages( data,message.Channel_Id, message.Planet_Id));
-                    }
-                    
-                }
-
                 if (command == "lottery") {
                     if (ops.Count() == 1) {
                         ops.Add("");
@@ -811,7 +521,7 @@ namespace PopeAI
 
                             await Context.AddStat("Coins", 0-reward.Cost, message.Planet_Id, Context);
 
-                            await ClientUser.GiveRole(reward.RoleName);
+                            //await ClientUser.GiveRole(reward.RoleName);
 
                             await PostMessage(message.Channel_Id, message.Planet_Id, $"Gave you {reward.RoleName}!");
 

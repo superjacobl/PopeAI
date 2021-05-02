@@ -32,7 +32,7 @@ namespace PopeAI
         /// <summary>
         /// The description of the planet
         /// </summary>
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
         /// <summary>
         /// If the server requires express allowal to join a planet

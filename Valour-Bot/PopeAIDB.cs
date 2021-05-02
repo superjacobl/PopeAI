@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PopeAI.Models;
+using Valour.Net.Models;
 
 namespace PopeAI.Database
 {
@@ -127,7 +128,7 @@ namespace PopeAI.Database
                             }
                             User winninguser = await Context.Users.FirstOrDefaultAsync(x => x.PlanetId == lottery.PlanetId && x.UserId == ticket.UserId);
                             winninguser.Coins += lottery.Jackpot;
-                            ClientPlanetUser planetuser = await winninguser.GetAuthor(lottery.PlanetId);
+                            PlanetMember planetuser = await winninguser.GetAuthor(lottery.PlanetId);
                             await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(ulong)lottery.Jackpot} coins!");
                             Context.LotteryTickets.Remove(ticket);
                         }
