@@ -66,7 +66,7 @@ namespace Valour.Net
 
             foreach (PlanetMember member in Cache.PlanetMemberCache.Values) {
                 foreach (ulong roleid in member.RoleIds) {
-                    member.RolesNames.Add(Cache.PlanetCache.Values.First(x => x.Id == member.Planet_Id).Roles.First(x => x.Id == roleid).Name);
+                    member.Roles.Add(Cache.PlanetCache.Values.First(x => x.Id == member.Planet_Id).Roles.First(x => x.Id == roleid));
                 }
             }
 
@@ -87,8 +87,10 @@ namespace Valour.Net
 
             hubConnection.On<string>("Relay", OnRelay);
 
-            ModuleRegistrar.RegisterAllCommands(new ErrorHandler());
+        }
 
+        public static void RegisterModules() {
+            ModuleRegistrar.RegisterAllCommands(new ErrorHandler());
         }
 
         public static async Task PostMessage(ulong channelid, ulong planetid, string msg)
@@ -131,14 +133,11 @@ namespace Valour.Net
 
                 string commandname = message.Content.Split(" ")[0].Replace(BotPrefix, "");
 
-                PlanetMember member = await message.GetAuthorAsync();
-                
-                CommandInfo command = CommandService._Commands.FirstOrDefault(x => x.CheckIfCommand(commandname, args,member, ctx) == true);
+                CommandInfo command = CommandService.RunCommandString(commandname, args, ctx);
 
                 if (command != null) {
                     command.Method.Invoke(command.moduleInfo.Instance, command.ConvertStringArgs(args,ctx).ToArray());
                 }
-
                 
             }
 

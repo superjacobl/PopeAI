@@ -53,7 +53,11 @@ namespace PopeAI
 
             ValourClient.BotPrefix = "/";
 
+
+
             await ValourClient.Start("jacoblower26@gmail.com",Client.Config.BotPassword);
+
+            ValourClient.RegisterModules();
             
             ValourClient.OnMessage += async (message) => {
                 await OnMessageRecieve(message);
@@ -174,34 +178,6 @@ namespace PopeAI
                 List<string> ops = message.Content.Split(" ").ToList();
                 command = command.Replace(Client.Config.CommandSign,"");
 
-                if (command == "stats") {
-                    if (ops.Count() == 1) {
-                        ops.Add("");
-                    }
-                    switch (ops[1])
-                    {
-                        case "coins":
-                            List<Stat> stats = await Task.Run(() => Context.Stats.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Time).Take(8).ToList());
-                            List<int> data = new List<int>();
-                            foreach (Stat stat in stats) {
-                                data.Add((int)stat.NewCoins);
-                            }
-                            await PostGraph(message.Channel_Id, message.Planet_Id, data, "coins");
-                            break;
-                        case "messages":
-                            stats = await Task.Run(() => Context.Stats.Where(x => x.PlanetId == message.Planet_Id).OrderByDescending(x => x.Time).Take(8).ToList());
-                            data = new List<int>();
-                            foreach (Stat stat in stats) {
-                                data.Add((int)stat.MessagesSent);
-                            }
-                            await PostGraph(message.Channel_Id, message.Planet_Id, data, "messages");
-                            break;
-                        default:
-                            await PostMessage(message.Channel_Id, message.Planet_Id, $"Available Commands: /stats messages, /stats coins");
-                            break;
-                    }
-                }
-
                 if (command == "roll") {
                     if (ops.Count < 3) {
                         await PostMessage(message.Channel_Id, message.Planet_Id, "Command Format: /roll <from> <to>");
@@ -211,21 +187,6 @@ namespace PopeAI
                     int to = int.Parse(ops[2]);
                     int num = rnd.Next(from, to);
                     await PostMessage(message.Channel_Id, message.Planet_Id, $"Roll: {num}");
-                }
-
-                if (command == "testgraph") {
-                    List<int> data = new List<int>();
-                    data.Add(163);
-                    data.Add(308);
-                    data.Add(343);
-                    data.Add(378);
-                    data.Add(436);
-                    data.Add(454);
-                    data.Add(455);
-                    data.Add(460);
-                    data.Add(516);
-                    data.Add(594);
-                    await PostGraph(message.Channel_Id, message.Planet_Id, data, "Messages");
                 }
                 if (command == "eco") {
                     if (ops.Count == 1) {
@@ -556,62 +517,6 @@ namespace PopeAI
                 await PostMessage(Channel_Id, Planet_Id, content);
                 await Task.Delay(1500);
             }
-        }
-
-        static async Task PostGraph(ulong channelid, ulong planetid, List<int> data, string dataname) {
-            string content = "";
-            int maxvalue = data.Max();
-
-            // make sure that the max-y is 10
-
-            double muit = 10/(double)maxvalue;
-
-            List<int> newdata = new List<int>();
-
-            foreach(int num in data) {
-                double n = (double)num*muit;
-                newdata.Add((int)n);
-            }
-
-            data = newdata;
-
-            List<string> rows = new List<string>();
-            for(int i = 0; i < 10; i++) {
-                rows.Add("");
-            }
-            string space = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-            foreach(int num in data) {
-                for(int i = 0; i < num;i++) {
-                    rows[i] += "⬜";
-                    Console.WriteLine($"box: {i}");
-                }
-                for(int i = num; i < 10;i++) {
-                    rows[i] += space;
-                    Console.WriteLine(i);
-                }
-            }
-
-            // build the bar graph
-
-            rows.Reverse();
-            foreach(string row in rows) {
-                content += $"{row}\n";
-            }
-
-            // build the x-axis labels
-
-            content += " ";
-
-            for(int i = data.Count(); i > 0;i--) {
-                content += $"{i}h&nbsp;";
-            }
-
-            content += "\n";
-
-            // build the how much does 1 box equal
-
-            content += $"⬜ = {(int)maxvalue/10} {dataname}";
-            await PostMessage(channelid, planetid, content);
         }
 
         public static async Task PostMessage(ulong channelid, ulong planetid, string msg)

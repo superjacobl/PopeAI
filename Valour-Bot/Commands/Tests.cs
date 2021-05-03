@@ -22,6 +22,21 @@ namespace PopeAI.Commands.Tests
         [Command("say")]
         [Alias("echo")]
         //[Summary("Echoes a message.")]
+        public async Task EchoAsync(CommandContext ctx, int times, [Remainder] string echo)
+        {
+            if (times > 10) {
+                times = 10;
+            }
+            for (int i = 0; i < times; i++)
+            {
+                await ctx.ReplyAsync(echo);
+            }
+        }
+
+
+        [Command("say")]
+        [Alias("echo")]
+        //[Summary("Echoes a message.")]
         public async Task EchoAsync(CommandContext ctx, [Remainder] string echo)
         {
             await ctx.ReplyAsync(echo);

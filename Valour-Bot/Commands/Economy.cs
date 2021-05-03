@@ -82,6 +82,10 @@ namespace PopeAI.Commands.Economy
                 await ctx.ReplyAsync("You can not donate more coins than you currently have!");
                 return;
             }
+            if (amount <= 0) {
+                await ctx.ReplyAsync("Amount must be above 0!");
+                return;
+            }
             DBUser.Coins -= amount;
             double CoinsPer = amount/DBContext.Users.Count();
             foreach(User user in DBContext.Users) {
@@ -231,4 +235,3 @@ namespace PopeAI.Commands.Economy
         }
     }
 }
-
