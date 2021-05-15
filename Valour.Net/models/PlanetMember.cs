@@ -16,7 +16,7 @@ namespace Valour.Net.Models
 
         public async Task<bool> IsOwner() {
             // add role-based authority later
-            if (Nickname == "superjacobl") {
+            if (Id == (await Cache.GetPlanet(Planet_Id)).Owner_Id) {
                 return true;
             }
             else {

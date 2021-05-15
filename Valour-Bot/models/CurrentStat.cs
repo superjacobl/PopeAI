@@ -10,6 +10,12 @@ namespace PopeAI.Models
         public ulong MessagesSent {get; set;}
         public ulong MessagesUsersSent {get; set;}
         public DateTime LastStatUpdate {get; set;}
+        public DateTime LastStockHourlyUpdate {get; set;}
+        public DateTime LastStockDailyUpdate {get; set;}
+        public DateTime LastStockWeeklyUpdate {get; set;}
+        public DateTime LastStockPriceUpdate {get; set;}
+        public DateTime LastStockPriceMessageUpdate {get; set;}
+        public ulong StockMarketPriceChannel {get; set;}
 
     }
 }

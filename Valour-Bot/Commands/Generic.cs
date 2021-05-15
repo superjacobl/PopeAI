@@ -23,9 +23,16 @@ namespace PopeAI.Commands.Generic
 {
     public class Generic : CommandModuleBase
     {
-        PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
         public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>();
         static Random rnd = new Random();
+
+        [Command("ping")]
+        public async Task Ping(CommandContext ctx)
+        {
+            TimeSpan diff = DateTime.UtcNow-ctx.Message.TimeSent;
+            int milli = diff.Milliseconds;
+            await ctx.ReplyAsync($"Pong {milli}ms");
+        }
 
         [Command("help")]
         [Summary("Returns all commands")]
@@ -33,7 +40,7 @@ namespace PopeAI.Commands.Generic
         {
             int skip = page*10;
             string content = "| command |\n| :-: |\n";
-            foreach (Help help in DBContext.Helps.Skip(skip).Take(10))
+            foreach (Help help in Client.DBContext.Helps.Skip(skip).Take(10))
             {
                 content += $"| {help.Message} |\n";
             }
@@ -45,7 +52,7 @@ namespace PopeAI.Commands.Generic
         public async Task Help(CommandContext ctx)
         {
             string content = "| command |\n| :-: |\n";
-            foreach (Help help in DBContext.Helps.Take(10))
+            foreach (Help help in Client.DBContext.Helps.Take(10))
             {
                 content += $"| {help.Message} |\n";
             }

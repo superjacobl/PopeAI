@@ -114,7 +114,6 @@ namespace Valour.Net
             CommandContext ctx = new CommandContext();
             await ctx.Set(message);
             await EventService.OnMessage(ctx);
-            await OnMessage.Invoke(message);
 
             // check to see if message has a command in it
 
@@ -131,7 +130,7 @@ namespace Valour.Net
 
                 // get command
 
-                string commandname = message.Content.Split(" ")[0].Replace(BotPrefix, "");
+                string commandname = message.Content.Split(" ")[0].Replace(BotPrefix, "").ToLower();
 
                 CommandInfo command = CommandService.RunCommandString(commandname, args, ctx);
 

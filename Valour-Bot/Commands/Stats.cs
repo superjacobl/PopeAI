@@ -18,7 +18,6 @@ namespace PopeAI.Commands.Generic
 {
     public class Stats : CommandModuleBase
     {
-        PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
         public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>();
         static Random rnd = new Random();
 
@@ -38,7 +37,7 @@ namespace PopeAI.Commands.Generic
             [Summary("Shows available commands.")]
             public async Task StatsMessages(CommandContext ctx)
             {
-                List<Stat> stats = await Task.Run(() => DBContext.Stats.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.Time).Take(6).ToList());
+                List<Stat> stats = await Task.Run(() => Client.DBContext.Stats.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.Time).Take(6).ToList());
                 List<int> data = new List<int>();
                 foreach (Stat stat in stats)
                 {
@@ -52,7 +51,7 @@ namespace PopeAI.Commands.Generic
             [Summary("Shows available commands.")]
             public async Task StatsCoins(CommandContext ctx)
             {
-                List<Stat> stats = await Task.Run(() => DBContext.Stats.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.Time).Take(6).ToList());
+                List<Stat> stats = await Task.Run(() => Client.DBContext.Stats.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.Time).Take(6).ToList());
                 List<int> data = new List<int>();
                 foreach (Stat stat in stats)
                 {
@@ -77,6 +76,9 @@ namespace PopeAI.Commands.Generic
             foreach (int num in data)
             {
                 double n = (double)num * muit;
+                if (n < 0) {
+                    n = 0;
+                }
                 newdata.Add((int)n);
             }
 

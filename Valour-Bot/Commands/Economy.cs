@@ -32,20 +32,31 @@ namespace PopeAI.Commands.Economy
 {
     public class Economy : CommandModuleBase
     {
-        PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
         Random rnd = new Random();
         [Command("hourly")]
         [Alias("h")]
         public async Task hourly(CommandContext ctx)
         {
-            User DBUser = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
+            User DBUser = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
             int minutesleft = (DBUser.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
             if (minutesleft <= 0) {
+                // check if the member has a daily task 
+                DailyTask task = await Client.DBContext.DailyTasks.FirstOrDefaultAsync(x => x.MemberId == ctx.Member.Id && x.TaskType == "Hourly Claims");
+                if (task != null) {
+                    if (task.Done < task.Goal) {
+                        task.Done += 1;
+                        if (task.Done == task.Goal) {
+                            DBUser.Coins += task.Reward;
+                            await Client.DBContext.AddStat("Coins", task.Reward, ctx.Message.Planet_Id, Client.DBContext);
+                            await ctx.ReplyAsync($"Your {task.TaskType} daily task is done! You get {task.Reward} coins.");
+                        }
+                    }
+                }
                 double payout = (double)rnd.Next(30,50);
                 DBUser.Coins += payout;
                 DBUser.LastHourly = DateTime.UtcNow;
-                await DBContext.AddStat("Coins", payout,  ctx.Message.Planet_Id, DBContext);
-                await DBContext.SaveChangesAsync();
+                await Client.DBContext.AddStat("Coins", payout,  ctx.Message.Planet_Id, Client.DBContext);
+                await Client.DBContext.SaveChangesAsync();
                 await ctx.ReplyAsync($"Your got {payout} coins!");
             }
             else {
@@ -57,10 +68,10 @@ namespace PopeAI.Commands.Economy
         [Alias("r")]
         public async Task richest(CommandContext ctx)
         {
-            List<User> DBUsers = await Task.Run(() => DBContext.Users.Where(x => x.PlanetId ==  ctx.Message.Planet_Id).OrderByDescending(x => x.Coins).Take(10).ToList());
+            List<User> DBUsers = await Task.Run(() => Client.DBContext.Users.Where(x => x.PlanetId ==  ctx.Message.Planet_Id).OrderByDescending(x => x.Coins).Take(10).ToList());
             string content = "| nickname | coins |\n| :- | :-\n";
             foreach(User user in DBUsers) {
-                PlanetMember clientuser = await user.GetAuthor(ctx.Message.Planet_Id);
+                PlanetMember clientuser = await user.GetAuthor();
                 content += $"{clientuser.Nickname} | {(ulong)user.Coins} coins\n";
             }
             await ctx.ReplyAsync(content);
@@ -69,7 +80,7 @@ namespace PopeAI.Commands.Economy
         [Alias("c")]
         public async Task coins(CommandContext ctx)
         {
-            User DBUser = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
+            User DBUser = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
             await ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)DBUser.Coins}");
         }
 
@@ -77,7 +88,7 @@ namespace PopeAI.Commands.Economy
         [Alias("donate")]
         public async Task Charity(CommandContext ctx, double amount)
         {
-            User DBUser = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
+            User DBUser = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
             if (amount > DBUser.Coins) {
                 await ctx.ReplyAsync("You can not donate more coins than you currently have!");
                 return;
@@ -87,12 +98,12 @@ namespace PopeAI.Commands.Economy
                 return;
             }
             DBUser.Coins -= amount;
-            double CoinsPer = amount/DBContext.Users.Count();
-            foreach(User user in DBContext.Users) {
+            double CoinsPer = amount/Client.DBContext.Users.Count();
+            foreach(User user in Client.DBContext.Users) {
                 user.Coins += CoinsPer;
             }
             await ctx.ReplyAsync($"Gave {Math.Round((decimal)CoinsPer, 2)} coins to every user!");
-            await DBContext.SaveChangesAsync();
+            await Client.DBContext.SaveChangesAsync();
         }
 
         [Command("charity")]
@@ -105,11 +116,26 @@ namespace PopeAI.Commands.Economy
         [Command("dice")]
         public async Task Dice(CommandContext ctx, double bet)
         {
-            User DBUser = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
+            User DBUser = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
             if (DBUser.Coins < bet) {
                 await ctx.ReplyAsync("Bet must not be above your coins!");
                 return;
             }
+
+            // check if the member has a daily task 
+            DailyTask task = await Client.DBContext.DailyTasks.FirstOrDefaultAsync(x => x.MemberId == ctx.Member.Id && x.TaskType == "Dice Games Played");
+            if (task != null) {
+                if (task.Done < task.Goal) {
+                    task.Done += 1;
+                    if (task.Done == task.Goal) {
+                        DBUser.Coins += task.Reward;
+                        await Client.DBContext.AddStat("Coins", task.Reward, ctx.Message.Planet_Id, Client.DBContext);
+                        await ctx.ReplyAsync($"Your {task.TaskType} daily task is done! You get {task.Reward} coins.");
+                    }
+                    await Client.DBContext.SaveChangesAsync();
+                }
+            }
+
             int usernum1 = rnd.Next(1, 6);
             int usernum2 = rnd.Next(1, 6);
             int opnum1 = rnd.Next(1, 6);
@@ -130,16 +156,16 @@ namespace PopeAI.Commands.Economy
                 if (usernum1+usernum2 > opnum1+opnum2) {
                     data.Add($"You won {bet} coins!");
                     DBUser.Coins += bet;
-                    await DBContext.AddStat("Coins", bet,  ctx.Message.Planet_Id, DBContext);
+                    await Client.DBContext.AddStat("Coins", bet,  ctx.Message.Planet_Id, Client.DBContext);
                 }
                 else {
                     data.Add($"You lost {bet} coins.");
                     DBUser.Coins -= bet;
-                    await DBContext.AddStat("Coins", 0-bet,  ctx.Message.Planet_Id, DBContext);
+                    await Client.DBContext.AddStat("Coins", 0-bet,  ctx.Message.Planet_Id, Client.DBContext);
                 }
             }
 
-            await DBContext.SaveChangesAsync();
+            await Client.DBContext.SaveChangesAsync();
 
             ctx.ReplyWithMessagesAsync(1750, data);
         } 
@@ -160,7 +186,7 @@ namespace PopeAI.Commands.Economy
         [Command("gamble")]
         public async Task Gamble(CommandContext ctx, string t)
         {
-            await ctx.ReplyAsync("Current Useage: /gamble <color> <bet>");
+            await ctx.ReplyAsync("Command Useage: /gamble <color> <bet>");
         }
 
         [Command("gamble")]
@@ -171,7 +197,7 @@ namespace PopeAI.Commands.Economy
                 return;
             }
 
-            User DBUser = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
+            User DBUser = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId ==  ctx.Message.Author_Id && x.PlanetId ==  ctx.Message.Planet_Id);
             if (DBUser.Coins < bet) {
                 await ctx.ReplyAsync("Bet must not be above your coins!");
                 return;
@@ -222,16 +248,85 @@ namespace PopeAI.Commands.Economy
             if (Winner == choice) {
                 DBUser.Coins += amount;
                 data.Add($"You won {Math.Round(amount-bet)} coins!");
-                await DBContext.AddStat("Coins", amount-bet,  ctx.Message.Planet_Id, DBContext);
+                await Client.DBContext.AddStat("Coins", amount-bet,  ctx.Message.Planet_Id, Client.DBContext);
             }
             else {
                 data.Add($"You did not win.");
-                await DBContext.AddStat("Coins", 0-bet,  ctx.Message.Planet_Id, DBContext);
+                await Client.DBContext.AddStat("Coins", 0-bet,  ctx.Message.Planet_Id, Client.DBContext);
             }
 
-            await DBContext.SaveChangesAsync();
+            await Client.DBContext.SaveChangesAsync();
 
              ctx.ReplyWithMessagesAsync(1750, data);
         }
+
+        [Group("roleincome")]
+        public class RoleIncomeGroup : CommandModuleBase
+        {
+            PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
+
+            [Command("set")]
+            public async Task SetAsync(CommandContext ctx, double rate, [Remainder] string rolename)
+            {
+                if (await ctx.Member.IsOwner() != true) {
+                    await ctx.ReplyAsync($"Only the owner of this server can use this command!");
+                    return;
+                }
+
+                RoleIncomes roleincome = await Client.DBContext.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == ctx.Message.Planet_Id);
+
+                if (roleincome == null) {
+
+                    PlanetRole role = await (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
+
+                    if (role == null) {
+                        await ctx.ReplyAsync($"Could not find role {rolename}!");
+                        return;
+                    }
+
+                    roleincome = new RoleIncomes();
+
+                    roleincome.Income = rate;
+                    roleincome.RoleId = role.Id;
+                    roleincome.PlanetId = ctx.Message.Planet_Id;
+                    roleincome.RoleName = role.Name;
+                    roleincome.LastPaidOut = DateTime.UtcNow;
+
+                    Client.DBContext.RoleIncomes.Add(roleincome);
+
+                    Client.DBContext.SaveChanges();
+
+                    await ctx.ReplyAsync($"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
+                }
+
+                else {
+                    roleincome.Income = rate;
+                    await Client.DBContext.SaveChangesAsync();
+                    await ctx.ReplyAsync($"Set {rolename}'s hourly income/cost to {roleincome.Income} coins!");
+                }
+            }
+            [Command("")]
+            public async Task ViewAsync(CommandContext ctx, [Remainder] string rolename)
+            {
+                PlanetRole role = await (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
+
+                if (role == null) {
+                    await ctx.ReplyAsync($"Could not find role {rolename}");
+                    return;
+                }
+
+                RoleIncomes roleincome = await Client.DBContext.RoleIncomes.FirstOrDefaultAsync(x => x.RoleName == rolename && x.PlanetId == ctx.Message.Planet_Id);
+
+                if (roleincome == null) {
+                    await ctx.ReplyAsync($"Hourly Income/Cost has not been set for role {rolename}");
+                    return;
+                }
+
+                await ctx.ReplyAsync($"Hourly Income/Cost for {rolename} is {roleincome.Income} coins");
+            }
+            // add way to view roleincome as table
+        }
+
+
     }
 }

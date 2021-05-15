@@ -11,14 +11,13 @@ namespace PopeAI
         [Key]
         public ulong Id { get; set; }
         public ulong UserId { get; set; }
-
         public double Xp { get; set; }
         public ulong PlanetId { get; set; }
         public double Coins { get; set; }
         public DateTime LastHourly { get; set; }
 
-        public async Task<PlanetMember> GetAuthor(ulong Planet_Id) {
-            PlanetMember planetUser = await Cache.GetPlanetMember(UserId, Planet_Id);
+        public async Task<PlanetMember> GetAuthor() {
+            PlanetMember planetUser = await Cache.GetPlanetMember(UserId, PlanetId);
 
             return planetUser;
         }

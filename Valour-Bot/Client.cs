@@ -42,7 +42,7 @@ namespace PopeAI
     }
     class Client
     {
-        public static PopeAIDB Context = new PopeAIDB(PopeAIDB.DBOptions);
+        public static PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
         public static Config Config {get; set;}
 
         public static HubConnection hubConnection = new HubConnectionBuilder()

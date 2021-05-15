@@ -11,7 +11,6 @@ namespace PopeAI.Commands.Unscramble
 {
     public class Unscramble : CommandModuleBase
     {
-        PopeAIDB DBContext = new PopeAIDB(PopeAIDB.DBOptions);
         public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>();
         static Random rnd = new Random();
 
@@ -34,11 +33,11 @@ namespace PopeAI.Commands.Unscramble
             {
                 if (ScrambledWords[ctx.Member.Id] == ctx.Message.Content.ToLower())
                 {
-                    User user = await DBContext.Users.FirstOrDefaultAsync(x => x.UserId == ctx.Message.Author_Id && x.PlanetId == ctx.Message.Planet_Id);
+                    User user = await Client.DBContext.Users.FirstOrDefaultAsync(x => x.UserId == ctx.Message.Author_Id && x.PlanetId == ctx.Message.Planet_Id);
                     double reward = (double)rnd.Next(1, 20);
-                    await DBContext.AddStat("Coins", reward, ctx.Message.Planet_Id, DBContext);
+                    await Client.DBContext.AddStat("Coins", reward, ctx.Message.Planet_Id, Client.DBContext);
                     user.Coins += reward;
-                    await DBContext.SaveChangesAsync();
+                    await Client.DBContext.SaveChangesAsync();
                     await ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
                 }
                 else
