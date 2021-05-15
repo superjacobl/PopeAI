@@ -277,7 +277,7 @@ namespace PopeAI.Commands.Economy
 
                 if (roleincome == null) {
 
-                    PlanetRole role = await (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
+                    PlanetRole role = (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
 
                     if (role == null) {
                         await ctx.ReplyAsync($"Could not find role {rolename}!");
@@ -308,7 +308,7 @@ namespace PopeAI.Commands.Economy
             [Command("")]
             public async Task ViewAsync(CommandContext ctx, [Remainder] string rolename)
             {
-                PlanetRole role = await (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
+                PlanetRole role = (await Cache.GetPlanet(ctx.Planet.Id)).GetRole(rolename);
 
                 if (role == null) {
                     await ctx.ReplyAsync($"Could not find role {rolename}");
