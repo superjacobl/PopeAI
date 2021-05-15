@@ -51,7 +51,7 @@ namespace PopeAI
 
             ValourClient.BotPrefix = "/";
 
-            await ValourClient.Start("jacoblower26@gmail.com",Client.Config.BotPassword);
+            await ValourClient.Start(Client.Config.Email,Client.Config.BotPassword);
 
             ValourClient.RegisterModules();
             
