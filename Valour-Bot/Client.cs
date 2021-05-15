@@ -32,6 +32,8 @@ namespace PopeAI
         public string CommandSign { get; set; }
         [JsonProperty]
         public string BotPassword {get; set;}
+        [JsonProperty]
+        public string Email { get; set; }
 
 
         public Config()
@@ -75,7 +77,8 @@ namespace PopeAI
                     Host = "host",
                     Password = "password",
                     Username = "user",
-                    BotPassword = "BotPassword"
+                    BotPassword = "BotPassword",
+                    Email = "Bot's Email"
                 };
 
                 File.WriteAllText("PopeAIConfig/config.json", JsonConvert.SerializeObject(Config));
