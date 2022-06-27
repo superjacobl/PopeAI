@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <RootNamespace>Valour_Bot</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IdGen" Version="3.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.0-preview.5.22303.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0-preview.5.22302.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0-preview.5.22302.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-preview.5.22302.2" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0-preview.5.22301.12" />
+    <PackageReference Include="System.Net.Http.Json" Version="7.0.0-preview.5.22301.12" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0-preview.5.22301.12" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0-preview.5.22301.12" />
+    <!-- <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" />
+    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\Valour.Net\Valour.Net.csproj" />
+  </ItemGroup>
+
+</Project>

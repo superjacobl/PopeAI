@@ -213,4 +213,7 @@ project.lock.json
 
 /Valour-Bot/PopeAIConfig/config.json
 global.json
-Valour.Net/obj/
+Shared/*
+Valour.Api/*
+Valour.Net/*
+PopeAI/PopeAIConfig/config.json
