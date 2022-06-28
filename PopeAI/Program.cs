@@ -27,17 +27,11 @@ global using PopeAI.Database.Models.Bot;
 global using PopeAI.Bot.Managers;
 global using PopeAI.Database.Models.Planets;
 global using Microsoft.AspNetCore;
+global using PopeAI.Database.Models.Messaging;
 
 using System.Net.Http;
 
 namespace PopeAI;
-
-class OwnershipData
-{
-    public string ownerId { get; set; }
-    public string ownerName { get; set; }
-    public int amount { get; set; }
-}
 
 class Program
 {
@@ -73,7 +67,15 @@ class Program
 
         while (true)
         {
-            Console.ReadLine();
+            try
+            {
+                await DBCache.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            await Task.Delay(60);
         }
     }
 

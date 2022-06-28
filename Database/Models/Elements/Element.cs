@@ -12,6 +12,8 @@ public class Element
 {
     [Key]
     public ulong Id { get; set; }
+
+    [VarChar(16)]
     public string Name { get; set; }
     public ulong Found { get; set; }
     public ulong Finder_Id { get; set; }

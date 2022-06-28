@@ -78,8 +78,8 @@ public class DBUser
         LastSentMessage = DateTime.UtcNow;
         LastHourly = DateTime.UtcNow.AddHours(-10);
         Id = planetMember.Id;
-        UserId = planetMember.User_Id;
-        PlanetId = planetMember.Planet_Id;
+        UserId = planetMember.UserId;
+        PlanetId = planetMember.PlanetId;
     }
 
     public void NewMessage(PlanetMessage msg)

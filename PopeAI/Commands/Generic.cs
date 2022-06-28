@@ -1,8 +1,4 @@
 using System.Diagnostics;
-/*
-stats
-roll
-*/
 
 namespace PopeAI.Commands.Generic
 {
@@ -20,6 +16,20 @@ namespace PopeAI.Commands.Generic
             await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
             sw.Stop();
             await ctx.ReplyAsync($"Pong {(int)sw.ElapsedMilliseconds}ms\n");
+        }
+
+        [Command("longping")]
+        public async Task LongPing(CommandContext ctx)
+        {
+
+            Stopwatch sw = new();
+            sw.Start();
+            for (int i = 0; i < 20; i++)
+            {
+                await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
+            }
+            sw.Stop();
+            await ctx.ReplyAsync($"Pong {(int)(sw.ElapsedMilliseconds/20)}ms\n");
         }
 
         [Command("help")]
@@ -49,9 +59,9 @@ namespace PopeAI.Commands.Generic
 
         [Command("isdiscordgood")]
         [Summary("Determines if discord is good or bad.")]
-        public async Task IsDiscordGood(CommandContext ctx)
+        public Task IsDiscordGood(CommandContext ctx)
         {
-            await ctx.ReplyAsync("no, dickcord is bad!");
+            return ctx.ReplyAsync("no, dickcord is bad!");
         }
     }
 }

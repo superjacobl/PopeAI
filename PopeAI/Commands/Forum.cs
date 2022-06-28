@@ -1,15 +1,10 @@
-/*
- * testgraph
- */
+namespace PopeAI.Commands.Forum;
 
-namespace PopeAI.Commands.Forum
+public class Forum : CommandModuleBase
 {
-    public class Forum : CommandModuleBase
+    [Command("forum")]
+    public async Task forum(CommandContext context)
     {
-        [Command("forum")]
-        public async Task forum(CommandContext context)
-        {
-            
-        }
+        
     }
 }

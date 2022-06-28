@@ -1,7 +1,3 @@
-/*
-
- */
-
 namespace PopeAI.Commands.Banking
 {
     public class Banking : CommandModuleBase

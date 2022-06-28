@@ -12,6 +12,6 @@ public class SuggestionVote
 {
     [Key]
     public ulong Id { get; set; }
-    public ulong User_Id { get; set; }
-    public ulong Suggestion_Id { get; set; }
+    public ulong UserId { get; set; }
+    public ulong SuggestionId { get; set; }
 }

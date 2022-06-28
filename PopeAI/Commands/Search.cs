@@ -22,27 +22,27 @@ public class Search : CommandModuleBase
     public async Task OutputToListOld(List<Message> msgs, CommandContext ctx, ulong Id = 0) {
         string content = "";
         foreach(Message msg in msgs) {
-            PlanetMember member = await PlanetMember.FindAsync(msg.Member_Id);
-            if (msg.Planet_Index == Id) {
-                content += $"=>({msg.Planet_Index}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
+            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
+            if (msg.PlanetIndex == Id) {
+                content += $"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
             }
             else {
-                content += $"({msg.Planet_Index}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
+                content += $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
             }
         }
-        ctx.ReplyAsync(content);
+        await ctx.ReplyAsync(content);
     }
 
     public async Task OutputToList(List<Message> msgs, CommandContext ctx, ulong Id = 0) {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedPageBuilder page = new EmbedPageBuilder();
         foreach(Message msg in msgs) {
-            PlanetMember member = await PlanetMember.FindAsync(msg.Member_Id);
-            if (msg.Planet_Index == Id) {
-                page.AddText(text:$"=>({msg.Planet_Index}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
+            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
+            if (msg.PlanetIndex == Id) {
+                page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
             }
             else {
-                page.AddText(text: $"({msg.Planet_Index}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
+                page.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
             }
             if (page.Items.Count() > 13) {
                 embed.AddPage(page);
@@ -52,13 +52,13 @@ public class Search : CommandModuleBase
         if (page.Items.Count() != 0) {
             embed.AddPage(page);
         }
-        ctx.ReplyAsync(embed:embed);
+        await ctx.ReplyAsync(embed:embed);
     }
 
     [Command("view")]
     public async Task ViewAsync(CommandContext ctx, ulong Id)
     {
-        List<Message> msgs = await Task.Run(() => Client.DBContext.Messages.Where(x => x.Planet_Id == ctx.Planet.Id && x.Planet_Index > Id-6 && x.Planet_Index < Id+6).Take(20).ToList());  
+        List<Message> msgs = await Task.Run(() => Client.DBContext.Messages.Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-6 && x.PlanetIndex < Id+6).Take(20).ToList());  
         await OutputToList(msgs, ctx, Id);
     }
 
@@ -114,7 +114,7 @@ public class Search : CommandModuleBase
                         string v = value.Replace("«@m-", "");
                         v = v.Replace("»","");
                         if (ulong.TryParse(v, out ulong MemberID)) {
-                            search = search.Where(x => x.Member_Id == MemberID);
+                            search = search.Where(x => x.MemberId == MemberID);
                         }
                     }
                     break;
@@ -126,7 +126,7 @@ public class Search : CommandModuleBase
             search = search.Where(x => x.SearchVector.Matches(need));
         }
 
-        List<Message> messages = await search.OrderByDescending(x => x.Planet_Id).Take(100).ToListAsync();
+        List<Message> messages = await search.OrderByDescending(x => x.PlanetId).Take(100).ToListAsync();
         
         return messages;
     }

@@ -10,7 +10,7 @@ namespace PopeAI.Commands.Mod
         [Command("purge")]
         public async Task PurgeAsync(CommandContext ctx, int messages)
         {
-            if (!(ctx.Member.User_Id == ctx.Planet.Owner_Id)) {
+            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
                 return;
             }
             //if (!(await ctx.Channel.HasPermissionAsync(ctx.Member.Id, ChatChannelPermissions.ManageMessages))) {
@@ -24,7 +24,7 @@ namespace PopeAI.Commands.Mod
             await ctx.ReplyAsync($"Purging {messages} from this channel!");
             int i = 0;
             foreach(PlanetMessage message in ChannelMessages) {
-                if ((await (await message.GetAuthorAsync()).GetUserAsync()).Id == ctx.Planet.Owner_Id) {
+                if ((await (await message.GetAuthorAsync()).GetUserAsync()).Id == ctx.Planet.OwnerId) {
                     continue;
                 }
                 Console.WriteLine(message.Content);

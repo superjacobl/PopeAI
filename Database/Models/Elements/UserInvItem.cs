@@ -11,8 +11,25 @@ namespace PopeAI.Database.Models.Elements;
 public class UserInvItem
 {
     [Key]
-    public ulong Id { get; set; }
-    public ulong User_Id { get; set; }
+    public int Id { get; set; }
+    public ulong UserId { get; set; }
+
+    [VarChar(16)]
     public string Element { get; set; }
     public DateTime TimeFound { get; set; }
+
+    public UserInvItem(int id, ulong userId, string element, DateTime timeFound)
+    {
+        Id = id;
+        UserId = userId;
+        Element = element;
+        TimeFound = timeFound;
+    }
+
+    public UserInvItem(ulong userId, string element)
+    {
+        UserId = userId;
+        Element = element;
+        TimeFound = DateTime.UtcNow;
+    }
 }

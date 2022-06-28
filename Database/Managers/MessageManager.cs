@@ -16,13 +16,13 @@ public static class MessageManager
             Message msg = new()
             {
                 Id = message.Id,
-                Author_Id = message.Author_Id,
-                Member_Id = message.Member_Id,
+                AuthorId = message.AuthorId,
+                MemberId = message.MemberId,
                 Content = message.Content,
                 TimeSent = message.TimeSent,
-                Channel_Id = message.Channel_Id,
+                ChannelId = message.ChannelId,
                 MessageIndex = message.MessageIndex,
-                Planet_Id = message.Planet_Id,
+                PlanetId = message.PlanetId,
                 EmbedData = message.EmbedData,
                 MentionsData = message.MentionsData
             };
@@ -33,11 +33,11 @@ public static class MessageManager
             Console.WriteLine(result);
 
             await dbctx.Messages.AddAsync(msg);
-            PlanetInfo? info = DBCache.Get<PlanetInfo>(msg.Planet_Id);
+            PlanetInfo? info = DBCache.Get<PlanetInfo>(msg.PlanetId);
             if (info == null)
             {
                 info = new PlanetInfo();
-                info.PlanetId = message.Planet_Id;
+                info.PlanetId = message.PlanetId;
                 await DBCache.Put(info.PlanetId, info);
                 await dbctx.PlanetInfos.AddAsync(info);
                 await dbctx.SaveChangesAsync();
@@ -45,22 +45,22 @@ public static class MessageManager
 
             if (false)
             {
-                Message? last = await dbctx.Messages.Where(x => x.Planet_Id == msg.Planet_Id).OrderByDescending(x => x.Planet_Index).FirstOrDefaultAsync();
+                Message? last = await dbctx.Messages.Where(x => x.PlanetId == msg.PlanetId).OrderByDescending(x => x.Planet_Index).FirstOrDefaultAsync();
                 if (last != null)
                 {
-                    msg.Planet_Index = last.Planet_Index + 1;
+                    msg.PlanetIndex = last.PlanetIndex + 1;
                 }
                 else
                 {
-                    msg.Planet_Index = 0;
+                    msg.PlanetIndex = 0;
                 }
             }
-            msg.Planet_Index = info.MessagesStored;
+            msg.PlanetIndex = info.MessagesStored;
             info.MessagesStored += 1;
 
             StatManager.selfstat.MessagesSent += 1;
             StatManager.selfstat.StoredMessages += 1;
-            if (msg.Author_Id == ValourClient.Self.Id)
+            if (msg.AuthorId == ValourClient.Self.Id)
             {
                 StatManager.selfstat.MessagesSentSelf += 1;
             }

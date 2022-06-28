@@ -1,22 +1,4 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-
-using System.Threading.Tasks;
-using PopeAI.Database;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-
 namespace PopeAI.Database.Models.Planets;
-
-public class Union2<A, B>
-{
-    public Union2(A obja)
-    {
-        A item = obja;
-        Console.WriteLine(item);
-    }
-}
 
 public enum FliterWordType
 {

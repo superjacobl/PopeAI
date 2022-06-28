@@ -1,15 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-using PopeAI.Database;
-using PopeAI;
-using Microsoft.EntityFrameworkCore;
-
-namespace PopeAI.Models
+/* namespace PopeAI.Database.Models.Lottery
 {
     public class Lottery
     {
@@ -40,3 +31,4 @@ namespace PopeAI.Models
         }
     }
 }
+*/

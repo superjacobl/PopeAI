@@ -7,28 +7,27 @@ namespace PopeAI.Commands.Unscramble
 
         [Command("unscramble")]
         [Summary("Unscramble a given word!")]
-        public async Task UnscrambleStart(CommandContext ctx)
+        public Task UnscrambleStart(CommandContext ctx)
         {
             List<string> words = new List<string>();
             words.AddRange("random,channel,planet,valour,discord,youtube,google,firefox,github,bots,discordbot,valourbot,people,history,way,art,world,information,map,two,family,government,health,system,computer,meat,year,thanks,music,person,reading,method,data,food,understanding,theory,law,bird,problem,software,control,power,love,internet,phone,television,science,library,nature,fact,product,idea,temperature,investment,area,society,story,activity,industry,element,planet".Split(","));
             string pickedword = words[rnd.Next(0, words.Count())];
             string scrambed = ScrambleWord(pickedword);
             ScrambledWords.Add(ctx.Member.Id, pickedword);
-            await ctx.ReplyAsync($"Unscramble {scrambed} for a reward! (reply with the unscrambed word)");
+            return ctx.ReplyAsync($"Unscramble {scrambed} for a reward! (reply with the unscrambed word)");
         }
 
-        [Event("Message")]
+        [Event(EventType.Message)]
         public async Task OnMessage(CommandContext ctx)
         {
             if (ScrambledWords.ContainsKey(ctx.Member.Id))
             {
                 if (ScrambledWords[ctx.Member.Id] == ctx.Message.Content.ToLower())
                 {
-                    DBUser user = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
-                    double reward = (double)rnd.Next(5, 25);
-                    await Client.DBContext.AddStat("Coins", reward, ctx.Planet.Id, Client.DBContext);
+                    DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
+                    double reward = rnd.Next(5, 25);
+                    await StatManager.AddStat(CurrentStatType.Coins, reward, ctx.Planet.Id);
                     user.Coins += reward;
-                    await Client.DBContext.SaveChangesAsync();
                     await ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
                 }
                 else

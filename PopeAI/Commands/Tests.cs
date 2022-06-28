@@ -83,7 +83,7 @@ namespace PopeAI.Commands.Tests
         [Command("fastcount")]
         public async Task FastCountAsync(CommandContext ctx, int times, int delay, int makebigger)
         {
-            if (!(ctx.Member.User_Id == ctx.Planet.Owner_Id)) {
+            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
                 return;
             }
             if (times > 10000) {
@@ -107,7 +107,7 @@ namespace PopeAI.Commands.Tests
         [Command("count")]
         public async Task CountAsync(CommandContext ctx, int times, int delay)
         {
-            if (!(ctx.Member.User_Id == ctx.Planet.Owner_Id)) {
+            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
                 return;
             }
             if (times > 1000) {
@@ -125,7 +125,7 @@ namespace PopeAI.Commands.Tests
         //[Summary("Echoes a message.")]
         public async Task EchoAsync(CommandContext ctx, int times, [Remainder] string echo)
         {
-            if (!(ctx.Member.User_Id == ctx.Planet.Owner_Id)) {
+            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
                 return;
             }
             if (times > 1000) {
@@ -160,7 +160,7 @@ namespace PopeAI.Commands.Tests
             await ctx.ReplyAsync($"{num * 2}");
         }
 
-        [Event("User Lacks the Role To Use This Command")]
+        //[Event(EventType.)]
         public async Task UserCantUseCommandAsync(CommandContext ctx, string commandname)
         {
             await ctx.ReplyAsync($"You can't use this command!");

@@ -19,9 +19,7 @@ global using PopeAI.Database.Models.Bot;
 global using Npgsql.EntityFrameworkCore;
 global using NpgsqlTypes;
 
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using PopeAI.Models;
-using IdGen;
 using Valour.Api.Items.Planets;
 using System.Data.Common;
 using System.Data;
@@ -75,31 +73,24 @@ namespace PopeAI.Database
 
         public static List<T> RawSqlQuery<T>(string query, Func<DbDataReader, T> map)
         {
-            using (DbCommand command = Client.DBContext.Database.GetDbConnection().CreateCommand())
+            using DbCommand command = Client.DBContext.Database.GetDbConnection().CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+
+            Client.DBContext.Database.OpenConnection();
+
+            using var result = command.ExecuteReader();
+            var entities = new List<T>();
+
+            while (result.Read())
             {
-                command.CommandText = query;
-                command.CommandType = CommandType.Text;
-
-                Client.DBContext.Database.OpenConnection();
-
-                using (var result = command.ExecuteReader())
-                {
-                    var entities = new List<T>();
-
-                    while (result.Read())
-                    {
-                        entities.Add(map(result));
-                    }
-
-                    return entities;
-                }
+                entities.Add(map(result));
             }
+
+            return entities;
         }
 
-        public static PopeAIDB Instance = new PopeAIDB(DBOptions);
-
-        // These are the database sets we can access
-        //public DbSet<ClientPlanetMessage> Messages { get; set; }
+        public static PopeAIDB Instance = new(DBOptions);
 
         /// <summary>
         /// This is only here to fulfill the need of the constructor.
@@ -109,15 +100,10 @@ namespace PopeAI.Database
 
         public DbSet<DBUser> Users { get; set; }
 
-        public DbSet<ShopReward> ShopRewards { get; set; }
-
         public DbSet<CurrentStat> CurrentStats { get; set; }
 
         public DbSet<Stat> Stats { get; set; }
-        public DbSet<RoleIncomes> RoleIncomes { get; set; }
         public DbSet<Help> Helps { get; set; }
-        public DbSet<Lottery> Lotteries { get; set; }
-        public DbSet<LotteryTicket> LotteryTickets { get; set; }
         public DbSet<DailyTask> DailyTasks { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<PlanetInfo> PlanetInfos { get; set; }
