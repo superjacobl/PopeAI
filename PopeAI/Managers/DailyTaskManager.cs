@@ -8,8 +8,8 @@ namespace PopeAI.Bot.Managers;
 public static class DailyTaskManager
 {
     public static Random rnd = new();
-    public static IdManager idManager = new IdManager();
-    public static PopeAIDB dbctx = new PopeAIDB(PopeAIDB.DBOptions);
+    public static IdManager idManager = new();
+    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
     public static async Task DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
     {
         var user = DBCache.Get<DBUser>(MemberId)!;
@@ -52,7 +52,7 @@ public static class DailyTaskManager
 
     public static IEnumerable<DailyTask> GenerateNewDailyTasks(ulong Memberid)
     {
-        List<DailyTask> toadd = new List<DailyTask>();
+        List<DailyTask> toadd = new();
 
         for (int i = 0; i < 3; i++)
         {
@@ -99,12 +99,6 @@ public static class DailyTaskManager
     }
     public static async Task UpdateDailyTasks()
     {
-
-        // make this much faster please
-        // this gets far too many mysql rows
-
-        // this is much better, but still eventually fix the things listed above
-
         // only replace dailytasks if the day is different
 
         if (DBCache.GetAll<DailyTask>().FirstOrDefault() is not null)
@@ -128,7 +122,7 @@ public static class DailyTaskManager
                 oldtask.LastDayUpdated = task.LastDayUpdated;
                 oldtask.TaskType = task.TaskType;
             }
-            if (tasks.Count() > 0)
+            if (tasks.Count > 0)
             {
                 await dbctx.DailyTasks.AddRangeAsync(tasks);
                 foreach (var _task in tasks)

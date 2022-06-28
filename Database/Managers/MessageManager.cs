@@ -7,9 +7,9 @@ namespace PopeAI.Database.Managers;
 public static class MessageManager
 {
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
-    public static PopeAIDB dbctx = new PopeAIDB(PopeAIDB.DBOptions);
+    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
 
-    static public async Task<TaskResult> SaveMessage(PlanetMessage message)
+    public static async Task<TaskResult> SaveMessage(PlanetMessage message)
     {
         try
         {
@@ -30,7 +30,6 @@ public static class MessageManager
 
             // print hash
             string result = BitConverter.ToString(msg.Hash).Replace("-", string.Empty).Replace("A", "a").Replace("B", "b").Replace("C", "c").Replace("D", "d").Replace("E", "e").Replace("F", "f");
-            Console.WriteLine(result);
 
             await dbctx.Messages.AddAsync(msg);
             PlanetInfo? info = DBCache.Get<PlanetInfo>(msg.PlanetId);
@@ -58,7 +57,6 @@ public static class MessageManager
             msg.PlanetIndex = info.MessagesStored;
             info.MessagesStored += 1;
 
-            StatManager.selfstat.MessagesSent += 1;
             StatManager.selfstat.StoredMessages += 1;
             if (msg.AuthorId == ValourClient.Self.Id)
             {
@@ -66,17 +64,20 @@ public static class MessageManager
             }
 
             await dbctx.SaveChangesAsync();
+
+            return new TaskResult(true, result);
         }
         catch (SystemException ex)
         {
             Console.WriteLine(ex.ToString());
         }
 
-        return new TaskResult(true, "");
+        return new TaskResult(false, "");
     }
 
-    static public void AddToQueue(PlanetMessage msg)
+    public static void AddToQueue(PlanetMessage msg)
     {
+        StatManager.selfstat.MessagesSent += 1;
         if (msg.Content.Length > 8)
         {
             if (msg.Content.Substring(0, 7).Contains("/search") || msg.Content.Substring(0, 7).Contains("/view"))
@@ -87,7 +88,7 @@ public static class MessageManager
         messageQueue.Enqueue(msg);
     }
 
-    static public async Task<bool> Run()
+    public static async Task<bool> Run()
     {
         while (true)
         {
@@ -97,20 +98,19 @@ public static class MessageManager
                 continue;
             }
 
-            PlanetMessage msg;
-            bool dequeued = messageQueue.TryDequeue(out msg);
+            bool dequeued = messageQueue.TryDequeue(out PlanetMessage msg);
 
             if (!dequeued)
             {
                 continue;
             }
 
-            TaskResult result = await SaveMessage(msg);
+            TaskResult result = await SaveMessage(msg!);
 
             string success = "SUCC";
             if (!result.Success) success = "FAIL";
 
-            Console.WriteLine($"[{success}] Processed Message.");
+            Console.WriteLine($"[{success}] Processed Message [{result.Message}].");
 
             return true;
         }

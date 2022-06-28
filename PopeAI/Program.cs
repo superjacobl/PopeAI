@@ -35,13 +35,7 @@ namespace PopeAI;
 
 class Program
 {
-
-    static HttpClient client = new HttpClient();
-
-    static PopeAIDB Context = new PopeAIDB(PopeAIDB.DBOptions);
-
-    static Random rnd = new Random();
-
+    static HttpClient client = new();
 
     public static byte[] StringToByteArray(string hex) {
         return Enumerable.Range(0, hex.Length)
@@ -61,7 +55,7 @@ class Program
 
         Console.WriteLine("Hello World!");
 
-        Task task = Task.Run(async () => UpdateHourly( Client.DBContext));
+        Task task = Task.Run(UpdateHourly);
 
         //await PopeAI.Commands.Dev.Dev.DatabaseInfoAynsc(new CommandContext());
 
@@ -79,12 +73,19 @@ class Program
         }
     }
 
-    static async Task UpdateHourly(PopeAIDB Context) {
+    static async Task UpdateHourly() {
         while (true) {
             //await Context.UpdateLotteries(lotterycache, Context);
             //await Context.UpdateRoleIncomes(planets, false, Context);
-            await StatManager.CheckStats();
-            await DailyTaskManager.UpdateDailyTasks();
+            try
+            {
+                await StatManager.CheckStats();
+                await DailyTaskManager.UpdateDailyTasks();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
             await Task.Delay(60*60*1000);
         }
     }

@@ -34,8 +34,8 @@ public class Search : CommandModuleBase
     }
 
     public async Task OutputToList(List<Message> msgs, CommandContext ctx, ulong Id = 0) {
-        EmbedBuilder embed = new EmbedBuilder();
-        EmbedPageBuilder page = new EmbedPageBuilder();
+        EmbedBuilder embed = new();
+        EmbedPageBuilder page = new();
         foreach(Message msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
             if (msg.PlanetIndex == Id) {

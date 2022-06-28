@@ -119,97 +119,98 @@ namespace PopeAI.Database
 
         }
 
-        public async Task UpdateRoleIncomes(List<Planet> planets, bool force, PopeAIDB Context)
-        {
-            return;
-            RoleIncomes first = await Context.RoleIncomes.FirstOrDefaultAsync();
-            if (first == null)
-            {
-                first = new RoleIncomes();
-                first.LastPaidOut = DateTime.UtcNow;
-                first.RoleId = 0;
-            }
-            if (DateTime.UtcNow > first.LastPaidOut.AddHours(1) || first.RoleId == 0 || force)
-            {
-                List<PlanetMemberInfo> memberinfo = new List<PlanetMemberInfo>();
-                Dictionary<ulong, RoleIncomes> RoleIncomeRoleIds = new Dictionary<ulong, RoleIncomes>();
-                List<ulong> PlanetIds = new List<ulong>();
-                foreach (RoleIncomes roleincome in Context.RoleIncomes)
-                {
-                    RoleIncomeRoleIds.Add(roleincome.RoleId, roleincome);
-                    roleincome.LastPaidOut = DateTime.UtcNow;
-                    if (PlanetIds.Contains(roleincome.PlanetId) == false)
-                    {
-                        PlanetIds.Add(roleincome.PlanetId);
-                    }
-                }
-                foreach (ulong planetid in PlanetIds)
-                {
-                    int NewCoins = 0;
-                    CurrentStat current = await Context.CurrentStats.FirstOrDefaultAsync(x => x.PlanetId == planetid);
+        /*
+       public async Task UpdateRoleIncomes(List<Planet> planets, bool force, PopeAIDB Context)
+       {
+           return;
+           RoleIncomes first = await Context.RoleIncomes.FirstOrDefaultAsync();
+           if (first == null)
+           {
+               first = new RoleIncomes();
+               first.LastPaidOut = DateTime.UtcNow;
+               first.RoleId = 0;
+           }
+           if (DateTime.UtcNow > first.LastPaidOut.AddHours(1) || first.RoleId == 0 || force)
+           {
+               List<PlanetMemberInfo> memberinfo = new List<PlanetMemberInfo>();
+               Dictionary<ulong, RoleIncomes> RoleIncomeRoleIds = new Dictionary<ulong, RoleIncomes>();
+               List<ulong> PlanetIds = new List<ulong>();
+               foreach (RoleIncomes roleincome in Context.RoleIncomes)
+               {
+                   RoleIncomeRoleIds.Add(roleincome.RoleId, roleincome);
+                   roleincome.LastPaidOut = DateTime.UtcNow;
+                   if (PlanetIds.Contains(roleincome.PlanetId) == false)
+                   {
+                       PlanetIds.Add(roleincome.PlanetId);
+                   }
+               }
+               foreach (ulong planetid in PlanetIds)
+               {
+                   int NewCoins = 0;
+                   CurrentStat current = await Context.CurrentStats.FirstOrDefaultAsync(x => x.PlanetId == planetid);
 
-                    // could make this faster
-                    Planet planet = await Planet.FindAsync(planetid);
-                    foreach (PlanetMember member in await planet.GetMembersAsync())
-                    {
-                        if (member.User_Id == 735182348615742)
-                        {
-                            continue;
-                        }
-                        foreach (ulong roleid in (await member.GetRolesAsync()).Select(x => x.Id))
-                        {
-                            if (RoleIncomeRoleIds.ContainsKey(roleid))
-                            {
-                                RoleIncomes roleincome = RoleIncomeRoleIds[roleid];
-                                DBUser? user = DBCache.Get<DBUser>(member.Id);
-                                if (user != null)
-                                {
-                                    user.Coins += roleincome.Income;
-                                    NewCoins += roleincome.Income;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            await Context.SaveChangesAsync();
-        }
-
-        public async Task UpdateLotteries(Dictionary<ulong, Lottery> lotterycache, PopeAIDB Context)
-        {
-            return;
-            foreach (Lottery lottery in Context.Lotteries)
-            {
-                if (DateTime.UtcNow > lottery.EndDate)
-                {
-                    lotterycache.Remove(lottery.PlanetId);
-                    int total = (int)await Context.LotteryTickets.SumAsync(x => (double)x.Tickets);
-                    Random rnd = new Random();
-                    ulong WinningTicketNum = (ulong)rnd.Next(1, total + 1);
-                    ulong currentnum = 1;
-                    foreach (LotteryTicket ticket in Context.LotteryTickets.Where(x => x.PlanetId == lottery.PlanetId))
-                    {
-                        if (currentnum + ticket.Tickets >= WinningTicketNum)
-                        {
-                            if (lottery.Type == "message")
-                            {
-                                await StatManager.AddStat(CurrentStatType.Coins, (int)lottery.Jackpot, lottery.PlanetId);
-                            }
-                            DBUser winninguser = await Context.Users.FirstOrDefaultAsync(x => x.PlanetId == lottery.PlanetId && x.UserId == ticket.UserId);
-                            winninguser.Coins += lottery.Jackpot;
-                            PlanetMember planetuser = await winninguser.GetMember();
-                            //await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(ulong)lottery.Jackpot} coins!");
-                            Context.LotteryTickets.Remove(ticket);
-                        }
-                        else
-                        {
-                            currentnum += ticket.Tickets;
-                        }
-                        Context.Lotteries.Remove(lottery);
-                    }
-                }
-            }
-            await Context.SaveChangesAsync();
-        }
+                   // could make this faster
+                   Planet planet = await Planet.FindAsync(planetid);
+                   foreach (PlanetMember member in await planet.GetMembersAsync())
+                   {
+                       if (member.User_Id == 735182348615742)
+                       {
+                           continue;
+                       }
+                       foreach (ulong roleid in (await member.GetRolesAsync()).Select(x => x.Id))
+                       {
+                           if (RoleIncomeRoleIds.ContainsKey(roleid))
+                           {
+                               RoleIncomes roleincome = RoleIncomeRoleIds[roleid];
+                               DBUser? user = DBCache.Get<DBUser>(member.Id);
+                               if (user != null)
+                               {
+                                   user.Coins += roleincome.Income;
+                                   NewCoins += roleincome.Income;
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+           await Context.SaveChangesAsync();
+       }
+       public async Task UpdateLotteries(Dictionary<ulong, Lottery> lotterycache, PopeAIDB Context)
+       {
+           return;
+           foreach (Lottery lottery in Context.Lotteries)
+           {
+               if (DateTime.UtcNow > lottery.EndDate)
+               {
+                   lotterycache.Remove(lottery.PlanetId);
+                   int total = (int)await Context.LotteryTickets.SumAsync(x => (double)x.Tickets);
+                   Random rnd = new Random();
+                   ulong WinningTicketNum = (ulong)rnd.Next(1, total + 1);
+                   ulong currentnum = 1;
+                   foreach (LotteryTicket ticket in Context.LotteryTickets.Where(x => x.PlanetId == lottery.PlanetId))
+                   {
+                       if (currentnum + ticket.Tickets >= WinningTicketNum)
+                       {
+                           if (lottery.Type == "message")
+                           {
+                               await StatManager.AddStat(CurrentStatType.Coins, (int)lottery.Jackpot, lottery.PlanetId);
+                           }
+                           DBUser winninguser = await Context.Users.FirstOrDefaultAsync(x => x.PlanetId == lottery.PlanetId && x.UserId == ticket.UserId);
+                           winninguser.Coins += lottery.Jackpot;
+                           PlanetMember planetuser = await winninguser.GetMember();
+                           //await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(ulong)lottery.Jackpot} coins!");
+                           Context.LotteryTickets.Remove(ticket);
+                       }
+                       else
+                       {
+                           currentnum += ticket.Tickets;
+                       }
+                       Context.Lotteries.Remove(lottery);
+                   }
+               }
+           }
+           await Context.SaveChangesAsync();
+       }
+       */
     }
 }

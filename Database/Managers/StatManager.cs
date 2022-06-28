@@ -8,17 +8,14 @@ public static class StatManager
     public static readonly IdManager idManager = new();
     static public PopeAIDB dbctx = new(PopeAIDB.DBOptions);
 
-    public static BotStat selfstat = await BotStat.GetCurrent();
+    public static BotStat selfstat = BotStat.GetCurrent().GetAwaiter().GetResult();
 
     public static async Task AddStat(CurrentStatType type, int value, ulong PlanetId)
     {
         CurrentStat? current = DBCache.Get<CurrentStat>(PlanetId);
         if (current is null)
         {
-            current = new CurrentStat(PlanetId)
-            {
-                LastStatUpdate = DateTime.UtcNow
-            };
+            current = new CurrentStat(PlanetId);
             await DBCache.Put(current.PlanetId, current);
             await dbctx.CurrentStats.AddAsync(current);
             await dbctx.SaveChangesAsync();
@@ -83,7 +80,7 @@ public static class StatManager
             selfstat = new()
             {
                 MessagesSent = 0,
-                StoredMessages = 0,
+                StoredMessages = selfstat.StoredMessages,
                 StoredMessageTotalSize = 0,
                 TimeTakenTotal = 0
             };
