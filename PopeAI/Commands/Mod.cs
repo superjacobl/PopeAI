@@ -24,7 +24,7 @@ namespace PopeAI.Commands.Mod
             await ctx.ReplyAsync($"Purging {messages} from this channel!");
             int i = 0;
             foreach(PlanetMessage message in ChannelMessages) {
-                if ((await (await message.GetAuthorAsync()).GetUserAsync()).Id == ctx.Planet.OwnerId) {
+                if ((await message.GetAuthorUserAsync()).Id == ctx.Planet.OwnerId) {
                     continue;
                 }
                 Console.WriteLine(message.Content);

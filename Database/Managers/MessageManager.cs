@@ -9,7 +9,7 @@ public static class MessageManager
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
     public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
 
-    public static async Task<TaskResult> SaveMessage(PlanetMessage message)
+    public static async ValueTask<TaskResult> SaveMessage(PlanetMessage message)
     {
         try
         {
@@ -28,32 +28,22 @@ public static class MessageManager
             };
             msg.Hash = msg.GetHash();
 
-            // print hash
             string result = BitConverter.ToString(msg.Hash).Replace("-", string.Empty).Replace("A", "a").Replace("B", "b").Replace("C", "c").Replace("D", "d").Replace("E", "e").Replace("F", "f");
 
-            await dbctx.Messages.AddAsync(msg);
+            dbctx.Messages.Add(msg);
+
             PlanetInfo? info = DBCache.Get<PlanetInfo>(msg.PlanetId);
             if (info == null)
             {
-                info = new PlanetInfo();
-                info.PlanetId = message.PlanetId;
-                await DBCache.Put(info.PlanetId, info);
-                await dbctx.PlanetInfos.AddAsync(info);
+                info = new()
+                {
+                    PlanetId = message.PlanetId
+                };
+                DBCache.Put(info.PlanetId, info);
+                dbctx.PlanetInfos.Add(info);
                 await dbctx.SaveChangesAsync();
             }
 
-            if (false)
-            {
-                Message? last = await dbctx.Messages.Where(x => x.PlanetId == msg.PlanetId).OrderByDescending(x => x.Planet_Index).FirstOrDefaultAsync();
-                if (last != null)
-                {
-                    msg.PlanetIndex = last.PlanetIndex + 1;
-                }
-                else
-                {
-                    msg.PlanetIndex = 0;
-                }
-            }
             msg.PlanetIndex = info.MessagesStored;
             info.MessagesStored += 1;
 
@@ -63,7 +53,13 @@ public static class MessageManager
                 StatManager.selfstat.MessagesSentSelf += 1;
             }
 
-            await dbctx.SaveChangesAsync();
+            // if message queue is getting too long, then stop saving
+            if (messageQueue.Count > 10)
+            {
+
+                await dbctx.SaveChangesAsync();
+
+            }
 
             return new TaskResult(true, result);
         }

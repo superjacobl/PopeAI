@@ -10,14 +10,14 @@ public static class StatManager
 
     public static BotStat selfstat = BotStat.GetCurrent().GetAwaiter().GetResult();
 
-    public static async Task AddStat(CurrentStatType type, int value, ulong PlanetId)
+    public static async ValueTask AddStat(CurrentStatType type, int value, ulong PlanetId)
     {
         CurrentStat? current = DBCache.Get<CurrentStat>(PlanetId);
         if (current is null)
         {
             current = new CurrentStat(PlanetId);
-            await DBCache.Put(current.PlanetId, current);
-            await dbctx.CurrentStats.AddAsync(current);
+            DBCache.Put(current.PlanetId, current);
+            dbctx.CurrentStats.Add(current);
             await dbctx.SaveChangesAsync();
         }
         switch (type)
@@ -53,7 +53,7 @@ public static class StatManager
                     MessagesSent = currentstat.MessagesSent,
                     Time = DateTime.UtcNow
                 };
-                await dbctx.AddAsync(stat);
+                dbctx.Add(stat);
                 currentstat.NewCoins = 0;
                 currentstat.MessagesSent = 0;
                 currentstat.MessagesUsersSent = 0;
@@ -65,7 +65,7 @@ public static class StatManager
         if (DateTime.Now > selfstat.Time.AddHours(1))
         {
             string query = $"select (data_length + index_length) as Size from information_schema.tables where table_name = 'messages';";
-            ulong Size = PopeAIDB.RawSqlQuery<List<ulong>>(query, x => new List<ulong> { Convert.ToUInt64(x[0]) }).First().First();
+            ulong Size = PopeAIDB.RawSqlQuery(query, x => new List<ulong> { Convert.ToUInt64(x[0]) }).First().First();
             BotStat stat = new()
             {
                 MessagesSent = selfstat.MessagesSent,
@@ -74,8 +74,7 @@ public static class StatManager
                 Commands = selfstat.Commands,
                 TimeTakenTotal = selfstat.TimeTakenTotal
             };
-            await dbctx.BotStats.AddAsync(stat);
-            await dbctx.SaveChangesAsync();
+            dbctx.BotStats.Add(stat);
 
             selfstat = new()
             {
@@ -85,8 +84,6 @@ public static class StatManager
                 TimeTakenTotal = 0
             };
         }
-
-
         await dbctx.SaveChangesAsync();
     }
 }

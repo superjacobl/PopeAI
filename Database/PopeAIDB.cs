@@ -18,6 +18,7 @@ global using PopeAI.Database.Annotations;
 global using PopeAI.Database.Models.Bot;
 global using Npgsql.EntityFrameworkCore;
 global using NpgsqlTypes;
+global using PopeAI.Database.Models.Moderating;
 
 using PopeAI.Models;
 using Valour.Api.Items.Planets;
@@ -49,10 +50,9 @@ namespace PopeAI.Database
 
     public class PopeAIDB : DbContext
     {
-        public static string ConnectionString = $"server={Client.Config.Host};port=3306;database={Client.Config.Database};uid={Client.Config.Username};pwd={Client.Config.Password};SslMode=Required;";
-
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
+            string ConnectionString = $"server={Client.Config.Host};port=3306;database={Client.Config.Database};uid={Client.Config.Username};pwd={Client.Config.Password};SslMode=Required;";
             options.UseNpgsql(ConnectionString, options => {
                 options.EnableRetryOnFailure();
             });

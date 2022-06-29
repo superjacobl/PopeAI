@@ -33,6 +33,9 @@ namespace PopeAI.Database.Models.Messaging
         public string? MentionsData { get; set; }
         public byte[] Hash {get; set;}
 
+        // this is used to help staff of a planet in case someone deleted their rule breaking messages
+        public bool IsDeleted { get; set; }
+
         public NpgsqlTsVector SearchVector { get; set; }
 
         public byte[] GetHash()

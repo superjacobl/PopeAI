@@ -11,6 +11,7 @@ namespace PopeAI.Database.Models.Elements;
 public class UserInvItem
 {
     [Key]
+    [DataType("serial")]
     public int Id { get; set; }
     public ulong UserId { get; set; }
 

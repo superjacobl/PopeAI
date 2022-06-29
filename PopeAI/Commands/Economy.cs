@@ -16,7 +16,7 @@ public class Economy : CommandModuleBase
             user.Coins += payout;
             user.LastHourly = DateTime.UtcNow;
 
-            await StatManager.AddStat(CurrentStatType.Coins, payout,  ctx.Planet.Id);
+            await StatManager.AddStat(CurrentStatType.Coins, (int)payout,  ctx.Planet.Id);
 
             await Client.DBContext.SaveChangesAsync();
             await ctx.ReplyAsync($"You got {payout} coins!");
@@ -106,10 +106,10 @@ public class Economy : CommandModuleBase
     }
 
     [Command("dice")]
-    public async Task Dice(CommandContext ctx, double bet)
+    public async Task Dice(CommandContext ctx, int bet)
     {
-        DBUser DBUser = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
-        if (DBUser.Coins < bet) {
+        DBUser user = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
+        if (user.Coins < bet) {
             await ctx.ReplyAsync("Bet must not be above your coins!");
             return;
         }
@@ -120,7 +120,7 @@ public class Economy : CommandModuleBase
         int usernum2 = rnd.Next(1, 6);
         int opnum1 = rnd.Next(1, 6);
         int opnum2 = rnd.Next(1, 6);
-        List<string> data = new List<string>();
+        List<string> data = new();
         data.Add($"You throw the dice");
         data.Add($"You get **{usernum1}** and **{usernum2}**");
         data.Add($"Your opponent throws their dice, and gets **{opnum1}** and **{opnum2}**");
@@ -129,19 +129,19 @@ public class Economy : CommandModuleBase
 
         if (usernum1+usernum2 == opnum1+opnum2) {
             data.Add($"It's a tie");
-            DBUser.Coins -= bet;
+            user.Coins -= (double)bet;
         }
         else {
 
             // user won
             if (usernum1+usernum2 > opnum1+opnum2) {
                 data.Add($"You won {bet} coins!");
-                DBUser.Coins += bet;
+                user.Coins += (double)bet;
                 await StatManager.AddStat(CurrentStatType.Coins, bet,  ctx.Planet.Id);
             }
             else {
                 data.Add($"You lost {bet} coins.");
-                DBUser.Coins -= bet;
+                user.Coins -= (double)bet;
                 await StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
             }
         }
@@ -224,19 +224,19 @@ public class Economy : CommandModuleBase
         }
         double amount = bet*muit*0.99;
         user.Coins -= bet;
-        List<string> data = new List<string>();
+        List<string> data = new();
         data.Add($"You picked {color}");
         data.Add($"The color drawn is {colorwon}");
         if (Winner == choice)
         {
             user.Coins += amount;
             data.Add($"You won {Math.Round(amount - bet)} coins!");
-            await StatManager.AddStat(CurrentStatType.Coins, amount - bet, ctx.Planet.Id);
+            await StatManager.AddStat(CurrentStatType.Coins, (int)amount - (int)bet, ctx.Planet.Id);
         }
         else
         {
             data.Add($"You did not win.");
-            await StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
+            await StatManager.AddStat(CurrentStatType.Coins, 0-(int)bet, ctx.Planet.Id);
         }
 
         await ctx.ReplyWithMessagesAsync(1750, data);

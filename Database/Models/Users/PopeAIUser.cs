@@ -39,24 +39,19 @@ public class DBUser
     // TODO: on startup load all _member in all DBUsers to increase runtime speed
 
     [NotMapped]
-    public PlanetMember? _member { get; set; }
+    public PlanetMember? _Member { get; set; }
 
     [NotMapped]
-    public PlanetMember member
+    public PlanetMember Member
     {
         get
         {
-            if (_member == null)
+            if (_Member == null)
             {
-                _member = GetMember().Result;
+                _Member = PlanetMember.FindAsync(Id).GetAwaiter().GetResult();
             }
-            return _member;
+            return _Member;
         }
-    }
-
-    public async Task<PlanetMember> GetMember() {
-        PlanetMember planetUser = await PlanetMember.FindAsync(Id);
-        return planetUser;
     }
 
     public static string RemoveWhitespace(string input)

@@ -12,6 +12,8 @@ public class DBCache
     /// </summary>
     public static Dictionary<Type, ConcurrentDictionary<ulong, object>> HCache = new();
 
+    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
+
     public static IEnumerable<T> GetAll<T>() where T : class
     {
         var type = typeof(T);
@@ -39,7 +41,7 @@ public class DBCache
     /// <summary>
     /// Places an item into the cache
     /// </summary>
-    public static async Task Put<T>(ulong Id, T? obj) where T : class
+    public static void Put<T>(ulong Id, T? obj) where T : class
     {
         // Empty object is ignored
         if (obj == null)
@@ -72,38 +74,34 @@ public class DBCache
         return null;
     }
 
-    public static async Task LoadAsync()
+    public static void Load()
     {
         //#if !DEBUG
-
-        List<Task> tasks = new();
-        foreach (var _obj in PopeAIDB.Instance.Users)
+        foreach (var _obj in dbctx.Users)
         {
-            tasks.Add(Put(_obj.Id, _obj));
+            Put(_obj.Id, _obj);
         }
-        foreach (var _obj in PopeAIDB.Instance.CurrentStats)
+        foreach (var _obj in dbctx.CurrentStats)
         {
-            tasks.Add(Put(_obj.PlanetId, _obj));
+            Put(_obj.PlanetId, _obj);
         }
-        foreach (var _obj in PopeAIDB.Instance.DailyTasks)
+        foreach (var _obj in dbctx.DailyTasks)
         {
-            tasks.Add(Put(_obj.Id, _obj));
+            Put(_obj.Id, _obj);
         }
-        foreach (var _obj in PopeAIDB.Instance.PlanetInfos)
+        foreach (var _obj in dbctx.PlanetInfos)
         {
-            tasks.Add(Put(_obj.PlanetId, _obj));
+            Put(_obj.PlanetId, _obj);
         }
-        await Task.WhenAll(tasks);
-
         //#endif
     }
 
     public static async Task SaveAsync()
     {
-        PopeAIDB.Instance.Users.UpdateRange(GetAll<DBUser>());
-        PopeAIDB.Instance.CurrentStats.UpdateRange(GetAll<CurrentStat>());
-        PopeAIDB.Instance.DailyTasks.UpdateRange(GetAll<DailyTask>());
-        PopeAIDB.Instance.PlanetInfos.UpdateRange(GetAll<PlanetInfo>());
-        await PopeAIDB.Instance.SaveChangesAsync();
+        dbctx.Users.UpdateRange(GetAll<DBUser>());
+        dbctx.CurrentStats.UpdateRange(GetAll<CurrentStat>());
+        dbctx.DailyTasks.UpdateRange(GetAll<DailyTask>());
+        dbctx.PlanetInfos.UpdateRange(GetAll<PlanetInfo>());
+        await dbctx.SaveChangesAsync();
     }
 }

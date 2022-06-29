@@ -97,7 +97,6 @@ public class Search : CommandModuleBase
 
         IQueryable<Message> search = dbctx.Messages.AsQueryable();
 
-        string query = "";
         foreach (string t in words) {
             string[] word = t.Split(":");
             if (word.Count() != 2) {

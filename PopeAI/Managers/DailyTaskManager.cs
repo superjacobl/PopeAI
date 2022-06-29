@@ -127,7 +127,7 @@ public static class DailyTaskManager
                 await dbctx.DailyTasks.AddRangeAsync(tasks);
                 foreach (var _task in tasks)
                 {
-                    await DBCache.Put(_task.Id, _task);
+                    DBCache.Put(_task.Id, _task);
                 }
             }
         }
