@@ -6,19 +6,19 @@ public static class StatManager
 {
 
     public static readonly IdManager idManager = new();
-    static public PopeAIDB dbctx = new(PopeAIDB.DBOptions);
 
     public static BotStat selfstat = BotStat.GetCurrent().GetAwaiter().GetResult();
 
-    public static async ValueTask AddStat(CurrentStatType type, int value, ulong PlanetId)
+    public static void AddStat(CurrentStatType type, int value, ulong PlanetId)
     {
         CurrentStat? current = DBCache.Get<CurrentStat>(PlanetId);
         if (current is null)
         {
             current = new CurrentStat(PlanetId);
             DBCache.Put(current.PlanetId, current);
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             dbctx.CurrentStats.Add(current);
-            await dbctx.SaveChangesAsync();
+            dbctx.SaveChanges();
         }
         switch (type)
         {
@@ -36,13 +36,15 @@ public static class StatManager
     }
 
     public static async Task CheckStats()
-{
+    {
         CurrentStat? first = DBCache.GetAll<CurrentStat>().FirstOrDefault();
         if (first is null) return;
 
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         if (DateTime.UtcNow > first.LastStatUpdate.AddHours(24))
         {
-            foreach (CurrentStat currentstat in DBCache.GetAll<CurrentStat>())
+            foreach (CurrentStat currentstat in DBCache.GetAll<CurrentStat>().Where(x => x.MessagesSent != 0))
             {
                 Stat stat = new()
                 {

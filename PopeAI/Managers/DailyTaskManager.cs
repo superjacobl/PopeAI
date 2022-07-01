@@ -9,8 +9,7 @@ public static class DailyTaskManager
 {
     public static Random rnd = new();
     public static IdManager idManager = new();
-    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
-    public static async Task DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
+    public static async ValueTask DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
     {
         var user = DBCache.Get<DBUser>(MemberId)!;
         DailyTask task = DBCache.GetAll<DailyTask>().FirstOrDefault(x => x.MemberId == MemberId && x.TaskType == TaskType);
@@ -22,7 +21,7 @@ public static class DailyTaskManager
                 if (task.Done == task.Goal)
                 {
                     user.Coins += task.Reward;
-                    await StatManager.AddStat(CurrentStatType.Coins, task.Reward, user.PlanetId);
+                    StatManager.AddStat(CurrentStatType.Coins, task.Reward, user.PlanetId);
                     if (ctx != null)
                     {
                         string content = $"{ctx.Member.Nickname}, your {task.TaskType.ToString().Replace("_", " ")} daily task is done! You get {task.Reward} coins.";
@@ -47,7 +46,7 @@ public static class DailyTaskManager
 
     public static int Choice(int[] list)
     {
-        return list[rnd.Next(0, list.Count())];
+        return list[rnd.Next(0, list.Length)];
     }
 
     public static IEnumerable<DailyTask> GenerateNewDailyTasks(ulong Memberid)
@@ -108,6 +107,9 @@ public static class DailyTaskManager
                 return;
             }
         }
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         DailyTask task = null;
         foreach (DBUser user in dbctx.Users)
         {

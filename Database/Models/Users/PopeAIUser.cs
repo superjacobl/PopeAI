@@ -14,16 +14,16 @@ public class DBUser
     public ulong UserId { get; set; }
     public ulong PlanetId { get; set; }
     public double Coins { get; set; }
-    public int CharsThisMinute { get; set; }
-    public int PointsThisMinute { get; set; }
+    public ushort CharsThisMinute { get; set; }
+    public ushort PointsThisMinute { get; set; }
     public int TotalPoints { get; set; }
     public int TotalChars { get; set; }
     public double MessageXp { get; set; }
     public double ElementalXp { get; set; }
     public int Messages { get; set; }
     public int ActiveMinutes { get; set; }
-
     public DateTime LastHourly { get; set; }
+    public DateTime LastSentMessage { get; set; }
 
     [NotMapped]
     public double Xp
@@ -33,10 +33,6 @@ public class DBUser
             return MessageXp + ElementalXp;
         }
     }
-
-    public DateTime LastSentMessage { get; set; }
-
-    // TODO: on startup load all _member in all DBUsers to increase runtime speed
 
     [NotMapped]
     public PlanetMember? _Member { get; set; }
@@ -52,13 +48,6 @@ public class DBUser
             }
             return _Member;
         }
-    }
-
-    public static string RemoveWhitespace(string input)
-    {
-        return new string(input.ToCharArray()
-            .Where(c => !Char.IsWhiteSpace(c))
-            .ToArray());
     }
 
     public DBUser(PlanetMember planetMember)
@@ -77,13 +66,22 @@ public class DBUser
         PlanetId = planetMember.PlanetId;
     }
 
+    public static string RemoveWhitespace(string input)
+    {
+        return new string(input.ToCharArray()
+            .Where(c => !char.IsWhiteSpace(c))
+            .ToArray());
+    }
+
+    
+
     public void NewMessage(PlanetMessage msg)
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
             double xpgain = (Math.Log10(PointsThisMinute) - 1) * 3;
             xpgain = Math.Max(0.2, xpgain);
-            MessageXp += (float)xpgain;
+            MessageXp += xpgain;
             ActiveMinutes += 1;
             PointsThisMinute = 0;
             LastSentMessage = DateTime.UtcNow;
@@ -93,11 +91,10 @@ public class DBUser
 
         Content = Content.Replace("*", "");
 
-        int Points = 0;
+        ushort Points = 0;
 
-        // do char points
         // each char grants 1 point
-        Points += Content.Length;
+        Points += (ushort)Content.Length;
 
         // if there is media then add 100 points
         if (Content.Contains("https://vmps.valour.gg"))

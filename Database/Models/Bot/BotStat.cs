@@ -57,7 +57,8 @@ public class BotStat
 
     public static async Task<BotStat> GetCurrent()
     {
-        BotStat? stat = await StatManager.dbctx.BotStats.OrderBy(x => x.Time).FirstOrDefaultAsync();
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        BotStat? stat = await dbctx.BotStats.OrderBy(x => x.Time).FirstOrDefaultAsync();
         if (stat == null)
         {
             stat = new()
@@ -67,7 +68,7 @@ public class BotStat
                 Commands = 0,
                 TimeTakenTotal = 0
             };
-            await StatManager.dbctx.BotStats.AddAsync(stat);
+            await dbctx.BotStats.AddAsync(stat);
         }
         return stat;
     }

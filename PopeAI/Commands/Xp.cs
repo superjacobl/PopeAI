@@ -5,9 +5,8 @@ namespace PopeAI.Commands.Xp;
 
 public class Xp : CommandModuleBase
 {
-
     [Event(EventType.AfterCommand)]
-    public async Task AfterCommand(CommandContext ctx)
+    public void AfterCommand(CommandContext ctx)
     {
         StatManager.selfstat.TimeTakenTotal += (ulong)(DateTime.UtcNow - ctx.TimeReceived).TotalMilliseconds;
         StatManager.selfstat.Commands += 1;
@@ -19,27 +18,31 @@ public class Xp : CommandModuleBase
         // put this message in queue for storage
         MessageManager.AddToQueue(ctx.Message);
 
-        if (ctx.Message.AuthorId == ulong.Parse(Client.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
+        if (ctx.Message.AuthorId == ulong.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
             return;
         }
-
-        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx);
-
-        await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
 
         DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
 
         if (user == null)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             user = new(ctx.Member);
+            DBCache.Put(user.Id, user);
+            dbctx.Users.Add(user);
+            dbctx.SaveChanges();
         }
 
         user.NewMessage(ctx.Message);
+
+        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx);
+
+        StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
     }
 
     [Command("xp")]
     [Summary("Gives the user who sent the command their xp.")]
-    public async Task SendXp(CommandContext ctx)
+    public Task SendXp(CommandContext ctx)
     {
         var user = DBCache.Get<DBUser>(ctx.Member.Id);
         EmbedBuilder embed = new();
@@ -50,6 +53,7 @@ public class Xp : CommandModuleBase
             .AddText("Total Xp", ((ulong)user.Xp).ToString());
 
         embed.AddPage(page);
+        return ctx.ReplyAsync(embed);
     }
 
     [Command("leaderboard")]

@@ -46,9 +46,8 @@ public class Config
         instance = this;
     }
 }
-public class Client
+public class ConfigManger
 {
-    public static PopeAIDB DBContext = new(PopeAIDB.DBOptions);
     public static Config Config {get; set;}
 
     public static HubConnection hubConnection = new HubConnectionBuilder()
@@ -56,7 +55,7 @@ public class Client
         .WithAutomaticReconnect()
         .Build();
     
-    public static bool Check() {
+    public static bool Load() {
         Config = null;
 
         // Create directory if it doesn't exist

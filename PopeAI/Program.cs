@@ -46,18 +46,16 @@ class Program
 
     public static async Task Main(string[] args)
     {
+        // load in the config file
+        ConfigManger.Load();
 
-        Client.Check();
+        PopeAIDB.DbFactory = PopeAIDB.GetDbFactory();
 
         ValourNetClient.AddPrefix("/");
 
-        await ValourNetClient.Start(Client.Config.Email,Client.Config.BotPassword);
-
-        Console.WriteLine("Hello World!");
+        await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 
         Task task = Task.Run(UpdateHourly);
-
-        //await PopeAI.Commands.Dev.Dev.DatabaseInfoAynsc(new CommandContext());
 
         while (true)
         {
@@ -75,8 +73,6 @@ class Program
 
     static async Task UpdateHourly() {
         while (true) {
-            //await Context.UpdateLotteries(lotterycache, Context);
-            //await Context.UpdateRoleIncomes(planets, false, Context);
             try
             {
                 await StatManager.CheckStats();

@@ -12,6 +12,8 @@ namespace PopeAI.Commands.MyValourStats
                 return;
             }
 
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
             EmbedInteractionEvent EventReturn = new EmbedInteractionEvent()
             {
                 Event = "ReturnValourData",
@@ -28,9 +30,9 @@ namespace PopeAI.Commands.MyValourStats
             {
                 case "MessagesAroundId":
                     ulong Id = ulong.Parse(ctx.Event.Form_Data.First().Value);
-                    Message m = await Client.DBContext.Messages.FindAsync(Id);
+                    Message m = await dbctx.Messages.FindAsync(Id);
                     Id = m.PlanetIndex;
-                    List<Message> msgs = await Task.Run(() => Client.DBContext.Messages.Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-15 && x.PlanetIndex < Id+15).Take(32).ToList());  
+                    List<Message> msgs = await Task.Run(() = dbctx.Messages.Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-15 && x.PlanetIndex < Id+15).Take(32).ToList());  
                     EventReturn.Form_Data = new();
                     foreach(Message msg in msgs) {
                         EmbedFormData Item = new()

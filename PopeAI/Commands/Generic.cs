@@ -36,9 +36,10 @@ namespace PopeAI.Commands.Generic
         [Summary("Returns all commands")]
         public async Task HelpPage(CommandContext ctx, int page)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             int skip = page*10;
             string content = "| command |\n| :-: |\n";
-            foreach (Help help in Client.DBContext.Helps.Skip(skip).Take(10))
+            foreach (Help help in dbctx.Helps.Skip(skip).Take(10))
             {
                 content += $"| {help.Message} |\n";
             }
@@ -49,8 +50,9 @@ namespace PopeAI.Commands.Generic
         [Summary("Returns all commands")]
         public async Task Help(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             string content = "| command |\n| :-: |\n";
-            foreach (Help help in Client.DBContext.Helps.Take(10))
+            foreach (Help help in dbctx.Helps.Take(10))
             {
                 content += $"| {help.Message} |\n";
             }

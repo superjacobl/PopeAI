@@ -11,8 +11,6 @@ public class Search : CommandModuleBase
 {
     Random rnd = new Random();
 
-    public static PopeAIDB dbctx = new PopeAIDB(PopeAIDB.DBOptions);
-
     public string Truncate(string value, int maxChars)
     {
         value = value.Replace("\n"," ");
@@ -58,7 +56,11 @@ public class Search : CommandModuleBase
     [Command("view")]
     public async Task ViewAsync(CommandContext ctx, ulong Id)
     {
-        List<Message> msgs = await Task.Run(() => Client.DBContext.Messages.Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-6 && x.PlanetIndex < Id+6).Take(20).ToList());  
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        List<Message> msgs = await dbctx.Messages
+            .Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-6 && x.PlanetIndex < Id+6)
+            .Take(20)
+            .ToListAsync();  
         await OutputToList(msgs, ctx, Id);
     }
 
@@ -94,6 +96,8 @@ public class Search : CommandModuleBase
         foreach (string replace in remove) {
             need = need.Replace(replace, "");
         }
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         IQueryable<Message> search = dbctx.Messages.AsQueryable();
 

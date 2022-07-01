@@ -12,8 +12,6 @@ public class DBCache
     /// </summary>
     public static Dictionary<Type, ConcurrentDictionary<ulong, object>> HCache = new();
 
-    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
-
     public static IEnumerable<T> GetAll<T>() where T : class
     {
         var type = typeof(T);

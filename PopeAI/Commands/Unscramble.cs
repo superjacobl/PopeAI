@@ -26,7 +26,7 @@ namespace PopeAI.Commands.Unscramble
                 {
                     DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
                     double reward = rnd.Next(5, 25);
-                    await StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
+                    StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
                     user.Coins += reward;
                     await ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
                 }

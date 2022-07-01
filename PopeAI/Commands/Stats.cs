@@ -4,7 +4,6 @@ public class Stats : CommandModuleBase
 {
     public static Dictionary<ulong, string> ScrambledWords = new();
     static Random rnd = new();
-    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
 
     [Group("stats")]
     public class StatsGroup : CommandModuleBase
@@ -20,6 +19,7 @@ public class Stats : CommandModuleBase
         [Summary("Shows available commands.")]
         public async Task StatsMessages(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id)
                 .OrderByDescending(x => x.Time)
@@ -38,6 +38,7 @@ public class Stats : CommandModuleBase
         [Summary("Shows available commands.")]
         public async Task StatsCoins(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id)
                 .OrderByDescending(x => x.Time)

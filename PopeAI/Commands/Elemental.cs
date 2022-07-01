@@ -3,7 +3,6 @@ namespace PopeAI.Commands.Elemental;
 public class Elemental : CommandModuleBase
 {
     public static IdManager idManager = new();
-    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
     public static ConcurrentDictionary<ulong, Combination> FailedCombinations = new();
     static Random rnd = new();
 
@@ -29,6 +28,8 @@ public class Elemental : CommandModuleBase
             suggestion.Element3 = _Combination.Element3;
         }
 
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         await dbctx.AddAsync(suggestion);
         await dbctx.SaveChangesAsync();
 
@@ -47,6 +48,8 @@ public class Elemental : CommandModuleBase
     {
         EmbedBuilder embed = new();
         EmbedPageBuilder page = new();
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         List<Suggestion> suggestions = await dbctx.Suggestions.OrderBy(x => x.TimeSuggested).Take(20).ToListAsync();
 
@@ -96,6 +99,9 @@ public class Elemental : CommandModuleBase
         if (member.UserId != 735182348615742) {
             return;
         }
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         string elementname = ctx.Event.Element_Id;
         if (elementname.Contains("VoteFromSuggestion")) {
             ulong suggestid = ulong.Parse(elementname.Split("Suggestion:")[1]);
@@ -205,6 +211,8 @@ public class Elemental : CommandModuleBase
             return;
         }
 
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         Element element = new() {
             Name = name,
             Found = 0,
@@ -233,6 +241,8 @@ public class Elemental : CommandModuleBase
         if (ctx.Member.UserId != 735182334984193) {
             return;
         }
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         Combination combination = new(){
             Element1 = element1,
@@ -278,6 +288,8 @@ public class Elemental : CommandModuleBase
 
     public static async Task CombinationAsync(CommandContext ctx, string element1, string element2, string element3 = "")
     {
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         UserInvItem test = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId);
         if (test == null) {
             List<string> els = new() {"water", "air", "fire", "earth"};
@@ -452,7 +464,8 @@ public class Elemental : CommandModuleBase
     {
         EmbedBuilder embed = new();
         EmbedPageBuilder page = new();
-        
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
         List<UserInvItem> items = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).ToListAsync();
 
         int i = 0;
@@ -478,18 +491,21 @@ public class Elemental : CommandModuleBase
         [Command("count")]
         public static async Task ElementCountAsync(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             await ctx.ReplyAsync($"there are {await dbctx.Elements.CountAsync()} elements");
         }
 
         [Command("mycount")]
         public static async Task MyElementCountAsync(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             await ctx.ReplyAsync($"You have {await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync()} elements");
         }
 
         [Command("mypercent")]
         public static async Task MyElementPercentAsync(CommandContext ctx)
         {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             int elements = await dbctx.Elements.CountAsync();
             int found = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync();
             double percent = (double)found/elements*100;

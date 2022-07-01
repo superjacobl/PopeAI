@@ -5,9 +5,9 @@ public class Economy : CommandModuleBase
     Random rnd = new Random();
     [Command("hourly")]
     [Alias("h")]
-    public async Task hourly(CommandContext ctx)
+    public async Task Hourly(CommandContext ctx)
     {
-        DBUser user = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
+        DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
         int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
         if (minutesleft <= 0) {
             await DailyTaskManager.DidTask(DailyTaskType.Hourly_Claims, ctx.Member.Id, ctx);
@@ -16,9 +16,9 @@ public class Economy : CommandModuleBase
             user.Coins += payout;
             user.LastHourly = DateTime.UtcNow;
 
-            await StatManager.AddStat(CurrentStatType.Coins, (int)payout,  ctx.Planet.Id);
-
-            await Client.DBContext.SaveChangesAsync();
+            StatManager.AddStat(CurrentStatType.Coins, (int)payout,  ctx.Planet.Id);
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+            await dbctx.SaveChangesAsync();
             await ctx.ReplyAsync($"You got {payout} coins!");
         }
         else {
@@ -27,20 +27,22 @@ public class Economy : CommandModuleBase
     }
     [Command("richest")]
     [Alias("r")]
-    public async Task richest(CommandContext ctx)
+    public async Task ViewRichest(CommandContext ctx)
     {
-        List<DBUser> DBUsers = await Task.Run(() => Client.DBContext.Users.Where(x => x.PlanetId ==  ctx.Planet.Id).OrderByDescending(x => x.Coins).Take(10).ToList());
+        List<DBUser> users = DBCache.GetAll<DBUser>()
+            .Where(x => x.PlanetId ==  ctx.Planet.Id)
+            .OrderByDescending(x => x.Coins)
+            .Take(10)
+            .ToList();
         EmbedBuilder embed = new EmbedBuilder();
         EmbedPageBuilder page = new EmbedPageBuilder();
         int i = 1;
-        foreach (DBUser USER in DBUsers)
+        foreach (DBUser user in users)
         {
-            PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, USER.UserId);
-            //page.AddText($"({i}) {member.Nickname}",  $"{(ulong)USER.Xp}xp");
-            page.AddText(text:$"({i}) {member.Nickname} - {(ulong)USER.Coins} coins");
-            //content += $"{member.Nickname} | {(ulong)USER.Xp} xp\n";
+            PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, user.UserId);
+            page.AddText(text:$"({i}) {member.Nickname} - {(ulong)user.Coins} coins");
             i += 1;
-            if (page.Items.Count() > 10) {
+            if (page.Items.Count > 10) {
                 embed.AddPage(page);
                 page = new EmbedPageBuilder();
             }
@@ -52,50 +54,47 @@ public class Economy : CommandModuleBase
     [Alias("c")]
     public async Task coins(CommandContext ctx)
     {
-        DBUser DBUser = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
-        await ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)DBUser.Coins}");
+        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        await ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)user.Coins}");
     }
 
     [Command("pay")]
     [Alias("send")]
-    public async Task PayAsync(CommandContext ctx, double amount, PlanetMember member)
+    public Task PayAsync(CommandContext ctx, double amount, PlanetMember member)
     {
-        DBUser DBUser = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
-        DBUser ToUser = await Client.DBContext.Users.FindAsync(member.Id);
-        if (amount > DBUser.Coins) {
-            await ctx.ReplyAsync("You can not send more coins than you currently have!");
-            return;
+        var fromUser = DBCache.Get<DBUser>(ctx.Member.Id);
+        var toUser = DBCache.Get<DBUser>(member.Id);
+        if (amount > fromUser.Coins) {
+            return ctx.ReplyAsync("You can not send more coins than you currently have!");
         }
         if (amount <= 0) {
-            await ctx.ReplyAsync("Amount must be above 0!");
-            return;
+            return ctx.ReplyAsync("Amount must be above 0!");
         }
-        DBUser.Coins -= amount;
-        ToUser.Coins += amount;
-        await ctx.ReplyAsync($"Sent {amount} coins to {member.Nickname}!");
-        await Client.DBContext.SaveChangesAsync();
+        fromUser.Coins -= amount;
+        toUser.Coins += amount;
+        return ctx.ReplyAsync($"Sent {amount} coins to {member.Nickname}!");
     }
 
     [Command("charity")]
     [Alias("donate")]
-    public async Task Charity(CommandContext ctx, double amount)
+    public Task Charity(CommandContext ctx, double amount)
     {
-        DBUser DBUser = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
-        if (amount > DBUser.Coins) {
-            await ctx.ReplyAsync("You can not donate more coins than you currently have!");
-            return;
+        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        if (amount > user.Coins) {
+            return ctx.ReplyAsync("You can not donate more coins than you currently have!");
         }
         if (amount <= 0) {
-            await ctx.ReplyAsync("Amount must be above 0!");
-            return;
+            return ctx.ReplyAsync("Amount must be above 0!");
         }
-        DBUser.Coins -= amount;
-        double CoinsPer = amount/Client.DBContext.Users.Count();
-        foreach(DBUser user in Client.DBContext.Users) {
+
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
+        user.Coins -= amount;
+        double CoinsPer = amount / DBCache.GetAll<DBUser>().Where(x => x.PlanetId == user.PlanetId).Count();
+        foreach(var _user in DBCache.GetAll<DBUser>().Where(x => x.PlanetId == user.PlanetId)) {
             user.Coins += CoinsPer;
         }
-        await ctx.ReplyAsync($"Gave {Math.Round((decimal)CoinsPer, 2)} coins to every user!");
-        await Client.DBContext.SaveChangesAsync();
+        return ctx.ReplyAsync($"Gave {Math.Round(CoinsPer, 2)} coins to every user!");
     }
 
     [Command("charity")]
@@ -108,7 +107,7 @@ public class Economy : CommandModuleBase
     [Command("dice")]
     public async Task Dice(CommandContext ctx, int bet)
     {
-        DBUser user = await Client.DBContext.Users.FindAsync(ctx.Member.Id);
+        var user = DBCache.Get<DBUser>(ctx.Member.Id);
         if (user.Coins < bet) {
             await ctx.ReplyAsync("Bet must not be above your coins!");
             return;
@@ -137,16 +136,14 @@ public class Economy : CommandModuleBase
             if (usernum1+usernum2 > opnum1+opnum2) {
                 data.Add($"You won {bet} coins!");
                 user.Coins += (double)bet;
-                await StatManager.AddStat(CurrentStatType.Coins, bet,  ctx.Planet.Id);
+                StatManager.AddStat(CurrentStatType.Coins, bet,  ctx.Planet.Id);
             }
             else {
                 data.Add($"You lost {bet} coins.");
                 user.Coins -= (double)bet;
-                await StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
+                StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
             }
         }
-
-        await Client.DBContext.SaveChangesAsync();
 
         ctx.ReplyWithMessagesAsync(1750, data);
     } 
@@ -197,10 +194,10 @@ public class Economy : CommandModuleBase
             "Red" => 0,
             _ => throw new NotImplementedException()
         };
-        ulong Winner = 0;
         int num = rnd.Next(1, 101);
         double muit = 2.86;
-        string colorwon = "";
+        string colorwon;
+        ulong Winner;
         switch (num)
         {
             case <= 35:
@@ -231,12 +228,12 @@ public class Economy : CommandModuleBase
         {
             user.Coins += amount;
             data.Add($"You won {Math.Round(amount - bet)} coins!");
-            await StatManager.AddStat(CurrentStatType.Coins, (int)amount - (int)bet, ctx.Planet.Id);
+            StatManager.AddStat(CurrentStatType.Coins, (int)amount - (int)bet, ctx.Planet.Id);
         }
         else
         {
             data.Add($"You did not win.");
-            await StatManager.AddStat(CurrentStatType.Coins, 0-(int)bet, ctx.Planet.Id);
+            StatManager.AddStat(CurrentStatType.Coins, 0-(int)bet, ctx.Planet.Id);
         }
 
         await ctx.ReplyWithMessagesAsync(1750, data);
