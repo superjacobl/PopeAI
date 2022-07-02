@@ -87,7 +87,7 @@ public class DBCache
         //#if !DEBUG
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         IEnumerable<DBUser> UsersToCache = await dbctx.Users
-            .Where(x => x.LastSentMessage.AddDays(1) > DateTime.Now)
+            .Where(x => x.LastSentMessage.AddDays(1) > DateTime.UtcNow)
             .OrderByDescending(x => x.Messages).Take(50000)
             .Include(x => x.DailyTasks)
             .ToListAsync();

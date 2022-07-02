@@ -28,6 +28,7 @@ global using PopeAI.Bot.Managers;
 global using PopeAI.Database.Models.Planets;
 global using Microsoft.AspNetCore;
 global using PopeAI.Database.Models.Messaging;
+global using System.IO;
 
 using System.Net.Http;
 
@@ -51,6 +52,14 @@ class Program
 
         PopeAIDB.DbFactory = PopeAIDB.GetDbFactory();
 
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
+        string sql = PopeAIDB.GenerateSQL();
+
+        await File.WriteAllTextAsync("../../../../Database/Definitions.sql", sql);
+
+        PopeAIDB.RawSqlQuery<string>(sql, null, true);
+
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
@@ -59,6 +68,8 @@ class Program
         await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 
         UpdateHourly();
+
+        MessageManager.Run();
 
         while (true)
         {

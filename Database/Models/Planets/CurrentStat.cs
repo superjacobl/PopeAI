@@ -16,6 +16,11 @@ public class CurrentStat : DBItem<CurrentStat>
     public int MessagesUsersSent { get; set; }
     public DateTime LastStatUpdate { get; set; }
 
+    public CurrentStat()
+    {
+
+    }
+
     public CurrentStat(ulong planetid)
     {
         PlanetId = planetid;

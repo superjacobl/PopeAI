@@ -1,5 +1,4 @@
-﻿using PopeAI.Models;
-using Valour.Shared;
+﻿using Valour.Shared;
 using Valour.Api.Client;
 
 namespace PopeAI.Database.Managers;
@@ -69,7 +68,6 @@ public static class MessageManager
         {
             Console.WriteLine(ex.ToString());
         }
-
         return new TaskResult(false, "");
     }
 

@@ -31,6 +31,7 @@ namespace PopeAI.Database.Models.Messaging
         public ulong MessageIndex { get; set; }
         public string? EmbedData {get; set;}
         public string? MentionsData { get; set; }
+
         public byte[] Hash {get; set;}
 
         // this is used to help staff of a planet in case someone deleted their rule breaking messages

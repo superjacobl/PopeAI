@@ -88,7 +88,17 @@ public class PopeAIDB : DbContext
             .HasMethod("GIN"); // Index method
     }
 
-    public static List<T> RawSqlQuery<T>(string query, Func<DbDataReader, T> map)
+    public static string GenerateSQL()
+    {
+        using var dbctx = DbFactory.CreateDbContext();
+        string sql = dbctx.Database.GenerateCreateScript();
+        sql = sql.Replace("numeric(20,0) ", "BIGINT ");
+        sql = sql.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
+        sql = sql.Replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS");
+        return sql;
+    }
+
+    public static List<T> RawSqlQuery<T>(string query, Func<DbDataReader, T>? map, bool noresult = false)
     {
         using var dbctx = DbFactory.CreateDbContext();
         using DbCommand command = dbctx.Database.GetDbConnection().CreateCommand();
@@ -98,14 +108,18 @@ public class PopeAIDB : DbContext
         dbctx.Database.OpenConnection();
 
         using var result = command.ExecuteReader();
-        var entities = new List<T>();
-
-        while (result.Read())
+        if (!noresult)
         {
-            entities.Add(map(result));
-        }
+            var entities = new List<T>();
 
-        return entities;
+            while (result.Read())
+            {
+                entities.Add(map(result));
+            }
+
+            return entities;
+        }
+        return new List<T>();
     }
 
     /// <summary>

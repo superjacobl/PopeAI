@@ -1,5 +1,9 @@
 namespace PopeAI.Database.Models.Elements;
 
+[Index(nameof(Element1), IsUnique = false)]
+[Index(nameof(Element2), IsUnique = false)]
+[Index(nameof(Element3), IsUnique = false)]
+[Index(nameof(Result), IsUnique = false)]
 public class Combination
 {
     [Key]
@@ -18,4 +22,30 @@ public class Combination
     public string Result { get; set; }
     public DateTime TimeCreated { get; set; }
     public int Difficulty { get; set; }
+
+    public async ValueTask<int> GetDifficulty(string element, List<string> baseelements, PopeAIDB dbctx)
+    {
+        if (baseelements.Contains(element))
+        {
+            return 1;
+        }
+        return (await dbctx.Combinations.FirstOrDefaultAsync(x => x.Result == element))!.Difficulty;
+    }
+
+    public async ValueTask<int> CalcDifficulty()
+    {
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        List<string> baseelements = new() { "fire", "earth", "air", "water" };
+
+        List<int> Difficulties = new();
+
+        Difficulties.Add(await GetDifficulty(Element1, baseelements, dbctx));
+        Difficulties.Add(await GetDifficulty(Element2, baseelements, dbctx));
+        if (Element3 != null)
+        {
+            Difficulties.Add(await GetDifficulty(Element1, baseelements, dbctx));
+        }
+
+        return Difficulties.Max() + 1;
+    }
 }

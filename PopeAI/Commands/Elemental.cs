@@ -153,6 +153,7 @@ public class Elemental : CommandModuleBase
                     Element element = await dbctx.Elements.FirstOrDefaultAsync(x => x.Name == combination.Result);
                     if (element == null) {
                         Element _element = new() {
+                            Id = idManager.Generate(),
                             Name = suggestion.Result,
                             Found = 0,
                             Finder_Id = suggestion.UserId,
@@ -214,10 +215,11 @@ public class Elemental : CommandModuleBase
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         Element element = new() {
+            Id = idManager.Generate(),
             Name = name,
             Found = 0,
             Finder_Id = ctx.Member.UserId,
-            Time_Created = DateTime.UtcNow
+            Time_Created = DateTime.UtcNow,
         };
         
         await dbctx.Elements.AddAsync(element);
@@ -255,11 +257,12 @@ public class Elemental : CommandModuleBase
             combination.Element3 = element3;
         }
         
-        await dbctx.Combinations.AddAsync(combination);
+        dbctx.Combinations.Add(combination);
 
         Element element = await dbctx.Elements.FirstOrDefaultAsync(x => x.Name == combination.Result);
         if (element == null) {
             Element _element = new() {
+                Id = idManager.Generate(),
                 Name = result,
                 Found = 0,
                 Finder_Id = ctx.Member.UserId,
@@ -294,7 +297,7 @@ public class Elemental : CommandModuleBase
         if (test == null) {
             List<string> els = new() {"water", "air", "fire", "earth"};
             foreach(string el in els) {
-                await dbctx.UserInvItems.AddAsync(new(ctx.Member.UserId, el));
+                await dbctx.UserInvItems.AddAsync(new(idManager.Generate(), ctx.Member.UserId, el));
             }
             await dbctx.SaveChangesAsync();
         }
@@ -346,6 +349,7 @@ public class Elemental : CommandModuleBase
         if (combination == null) {
             await ctx.ReplyAsync("Not a vaild combination! Suggest it by typing /suggest <result>");
             Combination _combination = new() {
+                Id = idManager.Generate(),
                 Element1 = element1,
                 Element2 = element2,
                 TimeCreated = DateTime.UtcNow
@@ -364,7 +368,7 @@ public class Elemental : CommandModuleBase
             return;
         }
         else {
-            UserInvItem _item = new(ctx.Member.UserId, combination.Result);
+            UserInvItem _item = new(idManager.Generate(), ctx.Member.UserId, combination.Result);
             await dbctx.AddAsync(_item);
 
             Element element = await dbctx.Elements.FirstOrDefaultAsync(x => x.Name == combination.Result);
@@ -373,89 +377,24 @@ public class Elemental : CommandModuleBase
             // reward xp
 
             if (combination.Difficulty == 0) {
-                List<string> baseelements = new() {"fire","earth","air","water"};
-                Combination _a = null;
-                while (_a == null || _a.Difficulty == 0) {
-                    if (baseelements.Contains(combination.Element1)) {
-                        _a = new() {
-                            Difficulty = 1
-                        };
-                        break;
-                    }
-                    else {
-                        _a = await dbctx.Combinations.FirstOrDefaultAsync(x => x.Result == combination.Element1);
-                    }
-                }
-                Combination _b = null;
-                while (_b == null || _b.Difficulty == 0) {
-                    if (baseelements.Contains(combination.Element2)) {
-                        _b = new() {
-                            Difficulty = 1
-                        };
-                        break;
-                    }
-                    else {
-                        _b = await dbctx.Combinations.FirstOrDefaultAsync(x => x.Result == combination.Element2);
-                    }
-                }
-                Combination _c = null;
-                if (element3 != "") {
-                    while (_c == null || _c.Difficulty == 0) {
-                        if (baseelements.Contains(combination.Element3)) {
-                            _c = new() {
-                                Difficulty = 1
-                            };
-                            break;
-                        }
-                        else {
-                            _c = await dbctx.Combinations.FirstOrDefaultAsync(x => x.Result == combination.Element3);
-                        }
-                    }
-                }
-
-                if (element3 == "") {
-                    if (_a.Difficulty > _b.Difficulty) {
-                        combination.Difficulty = _a.Difficulty+1;
-                    }
-                    else {
-                        combination.Difficulty = _b.Difficulty+1;
-                    }
-                }
-
-                else {
-                    if (_a.Difficulty > _b.Difficulty) {
-                        if (_a.Difficulty > _c.Difficulty) {
-                            combination.Difficulty = _a.Difficulty+1;
-                        }
-                        else {
-                            combination.Difficulty = _c.Difficulty+1;
-                        }
-                    }
-                    else {
-                        if (_b.Difficulty > _c.Difficulty) {
-                            combination.Difficulty = _b.Difficulty+1;
-                        }
-                        else {
-                            combination.Difficulty = _c.Difficulty+1;
-                        }
-                    }
-                }
+                combination.Difficulty = await combination.CalcDifficulty();
             }
 
-            DBUser user = await dbctx.Users.FirstOrDefaultAsync(x => x.Id == ctx.Member.Id);
-            double amount = (double)(2+(combination.Difficulty/4));
-            if (element3 != "") {
+            DBUser user = await DBUser.GetAsync(ctx.Member.Id);
+            double amount = 2+(combination.Difficulty/4);
+            if (element3 != null) {
                 amount *= 1.3;
             }
             user.ElementalXp += amount;
 
-            await ctx.ReplyAsync($"You found {combination.Result}! You earn {Math.Round(amount,0)}xp!");
+            ctx.ReplyAsync($"You found {combination.Result}! You earn {Math.Round(amount,0)}xp!");
 
             await DailyTaskManager.DidTask(DailyTaskType.Combined_Elements, ctx.Member.Id, ctx);
 
             await dbctx.SaveChangesAsync();
-        }
 
+            user.UpdateDB();
+        }
     }
 
     [Command("inv")]

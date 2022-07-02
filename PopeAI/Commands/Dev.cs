@@ -3,7 +3,7 @@ namespace PopeAI.Commands.Dev;
 public class Dev : CommandModuleBase
 {
     [Command("userid")]
-    [Summary("The DBUser Id of the user who entered the command.")]
+    [Summary("The user Id of the user who entered the command.")]
     public async Task UserId(CommandContext ctx)
     {
         await ctx.ReplyAsync($"Your UserId is {ctx.Member.UserId}");

@@ -53,6 +53,11 @@ public class DBUser : DBItem<DBUser>
         }
     }
 
+    public DBUser()
+    {
+
+    }
+
     public DBUser(PlanetMember planetMember)
     {
         MessageXp = 0;
