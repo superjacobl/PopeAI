@@ -9,7 +9,7 @@ public enum DailyTaskType
     Combined_Elements = 5
 }
 
-public class DailyTask
+public class DailyTask : DBItem<DailyTask>
 {
     [Key]
     public ulong Id { get; set; }
@@ -19,4 +19,8 @@ public class DailyTask
     public int Goal { get; set; }
     public int Done { get; set; }
     public DateTime LastDayUpdated { get; set; }
+
+    [ForeignKey("MemberId")]
+    public virtual DBUser User { get; set; }
+
 }

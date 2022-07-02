@@ -7,7 +7,7 @@ using Valour.Api.Items.Users;
 
 namespace PopeAI.Database.Models.Users;
 
-public class DBUser
+public class DBUser : DBItem<DBUser>
 {
     [Key]
     public ulong Id { get; set; }
@@ -24,6 +24,9 @@ public class DBUser
     public int ActiveMinutes { get; set; }
     public DateTime LastHourly { get; set; }
     public DateTime LastSentMessage { get; set; }
+
+    [InverseProperty("User")]
+    public List<DailyTask> DailyTasks { get; set; }
 
     [NotMapped]
     public double Xp
@@ -73,7 +76,34 @@ public class DBUser
             .ToArray());
     }
 
-    
+    /// <summary>
+    /// Gets the object that matches the id and the type.
+    /// Unless you set _readonly to true, make sure you call UpdateDB() on the object after you are done using it!
+    /// </summary>
+    /// <param name="id">The Primary key of the object</param>
+    /// <param name="_readonly">True if the item being returned will not be changed.</param>
+    public static new async ValueTask<DBUser?> GetAsync(ulong id, bool _readonly = false)
+    {
+        var item = DBCache.Get<DBUser>(id);
+        if (item is null)
+        {
+            if (_readonly)
+            {
+                using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+                item = await dbctx.Users.Include(x => x.DailyTasks).FirstOrDefaultAsync(x => x.Id == id);
+                return item;
+            }
+            else
+            {
+                var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+                item = await dbctx.Users.Include(x => x.DailyTasks).FirstOrDefaultAsync(x => x.Id == id);
+                item!.FromDB = true;
+                item.dbctx = dbctx;
+                return item;
+            }
+        }
+        return item;
+    }
 
     public void NewMessage(PlanetMessage msg)
     {

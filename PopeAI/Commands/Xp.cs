@@ -22,29 +22,33 @@ public class Xp : CommandModuleBase
             return;
         }
 
-        DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
+        DBUser user = await DBUser.GetAsync(ctx.Member.Id);
 
         if (user == null)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            user = new(ctx.Member);
+            user = new(ctx.Member)
+            {
+                DailyTasks = DailyTaskManager.GenerateNewDailyTasks(user.Id).ToList()
+            };
             DBCache.Put(user.Id, user);
             dbctx.Users.Add(user);
-            dbctx.SaveChanges();
+            await dbctx.SaveChangesAsync();
         }
 
         user.NewMessage(ctx.Message);
 
-        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx);
+        await user.UpdateDB();
 
         StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
+        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx);
     }
 
     [Command("xp")]
     [Summary("Gives the user who sent the command their xp.")]
-    public Task SendXp(CommandContext ctx)
+    public async Task SendXp(CommandContext ctx)
     {
-        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
         EmbedBuilder embed = new();
         var page = new EmbedPageBuilder()
             .AddText($"{ctx.Member.Nickname}'s Xp")
@@ -53,7 +57,8 @@ public class Xp : CommandModuleBase
             .AddText("Total Xp", ((ulong)user.Xp).ToString());
 
         embed.AddPage(page);
-        return ctx.ReplyAsync(embed);
+        ctx.ReplyAsync(embed);
+        user.UpdateDB();
     }
 
     [Command("leaderboard")]

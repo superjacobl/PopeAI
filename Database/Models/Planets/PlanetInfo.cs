@@ -10,7 +10,7 @@ public enum PlanetStoragePlan
     Pro // up to 100 million messages
 }
 
-public class PlanetInfo
+public class PlanetInfo : DBItem<PlanetInfo>
 {
     [Key]
     public ulong PlanetId { get; set; }

@@ -3,11 +3,12 @@ namespace PopeAI.Commands.Economy;
 public class Economy : CommandModuleBase
 {
     Random rnd = new Random();
+
     [Command("hourly")]
     [Alias("h")]
     public async Task Hourly(CommandContext ctx)
     {
-        DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
         int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
         if (minutesleft <= 0) {
             await DailyTaskManager.DidTask(DailyTaskType.Hourly_Claims, ctx.Member.Id, ctx);
@@ -17,19 +18,20 @@ public class Economy : CommandModuleBase
             user.LastHourly = DateTime.UtcNow;
 
             StatManager.AddStat(CurrentStatType.Coins, (int)payout,  ctx.Planet.Id);
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            await dbctx.SaveChangesAsync();
             await ctx.ReplyAsync($"You got {payout} coins!");
         }
         else {
             await ctx.ReplyAsync($"You must wait {minutesleft} minutes before you can get another payout!");
         }
+        user.UpdateDB();
     }
+
     [Command("richest")]
     [Alias("r")]
     public async Task ViewRichest(CommandContext ctx)
     {
-        List<DBUser> users = DBCache.GetAll<DBUser>()
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        List<DBUser> users = dbctx.Users
             .Where(x => x.PlanetId ==  ctx.Planet.Id)
             .OrderByDescending(x => x.Coins)
             .Take(10)
@@ -54,60 +56,71 @@ public class Economy : CommandModuleBase
     [Alias("c")]
     public async Task coins(CommandContext ctx)
     {
-        var user = DBCache.Get<DBUser>(ctx.Member.Id);
-        await ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)user.Coins}");
+        var user = await DBUser.GetAsync(ctx.Member.Id);
+        ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)user.Coins}");
+        user.UpdateDB();
     }
 
     [Command("pay")]
     [Alias("send")]
-    public Task PayAsync(CommandContext ctx, double amount, PlanetMember member)
+    public async Task PayAsync(CommandContext ctx, double amount, PlanetMember member)
     {
-        var fromUser = DBCache.Get<DBUser>(ctx.Member.Id);
-        var toUser = DBCache.Get<DBUser>(member.Id);
+        var fromUser = await DBUser.GetAsync(ctx.Member.Id);
+        var toUser = await DBUser.GetAsync(member.Id);
         if (amount > fromUser.Coins) {
-            return ctx.ReplyAsync("You can not send more coins than you currently have!");
+            await ctx.ReplyAsync("You can not send more coins than you currently have!");
+            return;
         }
         if (amount <= 0) {
-            return ctx.ReplyAsync("Amount must be above 0!");
+            await ctx.ReplyAsync("Amount must be above 0!");
+            return;
         }
         fromUser.Coins -= amount;
         toUser.Coins += amount;
-        return ctx.ReplyAsync($"Sent {amount} coins to {member.Nickname}!");
+        ctx.ReplyAsync($"Sent {amount} coins to {member.Nickname}!");
+
+        fromUser.UpdateDB();
+        toUser.UpdateDB();
     }
 
     [Command("charity")]
     [Alias("donate")]
-    public Task Charity(CommandContext ctx, double amount)
+    public async Task Charity(CommandContext ctx, double amount)
     {
-        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
         if (amount > user.Coins) {
-            return ctx.ReplyAsync("You can not donate more coins than you currently have!");
+            await ctx.ReplyAsync("You can not donate more coins than you currently have!");
+            return;
         }
         if (amount <= 0) {
-            return ctx.ReplyAsync("Amount must be above 0!");
+            await ctx.ReplyAsync("Amount must be above 0!");
+            return;
         }
 
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         user.Coins -= amount;
-        double CoinsPer = amount / DBCache.GetAll<DBUser>().Where(x => x.PlanetId == user.PlanetId).Count();
+
+        double CoinsPer = amount / dbctx.Users.Where(x => x.PlanetId == user.PlanetId).Count();
         foreach(var _user in DBCache.GetAll<DBUser>().Where(x => x.PlanetId == user.PlanetId)) {
             user.Coins += CoinsPer;
         }
-        return ctx.ReplyAsync($"Gave {Math.Round(CoinsPer, 2)} coins to every user!");
+        ctx.ReplyAsync($"Gave {Math.Round(CoinsPer, 2)} coins to every user!");
+
+        user.UpdateDB();
     }
 
     [Command("charity")]
     [Alias("donate")]
-    public async Task Charity(CommandContext ctx)
+    public Task Charity(CommandContext ctx)
     {
-        await ctx.ReplyAsync("Correct usage: /charity <amount to give>");
+        return ctx.ReplyAsync("Correct usage: /charity <amount to give>");
     }
 
     [Command("dice")]
     public async Task Dice(CommandContext ctx, int bet)
     {
-        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
         if (user.Coins < bet) {
             await ctx.ReplyAsync("Bet must not be above your coins!");
             return;
@@ -119,52 +132,56 @@ public class Economy : CommandModuleBase
         int usernum2 = rnd.Next(1, 6);
         int opnum1 = rnd.Next(1, 6);
         int opnum2 = rnd.Next(1, 6);
-        List<string> data = new();
-        data.Add($"You throw the dice");
-        data.Add($"You get **{usernum1}** and **{usernum2}**");
-        data.Add($"Your opponent throws their dice, and gets **{opnum1}** and **{opnum2}**");
+        List<string> data = new()
+        {
+            $"You throw the dice",
+            $"You get **{usernum1}** and **{usernum2}**",
+            $"Your opponent throws their dice, and gets **{opnum1}** and **{opnum2}**"
+        };
 
         // check for a tie
 
         if (usernum1+usernum2 == opnum1+opnum2) {
             data.Add($"It's a tie");
-            user.Coins -= (double)bet;
+            user.Coins -= bet;
         }
         else {
 
             // user won
             if (usernum1+usernum2 > opnum1+opnum2) {
                 data.Add($"You won {bet} coins!");
-                user.Coins += (double)bet;
+                user.Coins += bet;
                 StatManager.AddStat(CurrentStatType.Coins, bet,  ctx.Planet.Id);
             }
             else {
                 data.Add($"You lost {bet} coins.");
-                user.Coins -= (double)bet;
+                user.Coins -= bet;
                 StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
             }
         }
 
-        ctx.ReplyWithMessagesAsync(1750, data);
+        await ctx.ReplyWithMessagesAsync(1750, data);
+
+        user.UpdateDB();
     } 
 
     [Command("dice")]
-    public async Task Dice(CommandContext ctx)
+    public Task Dice(CommandContext ctx)
     {
-        await ctx.ReplyAsync("Correct Useage: /dice <bet>");
+        return ctx.ReplyAsync("Correct Useage: /dice <bet>");
     }
 
     [Command("gamble")]
-    public async Task Gamble(CommandContext ctx)
+    public Task Gamble(CommandContext ctx)
     {
         string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 2.86x bet |\n| Blue  | 35%    | 2.86x bet |\n| Green | 20%    | 5x bet   |\n| Black | 10%     | 10x bet  |";
-        await ctx.ReplyAsync(content);
+        return ctx.ReplyAsync(content);
     }
     
     [Command("gamble")]
-    public async Task Gamble(CommandContext ctx, string t)
+    public Task Gamble(CommandContext ctx, string t)
     {
-        await ctx.ReplyAsync("Command Useage: /gamble <color> <bet>");
+        return ctx.ReplyAsync("Command Useage: /gamble <color> <bet>");
     }
 
     [Command("gamble")]
@@ -175,7 +192,7 @@ public class Economy : CommandModuleBase
             return;
         }
 
-        var user = DBCache.Get<DBUser>(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
         if (user.Coins < bet) {
             await ctx.ReplyAsync("Bet must not be above your coins!");
             return;
@@ -237,6 +254,8 @@ public class Economy : CommandModuleBase
         }
 
         await ctx.ReplyWithMessagesAsync(1750, data);
+
+        user.UpdateDB();
     }
     
     // roleincome & lotteries will be updated eventually

@@ -24,15 +24,16 @@ namespace PopeAI.Commands.Unscramble
             {
                 if (ScrambledWords[ctx.Member.Id] == ctx.Message.Content.ToLower())
                 {
-                    DBUser user = DBCache.Get<DBUser>(ctx.Member.Id);
+                    DBUser user = await DBUser.GetAsync(ctx.Member.Id);
                     double reward = rnd.Next(5, 25);
                     StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
                     user.Coins += reward;
-                    await ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
+                    ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
+                    user.UpdateDB();
                 }
                 else
                 {
-                    await ctx.ReplyAsync($"Incorrect. The correct word was {ScrambledWords[ctx.Member.Id]}");
+                    ctx.ReplyAsync($"Incorrect. The correct word was {ScrambledWords[ctx.Member.Id]}");
                 }
                 ScrambledWords.Remove(ctx.Member.Id);
             }

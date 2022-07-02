@@ -1,18 +1,14 @@
-﻿using IdGen;
-using PopeAI.Database.Caching;
-using PopeAI.Database.Models.Planets;
-using System.Threading.Tasks;
-
-namespace PopeAI.Bot.Managers;
+﻿namespace PopeAI.Bot.Managers;
 
 public static class DailyTaskManager
 {
     public static Random rnd = new();
     public static IdManager idManager = new();
-    public static async ValueTask DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
+
+    public static async Task DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
     {
-        var user = DBCache.Get<DBUser>(MemberId)!;
-        DailyTask task = DBCache.GetAll<DailyTask>().FirstOrDefault(x => x.MemberId == MemberId && x.TaskType == TaskType);
+        var user = await DBUser.GetAsync(MemberId);
+        DailyTask task = user.DailyTasks.FirstOrDefault(x => x.TaskType == TaskType);
         if (task != null)
         {
             if (task.Done < task.Goal)
@@ -25,11 +21,12 @@ public static class DailyTaskManager
                     if (ctx != null)
                     {
                         string content = $"{ctx.Member.Nickname}, your {task.TaskType.ToString().Replace("_", " ")} daily task is done! You get {task.Reward} coins.";
-                        await ctx.ReplyWithMessagesAsync(1000, new List<string>() { content });
+                        await ctx.ReplyWithMessagesAsync(4000, new List<string>() { content });
                     }
                 }
             }
         }
+        await user.UpdateDB();
     }
     public static DailyTaskType RandomTask()
     {
@@ -111,11 +108,15 @@ public static class DailyTaskManager
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         DailyTask task = null;
-        foreach (DBUser user in dbctx.Users)
+
+        // in future process this in chunks of like 10k because we would run out of memory
+        // no sense in updating daily tasks for a user that is inactive
+        DateTime time = DateTime.UtcNow.AddDays(-2);
+        foreach (DBUser user in dbctx.Users.Include(x => x.DailyTasks).Where(x => x.LastSentMessage > time))
         {
             List<DailyTask> tasks = GenerateNewDailyTasks(user.Id).ToList();
 
-            foreach (var oldtask in DBCache.GetAll<DailyTask>().Where(x => x.MemberId == user.Id))
+            foreach (var oldtask in user.DailyTasks)
             {
                 task = tasks[0];
                 tasks.RemoveAt(0);
@@ -127,10 +128,6 @@ public static class DailyTaskManager
             if (tasks.Count > 0)
             {
                 await dbctx.DailyTasks.AddRangeAsync(tasks);
-                foreach (var _task in tasks)
-                {
-                    DBCache.Put(_task.Id, _task);
-                }
             }
         }
         await dbctx.SaveChangesAsync();

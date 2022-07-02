@@ -51,11 +51,14 @@ class Program
 
         PopeAIDB.DbFactory = PopeAIDB.GetDbFactory();
 
+        await DBCache.Load();
+
         ValourNetClient.AddPrefix("/");
+        ValourNetClient.ExecuteMessagesInParallel = true;
 
         await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 
-        Task task = Task.Run(UpdateHourly);
+        UpdateHourly();
 
         while (true)
         {

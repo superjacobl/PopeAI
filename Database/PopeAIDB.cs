@@ -19,6 +19,7 @@ global using PopeAI.Database.Models.Bot;
 global using Npgsql.EntityFrameworkCore;
 global using NpgsqlTypes;
 global using PopeAI.Database.Models.Moderating;
+global using PopeAI.Database.Models;
 
 using PopeAI.Models;
 using Valour.Api.Items.Planets;
@@ -227,5 +228,4 @@ public class PopeAIDB : DbContext
        await Context.SaveChangesAsync();
    }
    */
-}
 }

@@ -32,7 +32,7 @@ public static class MessageManager
 
             dbctx.Messages.Add(msg);
 
-            PlanetInfo? info = DBCache.Get<PlanetInfo>(msg.PlanetId);
+            var info = await PlanetInfo.GetAsync(msg.PlanetId);
             if (info == null)
             {
                 info = new()
@@ -46,6 +46,8 @@ public static class MessageManager
 
             msg.PlanetIndex = info.MessagesStored;
             info.MessagesStored += 1;
+
+            await info.UpdateDB();
 
             StatManager.selfstat.StoredMessages += 1;
             if (msg.AuthorId == ValourClient.Self.Id)

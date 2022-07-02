@@ -12,6 +12,16 @@ public class DBCache
     /// </summary>
     public static Dictionary<Type, ConcurrentDictionary<ulong, object>> HCache = new();
 
+    public static void DeleteAll<T>() where T : class
+    {
+        var type = typeof(T);
+
+        if (!HCache.ContainsKey(typeof(T)))
+            return;
+
+        HCache[typeof(T)].Clear();
+    }
+
     public static IEnumerable<T> GetAll<T>() where T : class
     {
         var type = typeof(T);
@@ -72,14 +82,20 @@ public class DBCache
         return null;
     }
 
-    public static void Load()
+    public static async Task Load()
     {
         //#if !DEBUG
-        foreach (var _obj in dbctx.Users)
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        IEnumerable<DBUser> UsersToCache = await dbctx.Users
+            .Where(x => x.LastSentMessage.AddDays(1) > DateTime.Now)
+            .OrderByDescending(x => x.Messages).Take(50000)
+            .Include(x => x.DailyTasks)
+            .ToListAsync();
+        foreach (var _obj in UsersToCache)
         {
             Put(_obj.Id, _obj);
         }
-        foreach (var _obj in dbctx.CurrentStats)
+        foreach (var _obj in dbctx.CurrentStats.Where(x => x.MessagesSent > 0))
         {
             Put(_obj.PlanetId, _obj);
         }
@@ -96,6 +112,7 @@ public class DBCache
 
     public static async Task SaveAsync()
     {
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         dbctx.Users.UpdateRange(GetAll<DBUser>());
         dbctx.CurrentStats.UpdateRange(GetAll<CurrentStat>());
         dbctx.DailyTasks.UpdateRange(GetAll<DailyTask>());

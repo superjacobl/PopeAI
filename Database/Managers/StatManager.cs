@@ -11,14 +11,18 @@ public static class StatManager
 
     public static void AddStat(CurrentStatType type, int value, ulong PlanetId)
     {
-        CurrentStat? current = DBCache.Get<CurrentStat>(PlanetId);
+        CurrentStat? current = CurrentStat.GetAsync(PlanetId).AsTask().Result;
         if (current is null)
         {
-            current = new CurrentStat(PlanetId);
-            DBCache.Put(current.PlanetId, current);
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            dbctx.CurrentStats.Add(current);
-            dbctx.SaveChanges();
+            current = CurrentStat.GetAsync(PlanetId).AsTask().GetAwaiter().GetResult();
+            if (current is null)
+            {
+                current = new(PlanetId);
+                DBCache.Put(current.PlanetId, current);
+                using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+                dbctx.CurrentStats.Add(current);
+                dbctx.SaveChanges();
+            }
         }
         switch (type)
         {
@@ -33,18 +37,19 @@ public static class StatManager
                 current.MessagesSent += value;
                 break;
         }
+        current.UpdateDB();
     }
 
     public static async Task CheckStats()
     {
-        CurrentStat? first = DBCache.GetAll<CurrentStat>().FirstOrDefault();
-        if (first is null) return;
-
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        CurrentStat? first = await dbctx.CurrentStats.Where(x => x.MessagesSent != 0).FirstOrDefaultAsync();
+        if (first is null) return;
 
         if (DateTime.UtcNow > first.LastStatUpdate.AddHours(24))
         {
-            foreach (CurrentStat currentstat in DBCache.GetAll<CurrentStat>().Where(x => x.MessagesSent != 0))
+            DBCache.DeleteAll<CurrentStat>();
+            foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
             {
                 Stat stat = new()
                 {
@@ -60,6 +65,7 @@ public static class StatManager
                 currentstat.MessagesSent = 0;
                 currentstat.MessagesUsersSent = 0;
                 currentstat.LastStatUpdate = DateTime.UtcNow;
+                DBCache.Put(currentstat.PlanetId, currentstat);
             }
         }
 

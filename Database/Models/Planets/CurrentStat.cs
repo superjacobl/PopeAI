@@ -7,7 +7,7 @@ public enum CurrentStatType
     Message
 }
 
-public class CurrentStat
+public class CurrentStat : DBItem<CurrentStat>
 {
     [Key]
     public ulong PlanetId { get; set; }
