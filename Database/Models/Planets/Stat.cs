@@ -1,5 +1,7 @@
 namespace PopeAI.Database.Models.Planets;
 
+[Index(nameof(PlanetId))]
+[Index(nameof(Time))]
 public class Stat
 {
 

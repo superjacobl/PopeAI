@@ -17,11 +17,11 @@ public class Search : CommandModuleBase
         return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
     }
 
-    public async Task OutputToListOld(List<Message> msgs, CommandContext ctx, ulong Id = 0) {
+    public async Task OutputToListOld(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
         string content = "";
         foreach(Message msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
-            if (msg.PlanetIndex == Id) {
+            if (msg.PlanetIndex == planetIndex) {
                 content += $"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
             }
             else {
@@ -31,12 +31,12 @@ public class Search : CommandModuleBase
         await ctx.ReplyAsync(content);
     }
 
-    public async Task OutputToList(List<Message> msgs, CommandContext ctx, ulong Id = 0) {
+    public async Task OutputToList(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
         EmbedBuilder embed = new();
         EmbedPageBuilder page = new();
         foreach(Message msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
-            if (msg.PlanetIndex == Id) {
+            if (msg.PlanetIndex == planetIndex) {
                 page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
             }
             else {
@@ -54,14 +54,14 @@ public class Search : CommandModuleBase
     }
 
     [Command("view")]
-    public async Task ViewAsync(CommandContext ctx, ulong Id)
+    public async Task ViewAsync(CommandContext ctx, int planetIndex)
     {
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         List<Message> msgs = await dbctx.Messages
-            .Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > Id-6 && x.PlanetIndex < Id+6)
+            .Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > planetIndex - 6 && x.PlanetIndex < planetIndex + 6)
             .Take(20)
             .ToListAsync();  
-        await OutputToList(msgs, ctx, Id);
+        await OutputToList(msgs, ctx, planetIndex);
     }
 
     [Command("search")]

@@ -9,6 +9,7 @@ public enum DailyTaskType
     Combined_Elements = 5
 }
 
+[Index(nameof(MemberId))]
 public class DailyTask : DBItem<DailyTask>
 {
     [Key]

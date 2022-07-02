@@ -14,7 +14,7 @@ public class PlanetInfo : DBItem<PlanetInfo>
 {
     [Key]
     public ulong PlanetId { get; set; }
-    public ulong MessagesStored { get; set; }
+    public int MessagesStored { get; set; }
 
     public PlanetInfo()
     {
