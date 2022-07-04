@@ -9,7 +9,7 @@ public static class StatManager
 
     public static BotStat selfstat = BotStat.GetCurrent().GetAwaiter().GetResult();
 
-    public static void AddStat(CurrentStatType type, int value, ulong PlanetId)
+    public static void AddStat(CurrentStatType type, int value, long PlanetId)
     {
         CurrentStat? current = CurrentStat.GetAsync(PlanetId).AsTask().Result;
         if (current is null)
@@ -73,7 +73,7 @@ public static class StatManager
         if (DateTime.Now > selfstat.Time.AddHours(1))
         {
             string query = $"select (data_length + index_length) as Size from information_schema.tables where table_name = 'messages';";
-            ulong Size = PopeAIDB.RawSqlQuery(query, x => new List<ulong> { Convert.ToUInt64(x[0]) }).First().First();
+            long Size = PopeAIDB.RawSqlQuery(query, x => new List<long> { Convert.ToUInt64(x[0]) }).First().First();
             BotStat stat = new()
             {
                 MessagesSent = selfstat.MessagesSent,

@@ -3,19 +3,19 @@
 public class Mute
 {
     [Key]
-    public ulong Id { get; set; }
+    public long Id { get; set; }
 
     public DateTime Expire { get; set; }
 
-    public ulong MinutesMutedFor { get; set; }
+    public long MinutesMutedFor { get; set; }
 
     /// <summary>
     /// The id of the member that muted the person
     /// </summary>
-    public ulong Muter { get; set; }
+    public long Muter { get; set; }
 
     /// <summary>
     /// The id of the member who is muted
     /// </summary>
-    public ulong MutedId { get; set; }
+    public long MutedId { get; set; }
 }

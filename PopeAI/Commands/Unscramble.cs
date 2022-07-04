@@ -2,7 +2,7 @@ namespace PopeAI.Commands.Unscramble
 {
     public class Unscramble : CommandModuleBase
     {
-        public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>();
+        public static Dictionary<long, string> ScrambledWords = new Dictionary<long, string>();
         static Random rnd = new Random();
 
         [Command("unscramble")]

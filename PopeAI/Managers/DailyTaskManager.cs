@@ -5,7 +5,7 @@ public static class DailyTaskManager
     public static Random rnd = new();
     public static IdManager idManager = new();
 
-    public static async Task DidTask(DailyTaskType TaskType, ulong MemberId, CommandContext ctx = null)
+    public static async Task DidTask(DailyTaskType TaskType, long MemberId, CommandContext ctx = null)
     {
         var user = await DBUser.GetAsync(MemberId);
         DailyTask task = user.DailyTasks.FirstOrDefault(x => x.TaskType == TaskType);
@@ -46,7 +46,7 @@ public static class DailyTaskManager
         return list[rnd.Next(0, list.Length)];
     }
 
-    public static IEnumerable<DailyTask> GenerateNewDailyTasks(ulong Memberid)
+    public static IEnumerable<DailyTask> GenerateNewDailyTasks(long Memberid)
     {
         List<DailyTask> toadd = new();
 
@@ -62,7 +62,6 @@ public static class DailyTaskManager
             {
                 TaskType = tasktype,
                 Id = idManager.Generate(),
-                LastDayUpdated = DateTime.UtcNow,
                 MemberId = Memberid,
                 Done = 0
             };
@@ -96,16 +95,16 @@ public static class DailyTaskManager
     public static async Task UpdateDailyTasks()
     {
         // only replace dailytasks if the day is different
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
-        if (DBCache.GetAll<DailyTask>().FirstOrDefault() is not null)
+        var botime = await dbctx.BotTimes.FirstOrDefaultAsync();
+
+        if (botime.LastDailyTasksUpdate.AddDays(1) > DateTime.Now)
         {
-            if (DBCache.GetAll<DailyTask>().FirstOrDefault().LastDayUpdated.Day == DateTime.UtcNow.Day)
-            {
-                return;
-            }
+            return;
         }
 
-        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        botime.LastDailyTasksUpdate = DateTime.Now;
 
         DailyTask task = null;
 
@@ -122,7 +121,6 @@ public static class DailyTaskManager
                 tasks.RemoveAt(0);
                 oldtask.Done = 0;
                 oldtask.Reward = task.Reward;
-                oldtask.LastDayUpdated = task.LastDayUpdated;
                 oldtask.TaskType = task.TaskType;
             }
             if (tasks.Count > 0)

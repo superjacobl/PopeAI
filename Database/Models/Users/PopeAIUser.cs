@@ -10,9 +10,9 @@ namespace PopeAI.Database.Models.Users;
 public class DBUser : DBItem<DBUser>
 {
     [Key]
-    public ulong Id { get; set; }
-    public ulong UserId { get; set; }
-    public ulong PlanetId { get; set; }
+    public long Id { get; set; }
+    public long UserId { get; set; }
+    public long PlanetId { get; set; }
     public double Coins { get; set; }
     public ushort CharsThisMinute { get; set; }
     public ushort PointsThisMinute { get; set; }
@@ -87,7 +87,7 @@ public class DBUser : DBItem<DBUser>
     /// </summary>
     /// <param name="id">The Primary key of the object</param>
     /// <param name="_readonly">True if the item being returned will not be changed.</param>
-    public static new async ValueTask<DBUser?> GetAsync(ulong id, bool _readonly = false)
+    public static new async ValueTask<DBUser?> GetAsync(long id, bool _readonly = false)
     {
         var item = DBCache.Get<DBUser>(id);
         if (item is null)

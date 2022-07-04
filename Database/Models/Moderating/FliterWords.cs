@@ -10,7 +10,7 @@ public enum FliterWordType
 public class FliterWord
 {
     [Key]
-    public ulong Id { get; set; }
+    public long Id { get; set; }
     public FliterWordType fliterWordType { get; set; }
     public int? MinutesToMuteFor { get; set; }
 

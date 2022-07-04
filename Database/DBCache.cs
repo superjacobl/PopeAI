@@ -10,7 +10,7 @@ public class DBCache
     /// <summary>
     /// The high level cache object which contains the lower level caches
     /// </summary>
-    public static Dictionary<Type, ConcurrentDictionary<ulong, object>> HCache = new();
+    public static Dictionary<Type, ConcurrentDictionary<long, object>> HCache = new();
 
     public static void DeleteAll<T>() where T : class
     {
@@ -36,7 +36,7 @@ public class DBCache
     /// <summary>
     /// Returns true if the cache contains the item
     /// </summary>
-    public static bool Contains<T>(ulong Id) where T : class
+    public static bool Contains<T>(long Id) where T : class
     {
         var type = typeof(T);
 
@@ -49,7 +49,7 @@ public class DBCache
     /// <summary>
     /// Places an item into the cache
     /// </summary>
-    public static void Put<T>(ulong Id, T? obj) where T : class
+    public static void Put<T>(long Id, T? obj) where T : class
     {
         // Empty object is ignored
         if (obj == null)
@@ -60,7 +60,7 @@ public class DBCache
 
         // If there isn't a cache for this type, create one
         if (!HCache.ContainsKey(type))
-            HCache.Add(type, new ConcurrentDictionary<ulong, object>());
+            HCache.Add(type, new ConcurrentDictionary<long, object>());
 
         if (!HCache[type].ContainsKey(Id))
         {
@@ -71,7 +71,7 @@ public class DBCache
     /// <summary>
     /// Returns the item for the given id, or null if it does not exist
     /// </summary>
-    public static T? Get<T>(ulong Id) where T : class
+    public static T? Get<T>(long Id) where T : class
     {
         var type = typeof(T);
 

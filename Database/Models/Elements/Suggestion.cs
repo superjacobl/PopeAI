@@ -3,7 +3,7 @@ namespace PopeAI.Database.Models.Elements;
 public class Suggestion
 {
     [Key]
-    public ulong Id { get; set; }
+    public long Id { get; set; }
 
     [VarChar(16)]
     public string Element1 { get; set; }
@@ -16,7 +16,7 @@ public class Suggestion
 
     [VarChar(16)]
     public string Result { get; set; }
-    public ulong UserId { get; set; }
+    public long UserId { get; set; }
     public DateTime TimeSuggested { get; set; }
     public int Ayes { get; set; }
     public int Nays { get; set; }
@@ -28,7 +28,7 @@ public class Suggestion
         TimeSuggested = DateTime.UtcNow;
     }
 
-    public Suggestion(ulong id, string element1, string element2, string element3, string result, ulong userId, DateTime timeSuggested, int ayes, int nays)
+    public Suggestion(long id, string element1, string element2, string element3, string result, long userId, DateTime timeSuggested, int ayes, int nays)
     {
         Id = id;
         Element1 = element1;

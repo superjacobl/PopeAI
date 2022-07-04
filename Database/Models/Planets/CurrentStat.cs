@@ -10,7 +10,7 @@ public enum CurrentStatType
 public class CurrentStat : DBItem<CurrentStat>
 {
     [Key]
-    public ulong PlanetId { get; set; }
+    public long PlanetId { get; set; }
     public int NewCoins { get; set; }
     public int MessagesSent { get; set; }
     public int MessagesUsersSent { get; set; }
@@ -21,7 +21,7 @@ public class CurrentStat : DBItem<CurrentStat>
 
     }
 
-    public CurrentStat(ulong planetid)
+    public CurrentStat(long planetid)
     {
         PlanetId = planetid;
         NewCoins = 0;

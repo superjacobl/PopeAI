@@ -22,7 +22,6 @@ global using PopeAI.Database.Models.Moderating;
 global using PopeAI.Database.Models;
 
 using PopeAI.Models;
-using Valour.Api.Items.Planets;
 using System.Data.Common;
 using System.Data;
 using PopeAI.Database.Config;
@@ -30,7 +29,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.Options;
 
 namespace PopeAI.Database;
 
@@ -144,6 +142,8 @@ public class PopeAIDB : DbContext
     public DbSet<BotStat> BotStats { get; set; }
     public DbSet<SuggestionVote> SuggestionVotes { get; set; }
 
+    public DbSet<BotTime> BotTimes { get; set; }
+
     public PopeAIDB(DbContextOptions options)
     {
 
@@ -163,8 +163,8 @@ public class PopeAIDB : DbContext
        if (DateTime.UtcNow > first.LastPaidOut.AddHours(1) || first.RoleId == 0 || force)
        {
            List<PlanetMemberInfo> memberinfo = new List<PlanetMemberInfo>();
-           Dictionary<ulong, RoleIncomes> RoleIncomeRoleIds = new Dictionary<ulong, RoleIncomes>();
-           List<ulong> PlanetIds = new List<ulong>();
+           Dictionary<long, RoleIncomes> RoleIncomeRoleIds = new Dictionary<long, RoleIncomes>();
+           List<long> PlanetIds = new List<long>();
            foreach (RoleIncomes roleincome in Context.RoleIncomes)
            {
                RoleIncomeRoleIds.Add(roleincome.RoleId, roleincome);
@@ -174,7 +174,7 @@ public class PopeAIDB : DbContext
                    PlanetIds.Add(roleincome.PlanetId);
                }
            }
-           foreach (ulong planetid in PlanetIds)
+           foreach (long planetid in PlanetIds)
            {
                int NewCoins = 0;
                CurrentStat current = await Context.CurrentStats.FirstOrDefaultAsync(x => x.PlanetId == planetid);
@@ -187,7 +187,7 @@ public class PopeAIDB : DbContext
                    {
                        continue;
                    }
-                   foreach (ulong roleid in (await member.GetRolesAsync()).Select(x => x.Id))
+                   foreach (long roleid in (await member.GetRolesAsync()).Select(x => x.Id))
                    {
                        if (RoleIncomeRoleIds.ContainsKey(roleid))
                        {
@@ -205,7 +205,7 @@ public class PopeAIDB : DbContext
        }
        await Context.SaveChangesAsync();
    }
-   public async Task UpdateLotteries(Dictionary<ulong, Lottery> lotterycache, PopeAIDB Context)
+   public async Task UpdateLotteries(Dictionary<long, Lottery> lotterycache, PopeAIDB Context)
    {
        return;
        foreach (Lottery lottery in Context.Lotteries)
@@ -215,8 +215,8 @@ public class PopeAIDB : DbContext
                lotterycache.Remove(lottery.PlanetId);
                int total = (int)await Context.LotteryTickets.SumAsync(x => (double)x.Tickets);
                Random rnd = new Random();
-               ulong WinningTicketNum = (ulong)rnd.Next(1, total + 1);
-               ulong currentnum = 1;
+               long WinningTicketNum = (long)rnd.Next(1, total + 1);
+               long currentnum = 1;
                foreach (LotteryTicket ticket in Context.LotteryTickets.Where(x => x.PlanetId == lottery.PlanetId))
                {
                    if (currentnum + ticket.Tickets >= WinningTicketNum)
@@ -228,7 +228,7 @@ public class PopeAIDB : DbContext
                        DBUser winninguser = await Context.Users.FirstOrDefaultAsync(x => x.PlanetId == lottery.PlanetId && x.UserId == ticket.UserId);
                        winninguser.Coins += lottery.Jackpot;
                        PlanetMember planetuser = await winninguser.GetMember();
-                       //await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(ulong)lottery.Jackpot} coins!");
+                       //await Program.PostMessage(lottery.ChannelId, lottery.PlanetId, $"{planetuser.Nickname} has won the lottery with a jackpot of over {(long)lottery.Jackpot} coins!");
                        Context.LotteryTickets.Remove(ticket);
                    }
                    else

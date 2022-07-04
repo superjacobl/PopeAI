@@ -8,7 +8,7 @@ public class Xp : CommandModuleBase
     [Event(EventType.AfterCommand)]
     public void AfterCommand(CommandContext ctx)
     {
-        StatManager.selfstat.TimeTakenTotal += (ulong)(DateTime.UtcNow - ctx.TimeReceived).TotalMilliseconds;
+        StatManager.selfstat.TimeTakenTotal += (long)(DateTime.UtcNow - ctx.TimeReceived).TotalMilliseconds;
         StatManager.selfstat.Commands += 1;
     }
 
@@ -18,7 +18,7 @@ public class Xp : CommandModuleBase
         // put this message in queue for storage
         MessageManager.AddToQueue(ctx.Message);
 
-        if (ctx.Message.AuthorId == ulong.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
+        if (ctx.Message.AuthorId == long.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
             return;
         }
 
@@ -52,9 +52,9 @@ public class Xp : CommandModuleBase
         EmbedBuilder embed = new();
         var page = new EmbedPageBuilder()
             .AddText($"{ctx.Member.Nickname}'s Xp")
-            .AddText("Message Xp", ((ulong)user.MessageXp).ToString())
-            .AddText("Elemental Xp", ((ulong)user.ElementalXp).ToString())
-            .AddText("Total Xp", ((ulong)user.Xp).ToString());
+            .AddText("Message Xp", ((long)user.MessageXp).ToString())
+            .AddText("Elemental Xp", ((long)user.ElementalXp).ToString())
+            .AddText("Total Xp", ((long)user.Xp).ToString());
 
         embed.AddPage(page);
         ctx.ReplyAsync(embed);
@@ -77,7 +77,7 @@ public class Xp : CommandModuleBase
         foreach (DBUser user in users)
         {
             PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, user.UserId);
-            page.AddText(text:$"({i}) {member.Nickname} - {(ulong)user.Xp}xp");
+            page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp");
             i += 1;
             if (page.Items.Count() > 10) {
                 embed.AddPage(page);

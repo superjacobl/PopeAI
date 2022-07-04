@@ -39,7 +39,7 @@ public class Dev : CommandModuleBase
         }
         //string query = $"select (data_length + index_length) as Size, COUNT(Id), ((data_length + index_length)/COUNT(Id)) as avg_row_size from popeai.Messages, information_schema.tables where table_name = 'messages';";
         string query = $"select (data_length + index_length) as Size from information_schema.tables where table_name = 'messages';";
-        List<ulong> data = PopeAIDB.RawSqlQuery<List<ulong>>(query, x => new List<ulong> {Convert.ToUInt64(x[0])}).First();
+        List<long> data = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToUInt64(x[0])}).First();
 
         EmbedBuilder embed = new EmbedBuilder();
         EmbedPageBuilder page = new EmbedPageBuilder();

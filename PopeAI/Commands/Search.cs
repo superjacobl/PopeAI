@@ -116,7 +116,7 @@ public class Search : CommandModuleBase
                     if (value.Substring(0,4) == "«@m-") {
                         string v = value.Replace("«@m-", "");
                         v = v.Replace("»","");
-                        if (ulong.TryParse(v, out ulong MemberID)) {
+                        if (long.TryParse(v, out long MemberID)) {
                             search = search.Where(x => x.MemberId == MemberID);
                         }
                     }

@@ -31,6 +31,7 @@ global using PopeAI.Database.Models.Messaging;
 global using System.IO;
 
 using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PopeAI;
 

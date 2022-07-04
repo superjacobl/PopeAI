@@ -7,7 +7,7 @@ namespace PopeAI.Database.Models.Elements;
 public class Combination
 {
     [Key]
-    public ulong Id { get; set; }
+    public long Id { get; set; }
 
     [VarChar(16)]
     public string Element1 { get; set; }

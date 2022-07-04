@@ -20,8 +20,8 @@ public class IdManager
         Generator = new IdGenerator(threadid, options);
     }
 
-    public ulong Generate()
+    public long Generate()
     {
-        return (ulong)Generator.CreateId();
+        return (long)Generator.CreateId();
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace PopeAI.Database.Models;
+﻿using System;
+
+namespace PopeAI.Database.Models;
 
 public interface IDBItem
 {
@@ -9,7 +11,7 @@ public interface IDBItem
     public bool FromDB { get; set; }
 }
 
-public abstract class DBItem<T> : IDBItem where T : class, IDBItem
+public abstract class DBItem<T> : IAsyncDisposable, IDisposable, IDBItem where T : class, IDBItem
 {
     [NotMapped]
     public bool FromDB { get; set; }
@@ -31,13 +33,23 @@ public abstract class DBItem<T> : IDBItem where T : class, IDBItem
         }
     }
 
+    public void Dispose()
+    {
+        UpdateDB().GetAwaiter().GetResult();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await UpdateDB();
+    }
+
     /// <summary>
     /// Gets the object that matches the id and the type.
     /// Unless you set _readonly to true, make sure you call UpdateDB() on the object after you are done using it!
     /// </summary>
     /// <param name="id">The Primary key of the object</param>
     /// <param name="_readonly">True if the item being returned will not be changed.</param>
-    public static async ValueTask<T?> GetAsync(ulong id, bool _readonly = false)
+    public static async ValueTask<T?> GetAsync(long id, bool _readonly = false)
     {
         T? item = DBCache.Get<T>(id);
         if (item is null)

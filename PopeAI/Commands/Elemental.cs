@@ -3,7 +3,7 @@ namespace PopeAI.Commands.Elemental;
 public class Elemental : CommandModuleBase
 {
     public static IdManager idManager = new();
-    public static ConcurrentDictionary<ulong, Combination> FailedCombinations = new();
+    public static ConcurrentDictionary<long, Combination> FailedCombinations = new();
     static Random rnd = new();
 
     [Command("suggest")]
@@ -104,7 +104,7 @@ public class Elemental : CommandModuleBase
 
         string elementname = ctx.Event.Element_Id;
         if (elementname.Contains("VoteFromSuggestion")) {
-            ulong suggestid = ulong.Parse(elementname.Split("Suggestion:")[1]);
+            long suggestid = long.Parse(elementname.Split("Suggestion:")[1]);
             Suggestion suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Id == suggestid);
             member = await PlanetMember.FindAsync(ctx.Event.MemberId);
             if (await dbctx.SuggestionVotes.AnyAsync(x => x.SuggestionId == suggestion.Id && x.UserId == member.UserId)) {

@@ -1,3 +1,6 @@
+using Valour.Api.Items.Users;
+using Valour.Net.ModuleHandling.Models.Embeds;
+
 namespace PopeAI.Commands.Economy;
 
 public class Economy : CommandModuleBase
@@ -8,7 +11,7 @@ public class Economy : CommandModuleBase
     [Alias("h")]
     public async Task Hourly(CommandContext ctx)
     {
-        var user = await DBUser.GetAsync(ctx.Member.Id);
+        await using var user = await DBUser.GetAsync(ctx.Member.Id);
         int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
         if (minutesleft <= 0) {
             await DailyTaskManager.DidTask(DailyTaskType.Hourly_Claims, ctx.Member.Id, ctx);
@@ -23,7 +26,6 @@ public class Economy : CommandModuleBase
         else {
             await ctx.ReplyAsync($"You must wait {minutesleft} minutes before you can get another payout!");
         }
-        user.UpdateDB();
     }
 
     [Command("richest")]
@@ -36,13 +38,13 @@ public class Economy : CommandModuleBase
             .OrderByDescending(x => x.Coins)
             .Take(10)
             .ToList();
-        EmbedBuilder embed = new EmbedBuilder();
-        EmbedPageBuilder page = new EmbedPageBuilder();
+        var embed = new EmbedBuilder();
+        EmbedPageBuilder page = new();
         int i = 1;
         foreach (DBUser user in users)
         {
             PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, user.UserId);
-            page.AddText(text:$"({i}) {member.Nickname} - {(ulong)user.Coins} coins");
+            page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins");
             i += 1;
             if (page.Items.Count > 10) {
                 embed.AddPage(page);
@@ -56,9 +58,8 @@ public class Economy : CommandModuleBase
     [Alias("c")]
     public async Task coins(CommandContext ctx)
     {
-        var user = await DBUser.GetAsync(ctx.Member.Id);
-        ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(ulong)user.Coins}");
-        user.UpdateDB();
+        await using var user = await DBUser.GetAsync(ctx.Member.Id);
+        ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {(long)user.Coins}");
     }
 
     [Command("pay")]
@@ -203,7 +204,7 @@ public class Economy : CommandModuleBase
         }
         await DailyTaskManager.DidTask(DailyTaskType.Gamble_Games_Played, ctx.Member.Id, ctx);
 
-        ulong choice = color switch
+        long choice = color switch
         {
             "Blue" => 1,
             "Green" => 2,
@@ -214,7 +215,7 @@ public class Economy : CommandModuleBase
         int num = rnd.Next(1, 101);
         double muit = 2.86;
         string colorwon;
-        ulong Winner;
+        long Winner;
         switch (num)
         {
             case <= 35:

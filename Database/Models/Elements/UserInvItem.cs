@@ -5,14 +5,14 @@ namespace PopeAI.Database.Models.Elements;
 public class UserInvItem
 {
     [Key]
-    public ulong Id { get; set; }
-    public ulong UserId { get; set; }
+    public long Id { get; set; }
+    public long UserId { get; set; }
 
     [VarChar(16)]
     public string Element { get; set; }
     public DateTime TimeFound { get; set; }
 
-    public UserInvItem(ulong id, ulong userId, string element)
+    public UserInvItem(long id, long userId, string element)
     {
         Id = id;
         UserId = userId;

@@ -11,6 +11,13 @@ CREATE TABLE IF NOT EXISTS botstats (
 );
 
 
+CREATE TABLE IF NOT EXISTS bottimes (
+    id BIGINT NOT NULL,
+    lastdailytasksupdate timestamp with time zone NOT NULL,
+    CONSTRAINT pk_bottimes PRIMARY KEY (id)
+);
+
+
 CREATE TABLE IF NOT EXISTS combinations (
     id BIGINT NOT NULL,
     element1 VARCHAR(16) NOT NULL,
@@ -144,7 +151,6 @@ CREATE TABLE IF NOT EXISTS dailytasks (
     tasktype integer NOT NULL,
     goal integer NOT NULL,
     done integer NOT NULL,
-    lastdayupdated timestamp with time zone NOT NULL,
     CONSTRAINT pk_dailytasks PRIMARY KEY (id),
     CONSTRAINT fk_dailytasks_users_memberid FOREIGN KEY (memberid) REFERENCES users (id) ON DELETE CASCADE
 );

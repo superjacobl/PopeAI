@@ -4,7 +4,7 @@ namespace PopeAI.Commands.Generic
 {
     public class Generic : CommandModuleBase
     {
-        public static Dictionary<ulong, string> ScrambledWords = new Dictionary<ulong, string>();
+        public static Dictionary<long, string> ScrambledWords = new Dictionary<long, string>();
         static Random rnd = new Random();
 
         [Command("ping")]

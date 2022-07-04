@@ -5,15 +5,15 @@ using System.Collections.Generic;
     public class Lottery
     {
         [Key]
-        public ulong PlanetId {get; set;}
+        public long PlanetId {get; set;}
         public double Jackpot {get; set;}
         public double JackpotIncreasePerMesage {get; set;}
         public DateTime EndDate {get; set;}
         public DateTime StartDate {get; set;}
         public string Type {get; set;}
-        public ulong ChannelId {get; set;}
+        public long ChannelId {get; set;}
 
-        public async Task AddTickets(ulong UserId, ulong amount, ulong planetid, PopeAIDB Context) {
+        public async Task AddTickets(long UserId, long amount, long planetid, PopeAIDB Context) {
             string TicketId = $"{planetid}-{UserId}";
             LotteryTicket ticket = await Context.LotteryTickets.FirstOrDefaultAsync(x => x.UserId == UserId && x.PlanetId == planetid);
             if (ticket == null) {

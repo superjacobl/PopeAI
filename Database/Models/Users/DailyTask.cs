@@ -13,15 +13,13 @@ public enum DailyTaskType
 public class DailyTask : DBItem<DailyTask>
 {
     [Key]
-    public ulong Id { get; set; }
-    public ulong MemberId { get; set; }
+    public long Id { get; set; }
+    public long MemberId { get; set; }
     public int Reward { get; set; }
     public DailyTaskType TaskType { get; set; }
     public int Goal { get; set; }
     public int Done { get; set; }
-    public DateTime LastDayUpdated { get; set; }
 
     [ForeignKey("MemberId")]
     public virtual DBUser User { get; set; }
-
 }

@@ -4,23 +4,24 @@ namespace PopeAI.Database.Models.Bot;
 public class BotStat
 {
     [Key]
-    public ulong Id { get; set; }
+    public long Id { get; set; }
 
     public DateTime Time { get; set; }
-    public ulong MessagesSent { get; set; }
+    
+    public long MessagesSent { get; set; }
 
-    public ulong MessagesSentSelf { get; set; }
-    public ulong StoredMessages { get; set; }
-    public ulong StoredMessageTotalSize { get; set; }
-    public ulong Commands { get; set; }
+    public long MessagesSentSelf { get; set; }
+    public long StoredMessages { get; set; }
+    public long StoredMessageTotalSize { get; set; }
+    public long Commands { get; set; }
 
     /// <summary>
     /// in ms
     /// </summary>
-    public ulong TimeTakenTotal { get; set; }
+    public long TimeTakenTotal { get; set; }
 
     [NotMapped]
-    public ulong AvgTime
+    public long AvgTime
     {
         get
         {
@@ -29,7 +30,7 @@ public class BotStat
     }
 
     [NotMapped]
-    public ulong AvgStoredMessageSize
+    public long AvgStoredMessageSize
     {
         get
         {
@@ -37,7 +38,7 @@ public class BotStat
         }
     }
 
-    public BotStat(ulong id, DateTime time, ulong messagessent, ulong storedMessages, ulong storedMessageTotalSize, ulong commands, ulong timeTakenTotal, ulong messagessentself)
+    public BotStat(long id, DateTime time, long messagessent, long storedMessages, long storedMessageTotalSize, long commands, long timeTakenTotal, long messagessentself)
     {
         Id = id;
         Time = time;

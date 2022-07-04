@@ -15,10 +15,10 @@ public enum FormatType
 public class FormatManager
 {
 
-    public static string Format(ulong num, FormatType type)
+    public static string Format(long num, FormatType type)
     {
         List<string> sizes = new();
-        ulong div = 0;
+        long div = 0;
         if (type == FormatType.Bytes)
         {
             string[] data = { "B", "KB", "MB", "GB", "TB" };

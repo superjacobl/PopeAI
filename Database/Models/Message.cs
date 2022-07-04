@@ -12,15 +12,15 @@ namespace PopeAI.Database.Models.Messaging;
 [Index(nameof(Hash))]
 public class Message
 {
-    public ulong Id { get; set; }
+    public long Id { get; set; }
 
     /// <summary>
     /// The user's ID
     /// </summary>
-    public ulong AuthorId { get; set; }
-    public ulong MemberId { get; set; }
-    public ulong ChannelId { get; set; }
-    public ulong PlanetId { get; set; }
+    public long AuthorId { get; set; }
+    public long MemberId { get; set; }
+    public long ChannelId { get; set; }
+    public long PlanetId { get; set; }
 
     // a planet will NEVER have more than 4 billion messages
     public int PlanetIndex {get; set;}
@@ -36,7 +36,7 @@ public class Message
     /// <summary>
     /// Index of the message
     /// </summary>
-    public ulong MessageIndex { get; set; }
+    public long MessageIndex { get; set; }
     public string? EmbedData {get; set;}
     public string? MentionsData { get; set; }
 

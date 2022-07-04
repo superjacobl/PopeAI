@@ -2,7 +2,7 @@ namespace PopeAI.Commands.Stats;
 
 public class Stats : CommandModuleBase
 {
-    public static Dictionary<ulong, string> ScrambledWords = new();
+    public static Dictionary<long, string> ScrambledWords = new();
     static Random rnd = new();
 
     [Group("stats")]
