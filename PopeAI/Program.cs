@@ -57,14 +57,22 @@ class Program
 
         string sql = PopeAIDB.GenerateSQL();
 
-        await File.WriteAllTextAsync("../../../../Database/Definitions.sql", sql);
+        try {
+            await File.WriteAllTextAsync("../../../../Database/Definitions.sql", sql);
+        }
+        catch (Exception e)
+        {
+            
+        }
 
         PopeAIDB.RawSqlQuery<string>(sql, null, true);
 
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        ValourNetClient.ExecuteMessagesInParallel = true;
+        //ValourNetClient.ExecuteMessagesInParallel = true;
+        
+        StatManager.selfstat = await BotStat.GetAsync(1);
 
         await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 
@@ -82,7 +90,7 @@ class Program
             {
                 Console.WriteLine(ex.ToString());
             }
-            await Task.Delay(60);
+            await Task.Delay(1000 * 60);
         }
     }
 
@@ -97,7 +105,11 @@ class Program
             {
                 Console.WriteLine(ex.ToString());
             }
-            await Task.Delay(60*60*1000);
+            #if DEBUG
+            await Task.Delay(1000);
+            #else
+            await Task.Delay(60000);
+            #endif
         }
     }
 }

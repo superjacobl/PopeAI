@@ -8,8 +8,10 @@ public class Xp : CommandModuleBase
     [Event(EventType.AfterCommand)]
     public void AfterCommand(CommandContext ctx)
     {
-        StatManager.selfstat.TimeTakenTotal += (long)(DateTime.UtcNow - ctx.TimeReceived).TotalMilliseconds;
+        #if DEBUG
+        StatManager.selfstat.TimeTakenTotal += (long)(DateTime.UtcNow - ctx.CommandStarted).TotalMilliseconds;
         StatManager.selfstat.Commands += 1;
+        #endif
     }
 
     [Event(EventType.Message)]
@@ -18,7 +20,7 @@ public class Xp : CommandModuleBase
         // put this message in queue for storage
         MessageManager.AddToQueue(ctx.Message);
 
-        if (ctx.Message.AuthorId == long.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
+        if (ctx.Message.AuthorUserId == long.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
             return;
         }
 
@@ -27,10 +29,8 @@ public class Xp : CommandModuleBase
         if (user == null)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            user = new(ctx.Member)
-            {
-                DailyTasks = DailyTaskManager.GenerateNewDailyTasks(user.Id).ToList()
-            };
+            user = new(ctx.Member);
+            user.DailyTasks = DailyTaskManager.GenerateNewDailyTasks(user.Id).ToList();
             DBCache.Put(user.Id, user);
             dbctx.Users.Add(user);
             await dbctx.SaveChangesAsync();
@@ -49,19 +49,26 @@ public class Xp : CommandModuleBase
     public async Task SendXp(CommandContext ctx)
     {
         var user = await DBUser.GetAsync(ctx.Member.Id);
+
+        // was way too ugly
+        /*
         EmbedBuilder embed = new();
         var page = new EmbedPageBuilder()
             .AddText($"{ctx.Member.Nickname}'s Xp")
+            .AddText(text:"&nbsp;")
             .AddText("Message Xp", ((long)user.MessageXp).ToString())
             .AddText("Elemental Xp", ((long)user.ElementalXp).ToString())
             .AddText("Total Xp", ((long)user.Xp).ToString());
 
         embed.AddPage(page);
-        ctx.ReplyAsync(embed);
-        user.UpdateDB();
+        await ctx.ReplyAsync(embed); */
+
+        await ctx.ReplyAsync($"{ctx.Member.Nickname}'s xp: {(long)user.Xp} (msg xp: {(long)user.MessageXp}, elemental xp: {(long)user.ElementalXp})");
+        await user.UpdateDB();
     }
 
     [Command("leaderboard")]
+    [Alias("lb")]
     [Summary("Returns the leaderboard of the users with the most xp.")]
     public async Task Leaderboard(CommandContext ctx)
     {
@@ -76,7 +83,7 @@ public class Xp : CommandModuleBase
         int i = 1;
         foreach (DBUser user in users)
         {
-            PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, user.UserId);
+            PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
             page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp");
             i += 1;
             if (page.Items.Count() > 10) {

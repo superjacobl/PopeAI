@@ -23,13 +23,16 @@ public abstract class DBItem<T> : IAsyncDisposable, IDisposable, IDBItem where T
     /// Call this function after the object is not used anymore.
     /// This is intended to save to DB if the object came from the db
     /// </summary>
-    public async ValueTask UpdateDB()
+    /// <param name="dispose">If the db context for the item should be disposed</param>
+    public async ValueTask UpdateDB(bool dispose = true)
     {
         if (FromDB)
         {
             await dbctx!.SaveChangesAsync();
-            dbctx.Dispose();
-            GC.SuppressFinalize(dbctx);
+            if (dispose) {
+                dbctx.Dispose();
+                GC.SuppressFinalize(dbctx);
+            }
         }
     }
 
@@ -64,6 +67,9 @@ public abstract class DBItem<T> : IAsyncDisposable, IDisposable, IDBItem where T
             {
                 var dbctx = PopeAIDB.DbFactory.CreateDbContext();
                 item = await dbctx.FindAsync<T>(id);
+                if (item is null) {
+                    return null;
+                }
                 item!.FromDB = true;
                 item.dbctx = dbctx;
                 return item;

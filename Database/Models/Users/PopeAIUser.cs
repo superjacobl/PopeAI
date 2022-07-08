@@ -47,7 +47,7 @@ public class DBUser : DBItem<DBUser>
         {
             if (_Member == null)
             {
-                _Member = PlanetMember.FindAsync(Id).GetAwaiter().GetResult();
+                _Member = PlanetMember.FindAsync(Id, PlanetId).GetAwaiter().GetResult();
             }
             return _Member;
         }
@@ -102,6 +102,9 @@ public class DBUser : DBItem<DBUser>
             {
                 var dbctx = PopeAIDB.DbFactory.CreateDbContext();
                 item = await dbctx.Users.Include(x => x.DailyTasks).FirstOrDefaultAsync(x => x.Id == id);
+                if (item is null) {
+                    return null;
+                }
                 item!.FromDB = true;
                 item.dbctx = dbctx;
                 return item;
@@ -117,6 +120,7 @@ public class DBUser : DBItem<DBUser>
             double xpgain = (Math.Log10(PointsThisMinute) - 1) * 3;
             xpgain = Math.Max(0.2, xpgain);
             MessageXp += xpgain;
+            Coins += xpgain*2;
             ActiveMinutes += 1;
             PointsThisMinute = 0;
             LastSentMessage = DateTime.UtcNow;

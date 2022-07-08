@@ -20,7 +20,7 @@ public class Search : CommandModuleBase
     public async Task OutputToListOld(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
         string content = "";
         foreach(Message msg in msgs) {
-            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
+            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId, msg.PlanetId);
             if (msg.PlanetIndex == planetIndex) {
                 content += $"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
             }
@@ -34,8 +34,12 @@ public class Search : CommandModuleBase
     public async Task OutputToList(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
         EmbedBuilder embed = new();
         EmbedPageBuilder page = new();
+        if (msgs.Count == 0) {
+            await ctx.ReplyAsync("No messages were found.");
+            return;
+        }
         foreach(Message msg in msgs) {
-            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId);
+            PlanetMember member = await PlanetMember.FindAsync(msg.MemberId, msg.PlanetId);
             if (msg.PlanetIndex == planetIndex) {
                 page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
             }
@@ -129,7 +133,7 @@ public class Search : CommandModuleBase
             search = search.Where(x => x.SearchVector.Matches(need));
         }
 
-        List<Message> messages = await search.OrderByDescending(x => x.PlanetId).Take(100).ToListAsync();
+        List<Message> messages = await search.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.PlanetIndex).Take(100).ToListAsync();
         
         return messages;
     }

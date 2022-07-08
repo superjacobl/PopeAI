@@ -34,19 +34,19 @@ public class Dev : CommandModuleBase
     [Alias("db")]
     public static async Task DatabaseInfoAynsc(CommandContext ctx) 
     {
-        if (ctx.Member.UserId != 735182334984193) {
+        if (ctx.Member.UserId != 12201879245422592) {
             return;
         }
         //string query = $"select (data_length + index_length) as Size, COUNT(Id), ((data_length + index_length)/COUNT(Id)) as avg_row_size from popeai.Messages, information_schema.tables where table_name = 'messages';";
-        string query = $"select (data_length + index_length) as Size from information_schema.tables where table_name = 'messages';";
-        List<long> data = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToUInt64(x[0])}).First();
+        string query = $"SELECT pg_total_relation_size('messages');";
+        long bytes = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToInt64(x[0])}).First().First();
 
         EmbedBuilder embed = new EmbedBuilder();
         EmbedPageBuilder page = new EmbedPageBuilder();
         BotStat stat = StatManager.selfstat;
-        page.AddText("Message Table Size", FormatManager.Format(data[0], FormatType.Bytes));
-        page.AddText("Messages Stored", FormatManager.Format(stat.StoredMessages, FormatType.Numbers));
-        page.AddText("Avg Message Size (bytes)", FormatManager.Format(data[0]/stat.StoredMessages, FormatType.Bytes));
+        page.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes));
+        page.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Numbers));
+        page.AddText("Avg Message Size", FormatManager.Format(bytes/StatManager.selfstat.StoredMessages, FormatType.Commas)+" bytes");
         embed.AddPage(page);
         await ctx.ReplyAsync(embed);
     }

@@ -1,7 +1,7 @@
 namespace PopeAI.Database.Models.Bot;
 
 // once per hour
-public class BotStat
+public class BotStat : DBItem<BotStat>
 {
     [Key]
     public long Id { get; set; }
@@ -14,6 +14,8 @@ public class BotStat
     public long StoredMessages { get; set; }
     public long StoredMessageTotalSize { get; set; }
     public long Commands { get; set; }
+
+    // TODO: add cache hit rate for DBUsers
 
     /// <summary>
     /// in ms
@@ -54,23 +56,5 @@ public class BotStat
     {
         Id = StatManager.idManager.Generate();
         Time = DateTime.UtcNow;
-    }
-
-    public static async Task<BotStat> GetCurrent()
-    {
-        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-        BotStat? stat = await dbctx.BotStats.OrderBy(x => x.Time).FirstOrDefaultAsync();
-        if (stat == null)
-        {
-            stat = new()
-            {
-                MessagesSent = 0,
-                StoredMessages = 0,
-                Commands = 0,
-                TimeTakenTotal = 0
-            };
-            await dbctx.BotStats.AddAsync(stat);
-        }
-        return stat;
     }
 }

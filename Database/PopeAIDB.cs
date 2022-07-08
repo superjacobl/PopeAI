@@ -93,6 +93,7 @@ public class PopeAIDB : DbContext
         sql = sql.Replace("numeric(20,0) ", "BIGINT ");
         sql = sql.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
         sql = sql.Replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS");
+        sql = sql.Replace("CREATE INDEX IF NOT EXISTS ix_messages_hash ON messages (hash);", "CREATE UNIQUE INDEX IF NOT EXISTS ix_messages_hash ON messages (hash);");
         return sql;
     }
 
@@ -102,6 +103,8 @@ public class PopeAIDB : DbContext
         using DbCommand command = dbctx.Database.GetDbConnection().CreateCommand();
         command.CommandText = query;
         command.CommandType = CommandType.Text;
+
+        //Console.WriteLine(ConfigManger.Config);
 
         dbctx.Database.OpenConnection();
 

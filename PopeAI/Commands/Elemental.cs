@@ -95,10 +95,7 @@ public class Elemental : CommandModuleBase
     [Interaction("")]
     public static async Task InteractionAynsc(InteractionContext ctx) 
     {
-        PlanetMember member = await PlanetMember.FindAsync(ctx.Event.Author_MemberId);
-        if (member.UserId != 735182348615742) {
-            return;
-        }
+        PlanetMember member = await PlanetMember.FindAsync(ctx.Event.Author_MemberId, ctx.Event.PlanetId);
 
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
@@ -106,7 +103,7 @@ public class Elemental : CommandModuleBase
         if (elementname.Contains("VoteFromSuggestion")) {
             long suggestid = long.Parse(elementname.Split("Suggestion:")[1]);
             Suggestion suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Id == suggestid);
-            member = await PlanetMember.FindAsync(ctx.Event.MemberId);
+            member = await PlanetMember.FindAsync(ctx.Event.MemberId, ctx.Event.PlanetId);
             if (await dbctx.SuggestionVotes.AnyAsync(x => x.SuggestionId == suggestion.Id && x.UserId == member.UserId)) {
                 return;
             }
@@ -124,6 +121,8 @@ public class Elemental : CommandModuleBase
             await dbctx.AddAsync(suggestionVote);
 
             int votes = suggestion.Ayes+suggestion.Nays;
+
+            // min of 2 votes
             if (votes >= 2) {
                 bool approved = false;
                 if (suggestion.Nays != 0) {
@@ -177,7 +176,8 @@ public class Elemental : CommandModuleBase
             
             PlanetMessage message = new() {
                 ChannelId = ctx.Event.ChannelId,
-                Id = ctx.Event.Message_Id
+                Id = ctx.Event.Message_Id,
+                PlanetId = ctx.Event.PlanetId
             };
             await message.DeleteAsync();
             EmbedBuilder b = await _VoteAynsc(ctx.Member);

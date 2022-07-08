@@ -6,7 +6,7 @@ namespace PopeAI.Database.Managers;
 public static class MessageManager
 {
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
-    public static PopeAIDB dbctx = new(PopeAIDB.DBOptions);
+    public static PopeAIDB dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
     public static async ValueTask<TaskResult> SaveMessage(PlanetMessage message)
     {
@@ -15,8 +15,8 @@ public static class MessageManager
             Message msg = new()
             {
                 Id = message.Id,
-                AuthorId = message.AuthorId,
-                MemberId = message.MemberId,
+                AuthorId = message.AuthorUserId,
+                MemberId = message.AuthorMemberId,
                 Content = message.Content,
                 TimeSent = message.TimeSent,
                 ChannelId = message.ChannelId,
@@ -55,11 +55,9 @@ public static class MessageManager
             }
 
             // if message queue is getting too long, then stop saving
-            if (messageQueue.Count > 10)
+            if (messageQueue.Count < 10)
             {
-
                 await dbctx.SaveChangesAsync();
-
             }
 
             return new TaskResult(true, result);
@@ -90,7 +88,7 @@ public static class MessageManager
         {
             if (messageQueue.IsEmpty)
             {
-                await Task.Delay(1);
+                await Task.Delay(10);
                 continue;
             }
 
@@ -107,9 +105,6 @@ public static class MessageManager
             if (!result.Success) success = "FAIL";
 
             Console.WriteLine($"[{success}] Processed Message [{result.Message}].");
-
-            return true;
         }
-
     }
 }

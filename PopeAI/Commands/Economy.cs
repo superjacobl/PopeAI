@@ -1,5 +1,4 @@
 using Valour.Api.Items.Users;
-using Valour.Net.ModuleHandling.Models.Embeds;
 
 namespace PopeAI.Commands.Economy;
 
@@ -43,7 +42,7 @@ public class Economy : CommandModuleBase
         int i = 1;
         foreach (DBUser user in users)
         {
-            PlanetMember member = await PlanetMember.FindAsync(ctx.Planet.Id, user.UserId);
+            PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
             page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins");
             i += 1;
             if (page.Items.Count > 10) {

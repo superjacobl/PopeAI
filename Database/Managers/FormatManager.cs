@@ -9,7 +9,8 @@ namespace PopeAI.Database.Managers;
 public enum FormatType
 {
     Bytes,
-    Numbers
+    Numbers,
+    Commas
 }
 
 public class FormatManager
@@ -30,6 +31,10 @@ public class FormatManager
             string[] data = { "", "k", "m", "b" };
             div = 1000;
             foreach (string item in data) { sizes.Add(item); }
+        }
+        else if (type == FormatType.Commas)
+        {
+            return String.Format("{0:n0}", num);
         }
         int order = 0;
         while (num >= div && order < sizes.Count - 1)
