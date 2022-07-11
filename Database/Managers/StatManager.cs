@@ -9,20 +9,16 @@ public static class StatManager
 
     public static BotStat selfstat;
 
-    public static void AddStat(CurrentStatType type, int value, long PlanetId)
+    public static async ValueTask AddStat(CurrentStatType type, int value, long PlanetId)
     {
-        CurrentStat? current = CurrentStat.GetAsync(PlanetId).AsTask().Result;
+        CurrentStat? current = await CurrentStat.GetAsync(PlanetId);
         if (current is null)
         {
-            current = CurrentStat.GetAsync(PlanetId).AsTask().GetAwaiter().GetResult();
-            if (current is null)
-            {
-                current = new(PlanetId);
-                DBCache.Put(current.PlanetId, current);
-                using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-                dbctx.CurrentStats.Add(current);
-                dbctx.SaveChanges();
-            }
+            current = new(PlanetId);
+            DBCache.Put(current.PlanetId, current);
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+            dbctx.CurrentStats.Add(current);
+            dbctx.SaveChanges();
         }
         switch (type)
         {
@@ -37,7 +33,7 @@ public static class StatManager
                 current.MessagesSent += value;
                 break;
         }
-        current.UpdateDB();
+        await current.UpdateDB();
     }
 
     public static async Task CheckStats()
@@ -72,7 +68,7 @@ public static class StatManager
         }
 
         // check bot stat now
-        if (DateTime.Now > selfstat.Time.AddHours(1))
+        if (DateTime.UtcNow > selfstat.Time.AddHours(1))
         {
             string query = $"SELECT pg_total_relation_size('messages');";
             long Size = PopeAIDB.RawSqlQuery(query, x => new List<long> { Convert.ToInt64(x[0]) }).First().First();
@@ -82,7 +78,8 @@ public static class StatManager
                 StoredMessages = selfstat.StoredMessages,
                 StoredMessageTotalSize = Size,
                 Commands = selfstat.Commands,
-                TimeTakenTotal = selfstat.TimeTakenTotal
+                TimeTakenTotal = selfstat.TimeTakenTotal,
+                UserCount = (long)await dbctx.Users.CountAsync()
             };
             dbctx.BotStats.Add(stat);
 

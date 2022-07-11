@@ -10,7 +10,7 @@ public class Elemental : CommandModuleBase
     public static async Task SuggestAynsc(CommandContext ctx, string result) 
     {
         if (!FailedCombinations.ContainsKey(ctx.Member.UserId)) {
-            await ctx.ReplyAsync("You have not came across a new combination yet!");
+            ctx.ReplyAsync("You have not came across a new combination yet!");
             return;
         }
 
@@ -33,7 +33,7 @@ public class Elemental : CommandModuleBase
         await dbctx.AddAsync(suggestion);
         await dbctx.SaveChangesAsync();
 
-        await ctx.ReplyAsync("Successfully added the suggestion!");
+        ctx.ReplyAsync("Successfully added the suggestion!");
     }
 
     [Command("vote")]
@@ -41,7 +41,7 @@ public class Elemental : CommandModuleBase
     {
         EmbedBuilder b = await _VoteAynsc(ctx.Member);
         if (b != null) {
-            await ctx.ReplyAsync(b);
+            ctx.ReplyAsync(b);
         }
     }
     public static async Task<EmbedBuilder> _VoteAynsc(PlanetMember member) 
@@ -167,7 +167,7 @@ public class Elemental : CommandModuleBase
 
                     dbctx.Suggestions.Remove(suggestion);
 
-                    await ctx.ReplyAsync($"Enought votes were reached ({suggestion.Ayes}-{suggestion.Nays}) for this suggestion to be accepted!");
+                    ctx.ReplyAsync($"Enought votes were reached ({suggestion.Ayes}-{suggestion.Nays}) for this suggestion to be accepted!");
 
                 }
             }
@@ -182,7 +182,7 @@ public class Elemental : CommandModuleBase
             await message.DeleteAsync();
             EmbedBuilder b = await _VoteAynsc(ctx.Member);
             if (b != null) {
-                await ctx.ReplyAsync(b);
+                ctx.ReplyAsync(b);
             }
             
         }
@@ -190,7 +190,7 @@ public class Elemental : CommandModuleBase
 
     [Command("test")]
     [Alias("tes")]
-    public static async Task TestAynsc(CommandContext ctx) 
+    public async Task TestAynsc(CommandContext ctx) 
     {
         if (ctx.Member.UserId != 735182334984193) {
             return;
@@ -201,7 +201,7 @@ public class Elemental : CommandModuleBase
         page.AddInputBox("", "Element To Combine");
         page.AddButton("Submit", "Combine");
         embed.AddPage(page);
-        await ctx.ReplyAsync(embed);
+        ctx.ReplyAsync(embed);
     }
 
     [Command("createlement")]
@@ -225,7 +225,7 @@ public class Elemental : CommandModuleBase
         await dbctx.Elements.AddAsync(element);
         await dbctx.SaveChangesAsync();
 
-        await ctx.ReplyAsync("Successfully created the element");
+        ctx.ReplyAsync("Successfully created the element");
     }
 
     [Command("creatcombination")]
@@ -273,7 +273,7 @@ public class Elemental : CommandModuleBase
 
         await dbctx.SaveChangesAsync();
 
-        await ctx.ReplyAsync("Successfully created the combiation");
+        ctx.ReplyAsync("Successfully created the combiation");
     }
 
     [Command("combination")]
@@ -308,11 +308,11 @@ public class Elemental : CommandModuleBase
             UserInvItem e1 = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == element1);
             UserInvItem e2 = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == element2);
             if (e1 == null) {
-                await ctx.ReplyAsync($"You have not found {element1} yet!");
+                ctx.ReplyAsync($"You have not found {element1} yet!");
                 return;
             }
             if (e2 == null) {
-                await ctx.ReplyAsync($"You have not found {element2} yet!");
+                ctx.ReplyAsync($"You have not found {element2} yet!");
                 return;
             }
             combination = await dbctx.Combinations.FirstOrDefaultAsync(x => x.Element1 == element1 && x.Element2 == element2 && x.Element3 == null);
@@ -327,15 +327,15 @@ public class Elemental : CommandModuleBase
             UserInvItem e2 = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == element2);
             UserInvItem e3 = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == element3);
             if (e1 == null) {
-                await ctx.ReplyAsync($"You have not found {element1} yet!");
+                ctx.ReplyAsync($"You have not found {element1} yet!");
                 return;
             }
             if (e2 == null) {
-                await ctx.ReplyAsync($"You have not found {element2} yet!");
+                ctx.ReplyAsync($"You have not found {element2} yet!");
                 return;
             }
             if (e3 == null) {
-                await ctx.ReplyAsync($"You have not found {element3} yet!");
+                ctx.ReplyAsync($"You have not found {element3} yet!");
                 return;
             }
             combination = await dbctx.Combinations.FirstOrDefaultAsync(x => x.Element1 == element3 && x.Element2 == element2 && x.Element3 == element1);
@@ -347,7 +347,7 @@ public class Elemental : CommandModuleBase
         }
 
         if (combination == null) {
-            await ctx.ReplyAsync("Not a vaild combination! Suggest it by typing /suggest <result>");
+            ctx.ReplyAsync("Not a vaild combination! Suggest it by typing /suggest <result>");
             Combination _combination = new() {
                 Id = idManager.Generate(),
                 Element1 = element1,
@@ -364,7 +364,7 @@ public class Elemental : CommandModuleBase
         UserInvItem item = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == combination.Result);
     
         if (item != null) {
-            await ctx.ReplyAsync($"You found {combination.Result}, but you already found this element!");
+            ctx.ReplyAsync($"You found {combination.Result}, but you already found this element!");
             return;
         }
         else {
@@ -380,7 +380,7 @@ public class Elemental : CommandModuleBase
                 combination.Difficulty = await combination.CalcDifficulty();
             }
 
-            DBUser user = await DBUser.GetAsync(ctx.Member.Id);
+            await using var user = await DBUser.GetAsync(ctx.Member.Id);
             double amount = 2+(combination.Difficulty/4);
             if (element3 != null) {
                 amount *= 1.3;
@@ -392,8 +392,6 @@ public class Elemental : CommandModuleBase
             await DailyTaskManager.DidTask(DailyTaskType.Combined_Elements, ctx.Member.Id, ctx);
 
             await dbctx.SaveChangesAsync();
-
-            user.UpdateDB();
         }
     }
 
@@ -421,7 +419,7 @@ public class Elemental : CommandModuleBase
         }
 
         embed.AddPage(page);
-        await ctx.ReplyAsync(embed);
+        ctx.ReplyAsync(embed);
     }
 
     [Group("element")]
@@ -431,14 +429,14 @@ public class Elemental : CommandModuleBase
         public static async Task ElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            await ctx.ReplyAsync($"there are {await dbctx.Elements.CountAsync()} elements");
+            ctx.ReplyAsync($"there are {await dbctx.Elements.CountAsync()} elements");
         }
 
         [Command("mycount")]
         public static async Task MyElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            await ctx.ReplyAsync($"You have {await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync()} elements");
+            ctx.ReplyAsync($"You have {await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync()} elements");
         }
 
         [Command("mypercent")]
@@ -448,7 +446,7 @@ public class Elemental : CommandModuleBase
             int elements = await dbctx.Elements.CountAsync();
             int found = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync();
             double percent = (double)found/elements*100;
-            await ctx.ReplyAsync($"You have found {Math.Round(percent, 2)}% of all elements");
+            ctx.ReplyAsync($"You have found {Math.Round(percent, 2)}% of all elements");
         }
     }
 }

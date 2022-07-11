@@ -21,7 +21,7 @@ namespace PopeAI.Commands.Mod
             }
             List<PlanetMessage> ChannelMessages = await ctx.Channel.GetLastMessagesAsync(count: messages);
             ChannelMessages.Reverse();
-            await ctx.ReplyAsync($"Purging {messages} messages from this channel!");
+            ctx.ReplyAsync($"Purging {messages} messages from this channel!");
             int i = 0;
             foreach(PlanetMessage message in ChannelMessages) {
                 if ((await message.GetAuthorUserAsync()).Id == ctx.Planet.OwnerId && false) {

@@ -13,9 +13,8 @@ public class DBUser : DBItem<DBUser>
     public long Id { get; set; }
     public long UserId { get; set; }
     public long PlanetId { get; set; }
-    public double Coins { get; set; }
-    public ushort CharsThisMinute { get; set; }
-    public ushort PointsThisMinute { get; set; }
+    public int Coins { get; set; }
+    public short PointsThisMinute { get; set; }
     public int TotalPoints { get; set; }
     public int TotalChars { get; set; }
     public double MessageXp { get; set; }
@@ -63,7 +62,6 @@ public class DBUser : DBItem<DBUser>
         MessageXp = 0;
         ElementalXp = 0;
         Coins = 0;
-        CharsThisMinute = 0;
         PointsThisMinute = 0;
         TotalPoints = 0;
         TotalChars = 0;
@@ -120,7 +118,9 @@ public class DBUser : DBItem<DBUser>
             double xpgain = (Math.Log10(PointsThisMinute) - 1) * 3;
             xpgain = Math.Max(0.2, xpgain);
             MessageXp += xpgain;
-            Coins += xpgain*2;
+            int CoinGain = (int)Math.Max(Math.Round(xpgain*2),0);
+            Coins += CoinGain;
+            StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
             ActiveMinutes += 1;
             PointsThisMinute = 0;
             LastSentMessage = DateTime.UtcNow;
@@ -130,10 +130,10 @@ public class DBUser : DBItem<DBUser>
 
         Content = Content.Replace("*", "");
 
-        ushort Points = 0;
+        short Points = 0;
 
         // each char grants 1 point
-        Points += (ushort)Content.Length;
+        Points += (short)Content.Length;
 
         // if there is media then add 100 points
         if (Content.Contains("https://vmps.valour.gg"))

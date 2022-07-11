@@ -118,6 +118,6 @@ public class Stats : CommandModuleBase
 
         content += $"⬜ = {maxvalue / 10} {dataname}";
         Console.WriteLine($"chars: {content.Length}");
-        await ctx.ReplyAsync(content);
+        ctx.ReplyAsync(content);
     }
 }

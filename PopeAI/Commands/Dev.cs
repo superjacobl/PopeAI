@@ -6,28 +6,28 @@ public class Dev : CommandModuleBase
     [Summary("The user Id of the user who entered the command.")]
     public async Task UserId(CommandContext ctx)
     {
-        await ctx.ReplyAsync($"Your UserId is {ctx.Member.UserId}");
+        ctx.ReplyAsync($"Your UserId is {ctx.Member.UserId}");
     }
 
     [Command("memberid")]
     [Summary("The Member Id of the user who entered the command.")]
     public async Task MemberId(CommandContext ctx)
     {
-        await ctx.ReplyAsync($"Your MemberId is {ctx.Member.Id}");
+        ctx.ReplyAsync($"Your MemberId is {ctx.Member.Id}");
     }
 
     [Command("planetid")]
     [Summary("The Planet Id of the channel where the command was entered.")]
     public async Task PlanetId(CommandContext ctx)
     {
-        await ctx.ReplyAsync($"This planet's id is {ctx.Planet.Id}");
+        ctx.ReplyAsync($"This planet's id is {ctx.Planet.Id}");
     }
 
     [Command("channelid")]
     [Summary("The Channel Id of the channel where the command was entered.")]
     public async Task ChannelId(CommandContext ctx)
     {
-        await ctx.ReplyAsync($"This channel's id is {ctx.Channel.Id}");
+        ctx.ReplyAsync($"This channel's id is {ctx.Channel.Id}");
     }
 
     [Command("database")]
@@ -48,6 +48,6 @@ public class Dev : CommandModuleBase
         page.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Numbers));
         page.AddText("Avg Message Size", FormatManager.Format(bytes/StatManager.selfstat.StoredMessages, FormatType.Commas)+" bytes");
         embed.AddPage(page);
-        await ctx.ReplyAsync(embed);
+        ctx.ReplyAsync(embed);
     }
 }

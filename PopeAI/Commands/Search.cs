@@ -28,14 +28,14 @@ public class Search : CommandModuleBase
                 content += $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
             }
         }
-        await ctx.ReplyAsync(content);
+        ctx.ReplyAsync(content);
     }
 
     public async Task OutputToList(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
         EmbedBuilder embed = new();
         EmbedPageBuilder page = new();
         if (msgs.Count == 0) {
-            await ctx.ReplyAsync("No messages were found.");
+            ctx.ReplyAsync("No messages were found.");
             return;
         }
         foreach(Message msg in msgs) {
@@ -54,7 +54,7 @@ public class Search : CommandModuleBase
         if (page.Items.Count() != 0) {
             embed.AddPage(page);
         }
-        await ctx.ReplyAsync(embed:embed);
+        ctx.ReplyAsync(embed:embed);
     }
 
     [Command("view")]

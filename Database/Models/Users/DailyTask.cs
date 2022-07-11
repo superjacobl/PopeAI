@@ -15,10 +15,10 @@ public class DailyTask : DBItem<DailyTask>
     [Key]
     public long Id { get; set; }
     public long MemberId { get; set; }
-    public int Reward { get; set; }
+    public short Reward { get; set; }
     public DailyTaskType TaskType { get; set; }
-    public int Goal { get; set; }
-    public int Done { get; set; }
+    public short Goal { get; set; }
+    public short Done { get; set; }
 
     [ForeignKey("MemberId")]
     public virtual DBUser User { get; set; }

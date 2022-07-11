@@ -62,9 +62,8 @@ public class DBCache
         if (!HCache.ContainsKey(type))
             HCache.Add(type, new ConcurrentDictionary<long, object>());
 
-        if (!HCache[type].ContainsKey(Id))
-        {
-            HCache[type][Id] = obj;
+        if (!HCache[type].ContainsKey(Id)) {
+            HCache[type].TryAdd(Id, obj);
         }
     }
 

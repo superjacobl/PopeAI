@@ -15,7 +15,7 @@ namespace PopeAI.Commands.Generic
             sw.Start();
             await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
             sw.Stop();
-            await ctx.ReplyAsync($"Pong {(int)sw.ElapsedMilliseconds}ms\n");
+            ctx.ReplyAsync($"Pong {(int)sw.ElapsedMilliseconds}ms\n");
         }
 
         [Command("longping")]
@@ -29,7 +29,7 @@ namespace PopeAI.Commands.Generic
                 await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
             }
             sw.Stop();
-            await ctx.ReplyAsync($"Pong {(int)(sw.ElapsedMilliseconds/20)}ms\n");
+            ctx.ReplyAsync($"Pong {(int)(sw.ElapsedMilliseconds/20)}ms\n");
         }
 
         [Command("help")]
@@ -43,7 +43,7 @@ namespace PopeAI.Commands.Generic
             {
                 content += $"| {help.Message} |\n";
             }
-            await ctx.ReplyAsync(content);
+            ctx.ReplyAsync(content);
         }
 
         [Command("help")]
@@ -56,7 +56,7 @@ namespace PopeAI.Commands.Generic
             {
                 content += $"| {help.Message} |\n";
             }
-            await ctx.ReplyAsync(content);
+            ctx.ReplyAsync(content);
         }
 
         [Command("isdiscordgood")]

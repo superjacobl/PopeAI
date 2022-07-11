@@ -8,11 +8,11 @@ public class DailyTasks : CommandModuleBase
     [Alias("tasks")]
     public async Task ViewDailyTasks(CommandContext ctx)
     {
-        var user = DBUser.GetAsync(ctx.Member.Id, true);
+        var user = await DBUser.GetAsync(ctx.Member.Id, true);
         string content = "";
-        foreach(var task in DBCache.GetAll<DailyTask>().Where(x => x.MemberId == ctx.Member.Id)) {
+        foreach(var task in user.DailyTasks.Where(x => x.MemberId == ctx.Member.Id)) {
             content += $"\n[^{task.Done}^/~{task.Goal}~] -> {task.TaskType.ToString().Replace("_", " ")} today ({task.Reward} coins)";
         }
-        await ctx.ReplyAsync(content);
+        ctx.ReplyAsync(content);
     }
 }

@@ -5,6 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
     <RootNamespace>Valour_Bot</RootNamespace>
+    <NoWarn>CS4014</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />
     <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" />
     <ProjectReference Include="..\Database\Database.csproj" />
-    <ProjectReference Include="..\Valour.Net\Valour.Net.csproj" />
   </ItemGroup>
 
 </Project>

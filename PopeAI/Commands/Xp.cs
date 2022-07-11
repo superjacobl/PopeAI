@@ -24,7 +24,7 @@ public class Xp : CommandModuleBase
             return;
         }
 
-        DBUser user = await DBUser.GetAsync(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id);
 
         if (user == null)
         {
@@ -36,19 +36,25 @@ public class Xp : CommandModuleBase
             await dbctx.SaveChangesAsync();
         }
 
+        if ((DateTime.UtcNow-user.LastSentMessage).TotalDays >= 1.5) {
+            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+            DailyTaskManager.UpdateTasks(user, dbctx);
+            await dbctx.SaveChangesAsync();
+        }
+
         user.NewMessage(ctx.Message);
 
-        await user.UpdateDB();
+        await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
+        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
 
-        StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
-        await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx);
+        await user.UpdateDB();
     }
 
     [Command("xp")]
     [Summary("Gives the user who sent the command their xp.")]
     public async Task SendXp(CommandContext ctx)
     {
-        var user = await DBUser.GetAsync(ctx.Member.Id);
+        var user = await DBUser.GetAsync(ctx.Member.Id, true);
 
         // was way too ugly
         /*
@@ -61,10 +67,9 @@ public class Xp : CommandModuleBase
             .AddText("Total Xp", ((long)user.Xp).ToString());
 
         embed.AddPage(page);
-        await ctx.ReplyAsync(embed); */
+        ctx.ReplyAsync(embed); */
 
-        await ctx.ReplyAsync($"{ctx.Member.Nickname}'s xp: {(long)user.Xp} (msg xp: {(long)user.MessageXp}, elemental xp: {(long)user.ElementalXp})");
-        await user.UpdateDB();
+        ctx.ReplyAsync($"{ctx.Member.Nickname}'s xp: {(long)user.Xp} (msg xp: {(long)user.MessageXp}, elemental xp: {(long)user.ElementalXp})");
     }
 
     [Command("leaderboard")]
@@ -92,6 +97,6 @@ public class Xp : CommandModuleBase
             }
         }
         embed.AddPage(page);
-        await ctx.ReplyAsync(embed);
+        ctx.ReplyAsync(embed);
     }
 }

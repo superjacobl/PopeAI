@@ -5,9 +5,13 @@ public static class DailyTaskManager
     public static Random rnd = new();
     public static IdManager idManager = new();
 
-    public static async Task DidTask(DailyTaskType TaskType, long MemberId, CommandContext ctx = null)
+    public static async ValueTask DidTask(DailyTaskType TaskType, long MemberId, CommandContext ctx = null, DBUser user = null)
     {
-        var user = await DBUser.GetAsync(MemberId);
+        bool fromabove = true;
+        if (user is null) {
+            user = await DBUser.GetAsync(MemberId);
+            fromabove = false;
+        }
         DailyTask task = user.DailyTasks.FirstOrDefault(x => x.TaskType == TaskType);
         if (task != null)
         {
@@ -17,17 +21,20 @@ public static class DailyTaskManager
                 if (task.Done == task.Goal)
                 {
                     user.Coins += task.Reward;
-                    StatManager.AddStat(CurrentStatType.Coins, task.Reward, user.PlanetId);
+                    await StatManager.AddStat(CurrentStatType.Coins, task.Reward, user.PlanetId);
                     if (ctx != null)
                     {
                         string content = $"{ctx.Member.Nickname}, your {task.TaskType.ToString().Replace("_", " ")} daily task is done! You get {task.Reward} coins.";
-                        await ctx.ReplyWithMessagesAsync(4000, new List<string>() { content });
+                        ctx.ReplyWithDelayAsync(4000, content);
                     }
                 }
             }
         }
-        await user.UpdateDB();
+        if (user.FromDB && !fromabove) {
+            await user.UpdateDB();
+        }
     }
+
     public static DailyTaskType RandomTask()
     {
         return rnd.Next(0, 5) switch
@@ -41,7 +48,7 @@ public static class DailyTaskManager
         };
     }
 
-    public static int Choice(int[] list)
+    public static short Choice(short[] list)
     {
         return list[rnd.Next(0, list.Length)];
     }
@@ -68,30 +75,50 @@ public static class DailyTaskManager
             switch (tasktype)
             {
                 case DailyTaskType.Messages:
-                    task.Goal = Choice(new int[] { 10, 15, 20, 25, 30, 35, 40, 45, 50 });
-                    task.Reward = Choice(new int[] { 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300 });
+                    task.Goal = Choice(new short[] { 10, 15, 20, 25, 30, 35, 40, 45, 50 });
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175, 200 });
                     break;
                 case DailyTaskType.Hourly_Claims:
-                    task.Goal = Choice(new int[] { 3, 4, 5 });
-                    task.Reward = Choice(new int[] { 50, 75, 100, 125, 150, 175, 200, 225, 250 });
+                    task.Goal = Choice(new short[] { 3, 4, 5 });
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175});
                     break;
                 case DailyTaskType.Gamble_Games_Played:
-                    task.Goal = Choice(new int[] { 5, 6, 7, 8, 9, 10 });
-                    task.Reward = Choice(new int[] { 50, 75, 100, 125, 150, 175, 200 });
+                    task.Goal = Choice(new short[] { 5, 6, 7, 8, 9, 10 });
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175});
                     break;
                 case DailyTaskType.Dice_Games_Played:
-                    task.Goal = Choice(new int[] { 5, 6, 7, 8, 9, 10 });
-                    task.Reward = Choice(new int[] { 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300 });
+                    task.Goal = Choice(new short[] { 5, 6, 7, 8, 9, 10 });
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175, 200});
                     break;
                 case DailyTaskType.Combined_Elements:
-                    task.Goal = Choice(new int[] { 2, 3, 4, 5, 6 });
-                    task.Reward = Choice(new int[] { 100, 125, 150, 175, 200, 225, 250, 275, 300 });
+                    task.Goal = Choice(new short[] { 2, 3, 4, 5, 6 });
+                    task.Reward = Choice(new short[] { 100, 125, 150, 175, 200, 225 });
                     break;
             }
             toadd.Add(task);
         }
         return toadd;
     }
+
+    public static void UpdateTasks(DBUser user, PopeAIDB dbctx)
+    {
+        DailyTask task;
+        List<DailyTask> tasks = GenerateNewDailyTasks(user.Id).ToList();
+
+        foreach (var oldtask in user.DailyTasks)
+        {
+            task = tasks[0];
+            tasks.RemoveAt(0);
+            oldtask.Done = 0;
+            oldtask.Reward = task.Reward;
+            oldtask.TaskType = task.TaskType;
+        }
+        if (tasks.Count > 0)
+        {
+            dbctx.DailyTasks.AddRange(tasks);
+        }
+    }
+    
     public static async Task UpdateDailyTasks()
     {
         // only replace dailytasks if the day is different
@@ -108,34 +135,19 @@ public static class DailyTaskManager
             await dbctx.SaveChangesAsync();
         }
 
-        if (bottime.LastDailyTasksUpdate.AddDays(1) > DateTime.Now)
+        if (bottime.LastDailyTasksUpdate.AddDays(1) > DateTime.UtcNow)
         {
             return;
         }
 
-        bottime.LastDailyTasksUpdate = DateTime.Now;
-
-        DailyTask task = null;
+        bottime.LastDailyTasksUpdate = DateTime.UtcNow;
 
         // in future process this in chunks of like 10k because we would run out of memory
         // no sense in updating daily tasks for a user that is inactive
         DateTime time = DateTime.UtcNow.AddDays(-2);
         foreach (DBUser user in dbctx.Users.Where(x => x.LastSentMessage > time).Include(x => x.DailyTasks))
         {
-            List<DailyTask> tasks = GenerateNewDailyTasks(user.Id).ToList();
-
-            foreach (var oldtask in user.DailyTasks)
-            {
-                task = tasks[0];
-                tasks.RemoveAt(0);
-                oldtask.Done = 0;
-                oldtask.Reward = task.Reward;
-                oldtask.TaskType = task.TaskType;
-            }
-            if (tasks.Count > 0)
-            {
-                await dbctx.DailyTasks.AddRangeAsync(tasks);
-            }
+            DailyTaskManager.UpdateTasks(user, dbctx);
         }
         await dbctx.SaveChangesAsync();
     }

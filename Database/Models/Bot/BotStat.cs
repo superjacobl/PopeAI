@@ -14,6 +14,7 @@ public class BotStat : DBItem<BotStat>
     public long StoredMessages { get; set; }
     public long StoredMessageTotalSize { get; set; }
     public long Commands { get; set; }
+    public long UserCount { get; set; }
 
     // TODO: add cache hit rate for DBUsers
 

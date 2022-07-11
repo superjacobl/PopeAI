@@ -6,6 +6,7 @@ namespace PopeAI.Commands.Unscramble
         static Random rnd = new Random();
 
         [Command("unscramble")]
+        [Alias("un")]
         [Summary("Unscramble a given word!")]
         public Task UnscrambleStart(CommandContext ctx)
         {
@@ -24,12 +25,11 @@ namespace PopeAI.Commands.Unscramble
             {
                 if (ScrambledWords[ctx.Member.Id] == ctx.Message.Content.ToLower())
                 {
-                    DBUser user = await DBUser.GetAsync(ctx.Member.Id);
-                    double reward = rnd.Next(5, 25);
-                    StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
+                    await using var user = await DBUser.GetAsync(ctx.Member.Id);
+                    int reward = rnd.Next(5, 20);
+                    await StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
                     user.Coins += reward;
                     ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");
-                    user.UpdateDB();
                 }
                 else
                 {

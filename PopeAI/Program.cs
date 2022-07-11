@@ -6,7 +6,7 @@ global using Valour.Api.Items.Users;
 global using Valour.Shared.Items.Messages.Embeds;
 global using Valour.Shared.Authorization;
 global using System.Net.Http.Json;
-global using Valour.Net;
+global using Valour.Net.Client;
 global using PopeAI.Models;
 global using PopeAI.Database;
 global using System;
@@ -32,6 +32,7 @@ global using System.IO;
 
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 
 namespace PopeAI;
 
@@ -58,7 +59,7 @@ class Program
         string sql = PopeAIDB.GenerateSQL();
 
         try {
-            await File.WriteAllTextAsync("../../../../Database/Definitions.sql", sql);
+            await File.WriteAllTextAsync("../Database/Definitions.sql", sql);
         }
         catch (Exception e)
         {
@@ -70,9 +71,18 @@ class Program
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        //ValourNetClient.ExecuteMessagesInParallel = true;
+        ValourNetClient.ExecuteMessagesInParallel = true;
+        ValourNetClient.BaseUrl = "https://localhost:3001/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
+
+        int worker = 0;
+        int io = 0;
+        ThreadPool.GetAvailableThreads(out worker, out io);
+        
+        Console.WriteLine("Thread pool threads available at startup: ");
+        Console.WriteLine("   Worker threads: {0:N0}", worker);
+        Console.WriteLine("   Asynchronous I/O threads: {0:N0}", io);
 
         await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 

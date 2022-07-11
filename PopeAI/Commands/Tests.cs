@@ -11,13 +11,13 @@ namespace PopeAI.Commands.Tests
         // ~say hello world -> hello world
         [Command("say")]
         [Summary("Echoes a message.")]
-        public async Task SayAsync(CommandContext ctx)
+        public Task SayAsync(CommandContext ctx)
         {
-            await ctx.ReplyAsync("Command Handling kinda works!");
+            return ctx.ReplyAsync("Command Handling kinda works!");
         }
 
         [Command("embed")]
-        public async Task EmbedAsync(CommandContext ctx)
+        public Task EmbedAsync(CommandContext ctx)
         {
             EmbedBuilder embed = new EmbedBuilder();
             EmbedPageBuilder page = new EmbedPageBuilder();
@@ -44,11 +44,12 @@ namespace PopeAI.Commands.Tests
             page.AddText("\ud83d\udc6a Population", "\ud83d\udd3a Population:\n1,225,108,632,771", true);
             page.AddButton("Test Button", "Click Me");
             embed.AddPage(page);
-            await ctx.ReplyAsync(embed);
+
+            return ctx.ReplyAsync(embed);
         }
 
         [Command("e")]
-        public async Task EAsync(CommandContext ctx)
+        public Task EAsync(CommandContext ctx)
         {
             EmbedBuilder embed = new EmbedBuilder();
             embed.AddText("Update complete", "Your new stats are below!");
@@ -65,19 +66,20 @@ namespace PopeAI.Commands.Tests
             embed.AddText(null, "", false);
             embed.AddInputBox(id: "factories", inline: false, name: "Buy Factories", size: EmbedItemSize.Short);
             embed.AddButton("Test Button", "Click Me");
-            await ctx.ReplyAsync(embed);
+            
+            return ctx.ReplyAsync(embed);
         }
 
         [Command("mention")]
         [Summary("")]
-        public async Task MetionAsync(CommandContext ctx)
+        public Task MetionAsync(CommandContext ctx)
         {
-          //  string s = "";
-          //  for (int i = 0; i < 1; i++)
-         //   {
-          //      s += ctx.Member.Mention;
-         //   }
-            // await ctx.ReplyAsync($"Test {ctx.Member}");
+            string s = "";
+            for (int i = 0; i < 1; i++)
+            {
+               s += $"«@{ctx.Member.Id}»";
+            }
+            return ctx.ReplyAsync($"Test {ctx.Member}");
         }
 
         [Command("fastcount")]
@@ -141,29 +143,29 @@ namespace PopeAI.Commands.Tests
         [Command("say")]
         [Alias("echo")]
         //[Summary("Echoes a message.")]
-        public async Task EchoAsync(CommandContext ctx, [Remainder] string echo)
+        public Task EchoAsync(CommandContext ctx, [Remainder] string echo)
         {
-            await ctx.ReplyAsync(echo);
+            return ctx.ReplyAsync(echo);
         }
 
         [Command("testcommand")]
         [OnlyRole("Egg")]
-        public async Task TestAsync(CommandContext ctx)
+        public Task TestAsync(CommandContext ctx)
         {
-            await ctx.ReplyAsync("Your can use this command, because you have the Egg role");
+            return ctx.ReplyAsync("Your can use this command, because you have the Egg role");
         }
 
         [Command("double")]
         //[Summary("Echoes a message.")]
-        public async Task DoubleAsync(CommandContext ctx, double num)
+        public Task DoubleAsync(CommandContext ctx, double num)
         {
-            await ctx.ReplyAsync($"{num * 2}");
+            return ctx.ReplyAsync($"{num * 2}");
         }
 
         //[Event(EventType.)]
-        public async Task UserCantUseCommandAsync(CommandContext ctx, string commandname)
+        public Task UserCantUseCommandAsync(CommandContext ctx, string commandname)
         {
-            await ctx.ReplyAsync($"You can't use this command!");
+            return ctx.ReplyAsync($"You can't use this command!");
         }
 
         [Group("othertest")]
