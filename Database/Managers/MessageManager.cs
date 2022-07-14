@@ -7,6 +7,7 @@ public static class MessageManager
 {
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
     public static PopeAIDB dbctx = PopeAIDB.DbFactory.CreateDbContext();
+    public static DateTime TimeSinceLastSave = DateTime.UtcNow;
 
     public static async ValueTask<TaskResult> SaveMessage(PlanetMessage message)
     {
@@ -55,7 +56,7 @@ public static class MessageManager
             }
 
             // if message queue is getting too long, then stop saving
-            if (messageQueue.Count < 10)
+            if (messageQueue.Count < 10 || (DateTime.UtcNow-TimeSinceLastSave).TotalSeconds > 10)
             {
                 await dbctx.SaveChangesAsync();
             }

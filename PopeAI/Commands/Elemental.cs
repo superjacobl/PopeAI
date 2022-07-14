@@ -88,11 +88,12 @@ public class Elemental : CommandModuleBase
                 break;
             }
         }
+        embed.Title = "Vote";
         embed.AddPage(page);
         return embed;
     }
 
-    [Interaction("")]
+    [Interaction(EmbedIteractionEventType.ButtonClick)]
     public static async Task InteractionAynsc(InteractionContext ctx) 
     {
         PlanetMember member = await PlanetMember.FindAsync(ctx.Event.Author_MemberId, ctx.Event.PlanetId);
@@ -277,13 +278,13 @@ public class Elemental : CommandModuleBase
     }
 
     [Command("combination")]
-    [Alias("c")]
+    [Alias("c", "combine")]
     public static async Task CombinationAsync2Elements(CommandContext ctx, string element1, string element2)
     {
         await CombinationAsync(ctx, element1, element2);
     }
     [Command("combination")]
-    [Alias("c")]
+    [Alias("c", "combine")]
     public static async Task CombinationAsync3Elements(CommandContext ctx, string element1, string element2, string element3)
     {
         await CombinationAsync(ctx, element1, element2, element3);

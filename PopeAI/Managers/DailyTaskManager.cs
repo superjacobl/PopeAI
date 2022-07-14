@@ -124,23 +124,12 @@ public static class DailyTaskManager
         // only replace dailytasks if the day is different
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
-        var bottime = await dbctx.BotTimes.FirstOrDefaultAsync();
-
-        if (bottime is null) {
-            bottime = new() {
-                Id = idManager.Generate(),
-                LastDailyTasksUpdate = DateTime.UtcNow.AddDays(-1)
-            };
-            dbctx.BotTimes.Add(bottime);
-            await dbctx.SaveChangesAsync();
-        }
-
-        if (bottime.LastDailyTasksUpdate.AddDays(1) > DateTime.UtcNow)
+        if (PopeAIDB.botTime.LastDailyTasksUpdate.AddDays(1) > DateTime.UtcNow)
         {
             return;
         }
 
-        bottime.LastDailyTasksUpdate = DateTime.UtcNow;
+        PopeAIDB.botTime.LastDailyTasksUpdate = DateTime.UtcNow;
 
         // in future process this in chunks of like 10k because we would run out of memory
         // no sense in updating daily tasks for a user that is inactive
@@ -149,6 +138,9 @@ public static class DailyTaskManager
         {
             DailyTaskManager.UpdateTasks(user, dbctx);
         }
+
+        await PopeAIDB.botTime.UpdateDB(false);
+
         await dbctx.SaveChangesAsync();
     }
 }

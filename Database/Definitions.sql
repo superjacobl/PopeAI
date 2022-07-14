@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS botstats (
     storedmessagetotalsize bigint NOT NULL,
     commands bigint NOT NULL,
     usercount bigint NOT NULL,
+    heapsize bigint NOT NULL,
     timetakentotal bigint NOT NULL,
     CONSTRAINT pk_botstats PRIMARY KEY (id)
 );

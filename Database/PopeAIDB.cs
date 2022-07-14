@@ -129,6 +129,8 @@ public class PopeAIDB : DbContext
     /// </summary>
     public static DbContextOptions DBOptions;
 
+    public static BotTime botTime;
+
     public DbSet<DBUser> Users { get; set; }
 
     public DbSet<CurrentStat> CurrentStats { get; set; }

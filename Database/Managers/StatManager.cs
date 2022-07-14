@@ -79,7 +79,8 @@ public static class StatManager
                 StoredMessageTotalSize = Size,
                 Commands = selfstat.Commands,
                 TimeTakenTotal = selfstat.TimeTakenTotal,
-                UserCount = (long)await dbctx.Users.CountAsync()
+                UserCount = (long)await dbctx.Users.CountAsync(),
+                HeapSize = GC.GetTotalMemory(true),
             };
             dbctx.BotStats.Add(stat);
 

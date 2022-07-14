@@ -71,10 +71,11 @@ class Program
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        ValourNetClient.ExecuteMessagesInParallel = true;
+        //ValourNetClient.ExecuteMessagesInParallel = true;
         ValourNetClient.BaseUrl = "https://localhost:3001/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
+        PopeAIDB.botTime = await BotTime.GetAsync(1);
 
         int worker = 0;
         int io = 0;
@@ -100,7 +101,11 @@ class Program
             {
                 Console.WriteLine(ex.ToString());
             }
-            await Task.Delay(1000 * 60);
+            #if DEBUG
+            await Task.Delay(1000);
+            #else
+            await Task.Delay(60000);
+            #endif
         }
     }
 

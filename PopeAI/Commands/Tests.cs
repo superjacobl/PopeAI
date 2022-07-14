@@ -168,6 +168,17 @@ namespace PopeAI.Commands.Tests
             return ctx.ReplyAsync($"You can't use this command!");
         }
 
+        [Command("defaulttest")]
+        public Task defaultTest(CommandContext ctx, [SwitchInput("test")] bool Test = false) 
+        {
+            if (Test) {
+                return ctx.ReplyAsync("True!");
+            }
+            else {
+                return ctx.ReplyAsync("False!");
+            }
+        }
+
         [Group("othertest")]
         public class TestModule : CommandModuleBase
         {

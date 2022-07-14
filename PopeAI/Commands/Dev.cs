@@ -4,30 +4,30 @@ public class Dev : CommandModuleBase
 {
     [Command("userid")]
     [Summary("The user Id of the user who entered the command.")]
-    public async Task UserId(CommandContext ctx)
+    public Task UserId(CommandContext ctx)
     {
-        ctx.ReplyAsync($"Your UserId is {ctx.Member.UserId}");
+        return ctx.ReplyAsync($"Your UserId is {ctx.Member.UserId}");
     }
 
     [Command("memberid")]
     [Summary("The Member Id of the user who entered the command.")]
-    public async Task MemberId(CommandContext ctx)
+    public Task MemberId(CommandContext ctx)
     {
-        ctx.ReplyAsync($"Your MemberId is {ctx.Member.Id}");
+        return ctx.ReplyAsync($"Your MemberId is {ctx.Member.Id}");
     }
 
     [Command("planetid")]
     [Summary("The Planet Id of the channel where the command was entered.")]
-    public async Task PlanetId(CommandContext ctx)
+    public Task PlanetId(CommandContext ctx)
     {
-        ctx.ReplyAsync($"This planet's id is {ctx.Planet.Id}");
+        return ctx.ReplyAsync($"This planet's id is {ctx.Planet.Id}");
     }
 
     [Command("channelid")]
     [Summary("The Channel Id of the channel where the command was entered.")]
-    public async Task ChannelId(CommandContext ctx)
+    public Task ChannelId(CommandContext ctx)
     {
-        ctx.ReplyAsync($"This channel's id is {ctx.Channel.Id}");
+        return ctx.ReplyAsync($"This channel's id is {ctx.Channel.Id}");
     }
 
     [Command("database")]
@@ -42,6 +42,8 @@ public class Dev : CommandModuleBase
         long bytes = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToInt64(x[0])}).First().First();
 
         EmbedBuilder embed = new EmbedBuilder();
+        embed.Title = "Database Info";
+        embed.Footer = $"{DateTime.UtcNow.ToShortDateString()}";
         EmbedPageBuilder page = new EmbedPageBuilder();
         BotStat stat = StatManager.selfstat;
         page.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes));
