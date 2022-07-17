@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using StringMath;
 
 namespace PopeAI.Commands.Generic
 {
@@ -6,30 +7,39 @@ namespace PopeAI.Commands.Generic
     {
         public static Dictionary<long, string> ScrambledWords = new Dictionary<long, string>();
         static Random rnd = new Random();
+        public static Calculator calculator = new();
 
         [Command("ping")]
         public async Task Ping(CommandContext ctx)
         {
-
-            Stopwatch sw = new();
-            sw.Start();
-            await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
-            sw.Stop();
-            ctx.ReplyAsync($"Pong {(int)sw.ElapsedMilliseconds}ms\n");
+            Task.Run(async () => {
+                Stopwatch sw = new();
+                sw.Start();
+                await ValourClient.Http.GetStringAsync("https://app.valour.gg/api/ping");
+                sw.Stop();
+                ctx.ReplyAsync($"Pong {(int)sw.ElapsedMilliseconds}ms\n");
+            });
         }
 
         [Command("longping")]
         public async Task LongPing(CommandContext ctx)
         {
+            Task.Run(async () => {
+                Stopwatch sw = new();
+                sw.Start();
+                for (int i = 0; i < 20; i++)
+                {
+                    await ValourClient.Http.GetStringAsync("https://app.valour.gg/api/ping");
+                }
+                sw.Stop();
+                ctx.ReplyAsync($"Pong {(int)(sw.ElapsedMilliseconds/20)}ms\n");
+            });
+        }
 
-            Stopwatch sw = new();
-            sw.Start();
-            for (int i = 0; i < 20; i++)
-            {
-                await ValourClient.Http.GetStringAsync("https://valour.gg/api/ping");
-            }
-            sw.Stop();
-            ctx.ReplyAsync($"Pong {(int)(sw.ElapsedMilliseconds/20)}ms\n");
+        [Command("calc")]
+        public async Task Calc(CommandContext ctx, [Remainder] string content) 
+        {
+            ctx.ReplyAsync($"The result is: {calculator.Evaluate(content)}");
         }
 
         [Command("help")]

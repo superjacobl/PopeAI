@@ -77,9 +77,9 @@ namespace PopeAI.Commands.Tests
             string s = "";
             for (int i = 0; i < 1; i++)
             {
-               s += $"«@{ctx.Member.Id}»";
+               s += $"«@m-{ctx.Member.Id}»";
             }
-            return ctx.ReplyAsync($"Test {ctx.Member}");
+            return ctx.ReplyAsync($"Test {s}");
         }
 
         [Command("fastcount")]
@@ -109,7 +109,7 @@ namespace PopeAI.Commands.Tests
         [Command("count")]
         public async Task CountAsync(CommandContext ctx, int times, int delay)
         {
-            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
+            if (ctx.Member.UserId != 12201879245422592) {
                 return;
             }
             if (times > 1000) {
@@ -127,7 +127,7 @@ namespace PopeAI.Commands.Tests
         //[Summary("Echoes a message.")]
         public async Task EchoAsync(CommandContext ctx, int times, [Remainder] string echo)
         {
-            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
+            if (ctx.Member.UserId != 12201879245422592) {
                 return;
             }
             if (times > 1000) {

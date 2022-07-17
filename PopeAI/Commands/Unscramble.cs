@@ -26,7 +26,7 @@ namespace PopeAI.Commands.Unscramble
                 if (ScrambledWords[ctx.Member.Id] == ctx.Message.Content.ToLower())
                 {
                     await using var user = await DBUser.GetAsync(ctx.Member.Id);
-                    int reward = rnd.Next(5, 20);
+                    int reward = rnd.Next(3, 15);
                     await StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
                     user.Coins += reward;
                     ctx.ReplyAsync($"Correct! Your reward is {reward} coins.");

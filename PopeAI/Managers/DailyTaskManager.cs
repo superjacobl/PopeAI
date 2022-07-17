@@ -108,10 +108,11 @@ public static class DailyTaskManager
         foreach (var oldtask in user.DailyTasks)
         {
             task = tasks[0];
-            tasks.RemoveAt(0);
             oldtask.Done = 0;
+            oldtask.Goal = task.Goal;
             oldtask.Reward = task.Reward;
             oldtask.TaskType = task.TaskType;
+            tasks.RemoveAt(0);
         }
         if (tasks.Count > 0)
         {
@@ -134,7 +135,7 @@ public static class DailyTaskManager
         // in future process this in chunks of like 10k because we would run out of memory
         // no sense in updating daily tasks for a user that is inactive
         DateTime time = DateTime.UtcNow.AddDays(-2);
-        foreach (DBUser user in dbctx.Users.Where(x => x.LastSentMessage > time).Include(x => x.DailyTasks))
+        foreach (DBUser user in await dbctx.Users.Where(x => x.LastSentMessage > time).Include(x => x.DailyTasks).ToListAsync())
         {
             DailyTaskManager.UpdateTasks(user, dbctx);
         }

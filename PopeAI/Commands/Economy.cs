@@ -5,6 +5,19 @@ namespace PopeAI.Commands.Economy;
 public class Economy : CommandModuleBase
 {
     Random rnd = new Random();
+    
+    [Command("commands")]
+    public Task ListCommands(CommandContext ctx) 
+    {
+        var embed = new EmbedBuilder();
+        var page = new EmbedPageBuilder();
+        page.AddText("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un");
+        page.AddText("Xp", "/xp, /info xp, /leaderboard or /lb");
+        page.AddText("Daily Tasks", "/tasks");
+        page.AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount");
+        embed.AddPage(page);
+        return ctx.ReplyAsync(embed);
+    } 
 
     [Command("hourly")]
     [Alias("h")]
@@ -60,6 +73,27 @@ public class Economy : CommandModuleBase
     {
         var user = await DBUser.GetAsync(ctx.Member.Id, true);
         ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {user.Coins}");
+    }
+
+    [Command("pay")]
+    [Alias("send")]
+    public async Task PayAsync(CommandContext ctx, PlanetMember member, int amount)
+    {
+        await using var fromUser = await DBUser.GetAsync(ctx.Member.Id);
+        await using var toUser = await DBUser.GetAsync(member.Id);
+        
+        if (amount > fromUser.Coins) {
+            ctx.ReplyAsync("You can not send more coins than you currently have!");
+            return;
+        }
+        if (amount <= 0) {
+            ctx.ReplyAsync("Amount must be above 0!");
+            return;
+        }
+        
+        fromUser.Coins -= amount;
+        toUser.Coins += amount;
+        ctx.ReplyAsync($"Sent {amount} coins to {member.Nickname}!");
     }
 
     [Command("pay")]
@@ -159,6 +193,7 @@ public class Economy : CommandModuleBase
     [Command("gamble")]
     public async Task Gamble(CommandContext ctx, string color, int bet)
     {
+        color = color.Replace("red", "Red").Replace("Blue", "blue").Replace("Green", "green").Replace("Black", "black");
         if (color != "Red" && color != "Blue" && color != "Green" && color != "Black") {
             ctx.ReplyAsync("The color must be Red, Blue, Green, or Black");
             return;

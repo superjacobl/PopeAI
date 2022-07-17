@@ -9,14 +9,45 @@ public class Elemental : CommandModuleBase
     [Command("suggest")]
     public static async Task SuggestAynsc(CommandContext ctx, string result) 
     {
+        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         if (!FailedCombinations.ContainsKey(ctx.Member.UserId)) {
             ctx.ReplyAsync("You have not came across a new combination yet!");
             return;
         }
 
-        FailedCombinations.Remove(ctx.Member.UserId, out Combination _Combination);
+        Combination _Combination = FailedCombinations[ctx.Member.UserId];
 
-        Suggestion suggestion = new() {
+        Suggestion suggestion = null;
+        string element1 = _Combination.Element1;
+        string element2 = _Combination.Element2;
+        string element3 = _Combination.Element3;
+        string text = "";
+
+        if (_Combination.Element3 is null) {
+            suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element1 && x.Element2 == element2 && x.Element3 == null);
+            if (suggestion == null) {
+                suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element2 && x.Element2 == element1 && x.Element3 == null);
+            }
+            text = $"{element1}, {element2}";
+        }
+
+        else {
+            suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element3 && x.Element2 == element2 && x.Element3 == element1);
+            if (suggestion == null) {suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element3 && x.Element1 == element1 && x.Element3 == element2);}
+            if (suggestion == null) {suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element1 && x.Element2 == element3 && x.Element3 == element2);}
+            if (suggestion == null) {suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element2 && x.Element2 == element3 && x.Element3 == element1);}
+            if (suggestion == null) {suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element1 && x.Element2 == element2 && x.Element3 == element3);}
+            if (suggestion == null) {suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Element1 == element2 && x.Element2 == element1 && x.Element3 == element3);}
+            text = $"{element1}, {element2}, {element3}";
+        }
+
+        if (suggestion is not null) {
+            ctx.ReplyAsync("There's already a recipe that uses the elements: {text}! Use /vote to decide if that recipe should be added!");
+        }
+
+        FailedCombinations.Remove(ctx.Member.UserId, out _);
+
+        suggestion = new() {
             Id = idManager.Generate(),
             Element1 = _Combination.Element1,
             Element2 = _Combination.Element2,
@@ -27,8 +58,6 @@ public class Elemental : CommandModuleBase
         if (_Combination.Element3 != null) {
             suggestion.Element3 = _Combination.Element3;
         }
-
-        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         await dbctx.AddAsync(suggestion);
         await dbctx.SaveChangesAsync();
@@ -437,17 +466,10 @@ public class Elemental : CommandModuleBase
         public static async Task MyElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            ctx.ReplyAsync($"You have {await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync()} elements");
-        }
-
-        [Command("mypercent")]
-        public static async Task MyElementPercentAsync(CommandContext ctx)
-        {
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             int elements = await dbctx.Elements.CountAsync();
             int found = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync();
             double percent = (double)found/elements*100;
-            ctx.ReplyAsync($"You have found {Math.Round(percent, 2)}% of all elements");
+            ctx.ReplyAsync($"You have found {found} ({Math.Round(percent, 2)}%) of all elements");
         }
     }
 }

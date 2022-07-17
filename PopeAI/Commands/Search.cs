@@ -40,11 +40,18 @@ public class Search : CommandModuleBase
         }
         foreach(Message msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId, msg.PlanetId);
-            if (msg.PlanetIndex == planetIndex) {
-                page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
+            string content = "";
+            if (msg.EmbedData is not null) {
+                content = "Embed";
             }
             else {
-                page.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n");
+                content = msg.Content;
+            }
+            if (msg.PlanetIndex == planetIndex) {
+                page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
+            }
+            else {
+                page.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
             }
             if (page.Items.Count() > 13) {
                 embed.AddPage(page);
@@ -122,6 +129,19 @@ public class Search : CommandModuleBase
                         v = v.Replace("»","");
                         if (long.TryParse(v, out long MemberID)) {
                             search = search.Where(x => x.MemberId == MemberID);
+                        }
+                    }
+                    break;
+
+                case "in": 
+                    value = word[1];
+                    value = value.Replace(" ", "");
+
+                    if (value.Substring(0,4) == "«#c-") {
+                        string v = value.Replace("«#c-", "");
+                        v = v.Replace("»","");
+                        if (long.TryParse(v, out long ChannelId)) {
+                            search = search.Where(x => x.ChannelId == ChannelId);
                         }
                     }
                     break;

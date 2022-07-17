@@ -23,7 +23,7 @@ public class Stats : CommandModuleBase
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id)
                 .OrderByDescending(x => x.Time)
-                .Take(6)
+                .Take(5)
                 .ToListAsync();
             List<int> data = new();
             foreach (Stat stat in stats)
@@ -31,6 +31,7 @@ public class Stats : CommandModuleBase
                 data.Add(stat.NewCoins);
             }
             data.Reverse();
+            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).NewCoins);
             await PostGraph(ctx, data, "coins");
         }
 
@@ -42,7 +43,7 @@ public class Stats : CommandModuleBase
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id)
                 .OrderByDescending(x => x.Time)
-                .Take(6)
+                .Take(5)
                 .ToListAsync();
             List<int> data = new();
             foreach (Stat stat in stats)
@@ -50,6 +51,7 @@ public class Stats : CommandModuleBase
                 data.Add(stat.MessagesSent);
             }
             data.Reverse();
+            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).MessagesSent);
             await PostGraph(ctx, data, "messages");
         }
     }
@@ -109,7 +111,7 @@ public class Stats : CommandModuleBase
 
         for (int i = data.Count(); i > 0; i--)
         {
-            content += $"{i}h&nbsp;";
+            content += $"{i}d&nbsp;";
         }
 
         content += "\n";

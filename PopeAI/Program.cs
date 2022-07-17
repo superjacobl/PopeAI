@@ -72,7 +72,7 @@ class Program
 
         ValourNetClient.AddPrefix("/");
         //ValourNetClient.ExecuteMessagesInParallel = true;
-        ValourNetClient.BaseUrl = "https://localhost:3001/";
+        //ValourNetClient.BaseUrl = "https://localhost:3001/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);

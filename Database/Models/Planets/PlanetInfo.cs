@@ -10,11 +10,17 @@ public enum PlanetStoragePlan
     Pro // up to 100 million messages
 }
 
+public enum ModuleType
+{
+    IdleGame = 1
+}
+
 public class PlanetInfo : DBItem<PlanetInfo>
 {
     [Key]
     public long PlanetId { get; set; }
     public int MessagesStored { get; set; }
+    public List<ModuleType>? Modules { get; set; }
 
     public PlanetInfo()
     {

@@ -30,6 +30,25 @@ public class Dev : CommandModuleBase
         return ctx.ReplyAsync($"This channel's id is {ctx.Channel.Id}");
     }
 
+    [Command("devinfo")]
+    public async Task DevInfo(CommandContext ctx)
+    {
+        var Embed = new EmbedBuilder();
+        var page = new EmbedPageBuilder();
+        Embed.Title = "Info";
+        page.AddText("User Id", ctx.Member.UserId.ToString());
+        page.AddText("Member Id", ctx.Member.Id.ToString());
+        page.AddText("Channel Id", ctx.Channel.Id.ToString());
+        page.AddText("Planet Id", ctx.Planet.Id.ToString());
+        page.AddText("Roles");
+        foreach(var role in await ctx.Member.GetRolesAsync()) {
+            page.AddText(text: role.Name, textColor: role.GetColorHex().Replace("#", ""), inline: true);
+            page.AddText(text: role.Id.ToString(), inline: true);
+        }
+        Embed.AddPage(page);
+        await ctx.ReplyAsync(Embed);
+    }
+
     [Command("database")]
     [Alias("db")]
     public static async Task DatabaseInfoAynsc(CommandContext ctx) 
@@ -47,7 +66,7 @@ public class Dev : CommandModuleBase
         EmbedPageBuilder page = new EmbedPageBuilder();
         BotStat stat = StatManager.selfstat;
         page.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes));
-        page.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Numbers));
+        page.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Commas));
         page.AddText("Avg Message Size", FormatManager.Format(bytes/StatManager.selfstat.StoredMessages, FormatType.Commas)+" bytes");
         embed.AddPage(page);
         ctx.ReplyAsync(embed);
