@@ -60,6 +60,7 @@ public static class MessageManager
             if (messageQueue.Count < 10 || (DateTime.UtcNow-TimeSinceLastSave).TotalSeconds > 10)
             {
                 await dbctx.SaveChangesAsync();
+                TimeSinceLastSave = DateTime.UtcNow;
             }
 
             return new TaskResult(true, result);
