@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS messages (
     hash bytea NOT NULL,
     isdeleted boolean NOT NULL,
     searchvector tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED,
+    replytoid bigint NULL,
     CONSTRAINT pk_messages PRIMARY KEY (id)
 );
 

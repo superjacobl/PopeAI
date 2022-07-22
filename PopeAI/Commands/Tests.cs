@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Diagnostics;
 
 /*
@@ -19,54 +20,18 @@ namespace PopeAI.Commands.Tests
         [Command("embed")]
         public Task EmbedAsync(CommandContext ctx)
         {
-            EmbedBuilder embed = new EmbedBuilder();
-            EmbedPageBuilder page = new EmbedPageBuilder();
-            page.AddText("Update complete", "Your new stats are below!");
-            page.AddText(null, "`Total`");
-            page.AddText("\ud83d\udcbe Coinz", "\ud83d\udd3a Coinz:\n4 \u0e3f", true);
-            page.AddText("\ud83c\udfe6 Balance", "\ud83d\udd3a Balance:\n8,286,460,501,158,150 THR", true);
-            page.AddText("\ud83d\udc6a Population", "\ud83d\udd3a Population:\n1,225,108,632,771", true);
-            page.AddText(null, "", false);
-            page.AddInputBox(id: "houses", inline: false, name: "Buy Houses", size: EmbedItemSize.Short);
-            page.AddText(null, "", false);
-            page.AddInputBox(id: "land", inline: false, name: "Buy Land", size: EmbedItemSize.Short);
-            page.AddText(null, "", false);
-            page.AddInputBox(id: "eggs", inline: false, name: "Buy Eggs", size: EmbedItemSize.Short);
-            page.AddText(null, "", false);
-            page.AddInputBox(id: "factories", inline: false, name: "Buy Factories", size: EmbedItemSize.Short);
-            page.AddButton("Test Button", "Click Me");
-            embed.AddPage(page);
-            page = new EmbedPageBuilder();
-            page.AddText("Update complete", "Your new stats are below!");
-            page.AddText(null, "`Total`");
-            page.AddText("\ud83d\udcbe Coinz", "\ud83d\udd3a Coinz:\n4 \u0e3f", true);
-            page.AddText("\ud83c\udfe6 Balance", "\ud83d\udd3a Balance:\n8,286,460,501,158,150 THR", true);
-            page.AddText("\ud83d\udc6a Population", "\ud83d\udd3a Population:\n1,225,108,632,771", true);
-            page.AddButton("Test Button", "Click Me");
-            embed.AddPage(page);
-
-            return ctx.ReplyAsync(embed);
-        }
-
-        [Command("e")]
-        public Task EAsync(CommandContext ctx)
-        {
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.AddText("Update complete", "Your new stats are below!");
-            embed.AddText(null, "`Total`");
-            embed.AddText("\ud83d\udcbe Coinz", "\ud83d\udd3a Coinz:\n4 \u0e3f", true);
-            embed.AddText("\ud83c\udfe6 Balance", "\ud83d\udd3a Balance:\n8,286,460,501,158,150 THR", true);
-            embed.AddText("\ud83d\udc6a Population", "\ud83d\udd3a Population:\n1,225,108,632,771", true);
-            embed.AddText(null, "", false);
-            embed.AddInputBox(id: "houses", inline: false, name: "Buy Houses", size: EmbedItemSize.Short);
-            embed.AddText(null, "", false);
-            embed.AddInputBox(id: "land", inline: false, name: "Buy Land", size: EmbedItemSize.Short);
-            embed.AddText(null, "", false);
-            embed.AddInputBox(id: "eggs", inline: false, name: "Buy Eggs", size: EmbedItemSize.Short);
-            embed.AddText(null, "", false);
-            embed.AddInputBox(id: "factories", inline: false, name: "Buy Factories", size: EmbedItemSize.Short);
-            embed.AddButton("Test Button", "Click Me");
-            
+            var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+            embed.CurrentPage.Title = "Update complete, Your new stats are below!";
+            embed.AddText(null, "`Total`").AddRow();
+            embed.AddText("\ud83d\udcbe Coinz", "\ud83d\udd3a Coinz:\n4 \u0e3f");
+            embed.AddText("\ud83c\udfe6 Balance", "\ud83d\udd3a Balance:\n8,286,460,501,158,150 THR");
+            embed.AddText("\ud83d\udc6a Population", "\ud83d\udd3a Population:\n1,225,108,632,771").AddRow();
+            //embed.AddInputBox(id: "houses", name: "Buy Houses", size: EmbedItemSize.Small);
+            //embed.AddInputBox(id: "land", name: "Buy Land", size: EmbedItemSize.Small);
+            //embed.AddInputBox(id: "eggs", name: "Buy Eggs", size: EmbedItemSize.Small);
+            //embed.AddInputBox(id: "factories", name: "Buy Factories", size: EmbedItemSize.Small);
+            //embed.AddButton("Test Button", "Click Me");
+            //embed.AddButton("Test Button", "Click Me");
             return ctx.ReplyAsync(embed);
         }
 
@@ -120,6 +85,27 @@ namespace PopeAI.Commands.Tests
                 ctx.ReplyAsync(i.ToString());
                 await Task.Delay(delay);
             }
+        }
+
+        [Command("say")]
+        [Alias("echo")]
+        //[Summary("Echoes a message.")]
+        public async Task EchoAsync(CommandContext ctx, int times, int delay, [Remainder] string echo)
+        {
+            if (ctx.Member.UserId != 12201879245422592) {
+                return;
+            }
+            if (times > 1000) {
+                times = 1000;
+            }
+
+            Task.Run(async () => {
+                for (int i = 0; i < times; i++)
+                {
+                    ctx.ReplyAsync(echo);
+                    await Task.Delay(delay);
+                }
+            });
         }
 
         [Command("say")]
@@ -179,10 +165,48 @@ namespace PopeAI.Commands.Tests
             }
         }
 
-        [Group("othertest")]
+        [Group("embed")]
         public class TestModule : CommandModuleBase
         {
+            [Command("list")]
+            public Task EmbedListTest(CommandContext ctx)
+            {
+                var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+                embed.AddText("Test", "* 1\n* 2\n* 3");
+                return ctx.ReplyAsync(embed); 
+            }
 
+            [Command("free")]
+            public Task EmbedListTestfree(CommandContext ctx)
+            {
+                var embed = new EmbedBuilder(EmbedItemPlacementType.FreelyBased, 400, 200).AddPage();
+                embed.AddText("Test", "420", x: 200-14, y: 100-23);
+                //embed.AddText("Test", "* 1\n* 2\n* 3");
+                return ctx.ReplyAsync(embed); 
+            }
+
+            [Command("input")]
+            public Task EmbedInputTest(CommandContext ctx)
+            {
+                var Embed = new EmbedBuilder(EmbedItemPlacementType.RowBased)
+                    .AddPage()
+                        .AddRow()
+                            .AddForm(EmbedItemPlacementType.RowBased, "testinput")
+                                .AddRow()
+                                    .AddInputBox("Username", "Username", "username")
+                                .AddRow()
+                                    .AddButton("submit", "Submit", isSubmitButton: true)
+                            .EndForm();
+                return ctx.ReplyAsync(Embed);
+            }
+
+            [Interaction(EmbedIteractionEventType.FormSubmitted, "testinput")]
+            public Task FormTest(InteractionContext ctx) 
+            {
+                var str = JsonSerializer.Serialize(ctx.Event.FormData, options: new JsonSerializerOptions() {WriteIndented = true});
+                Console.WriteLine(str);
+                return ctx.ReplyAsync("You inputted: "+ctx.Event.FormData.FirstOrDefault(x => x.ElementId == "Username").Value);
+            }
         }
     }
 }

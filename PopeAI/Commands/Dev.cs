@@ -33,20 +33,22 @@ public class Dev : CommandModuleBase
     [Command("devinfo")]
     public async Task DevInfo(CommandContext ctx)
     {
-        var Embed = new EmbedBuilder();
-        var page = new EmbedPageBuilder();
-        Embed.Title = "Info";
-        page.AddText("User Id", ctx.Member.UserId.ToString());
-        page.AddText("Member Id", ctx.Member.Id.ToString());
-        page.AddText("Channel Id", ctx.Channel.Id.ToString());
-        page.AddText("Planet Id", ctx.Planet.Id.ToString());
-        page.AddText("Roles");
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage()
+            .AddRow(
+                new EmbedTextItem("User Id", ctx.Member.UserId.ToString()),
+                new EmbedTextItem("Member Id", ctx.Member.Id.ToString()))
+            .AddRow(
+                new EmbedTextItem("Channel Id", ctx.Channel.Id.ToString()),
+                new EmbedTextItem("Planet Id", ctx.Planet.Id.ToString()))
+            .AddRow(new EmbedTextItem("Roles"));
+        embed.CurrentPage.Title = "Info";
         foreach(var role in await ctx.Member.GetRolesAsync()) {
-            page.AddText(text: role.Name, textColor: role.GetColorHex().Replace("#", ""), inline: true);
-            page.AddText(text: role.Id.ToString(), inline: true);
+            embed.AddRow(
+                new EmbedTextItem(text: role.Name, textColor: role.GetColorHex().Replace("#", "")),
+                new EmbedTextItem(text: role.Id.ToString())
+            );
         }
-        Embed.AddPage(page);
-        await ctx.ReplyAsync(Embed);
+        await ctx.ReplyAsync(embed);
     }
 
     [Command("database")]
@@ -60,15 +62,13 @@ public class Dev : CommandModuleBase
         string query = $"SELECT pg_total_relation_size('messages');";
         long bytes = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToInt64(x[0])}).First().First();
 
-        EmbedBuilder embed = new EmbedBuilder();
-        embed.Title = "Database Info";
-        embed.Footer = $"{DateTime.UtcNow.ToShortDateString()}";
-        EmbedPageBuilder page = new EmbedPageBuilder();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+        embed.CurrentPage.Title = "Database Info";
+        embed.CurrentPage.Footer = $"{DateTime.UtcNow.ToShortDateString()}";
         BotStat stat = StatManager.selfstat;
-        page.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes));
-        page.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Commas));
-        page.AddText("Avg Message Size", FormatManager.Format(bytes/StatManager.selfstat.StoredMessages, FormatType.Commas)+" bytes");
-        embed.AddPage(page);
+        embed.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes)).AddRow();
+        embed.AddText("Messages Stored", FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Commas)).AddRow();
+        embed.AddText("Avg Message Size", FormatManager.Format(bytes/StatManager.selfstat.StoredMessages, FormatType.Commas)+" bytes").AddRow();
         ctx.ReplyAsync(embed);
     }
 }

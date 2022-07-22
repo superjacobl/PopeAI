@@ -1,6 +1,4 @@
 using PopeAI.Database.Models.Planets;
-using Valour.Shared.Items.Messages.Embeds;
-
 namespace PopeAI.Commands.Xp;
 
 public class Xp : CommandModuleBase
@@ -8,10 +6,8 @@ public class Xp : CommandModuleBase
     [Event(EventType.AfterCommand)]
     public void AfterCommand(CommandContext ctx)
     {
-        #if DEBUG
         StatManager.selfstat.TimeTakenTotal += (long)(DateTime.UtcNow - ctx.CommandStarted).TotalMilliseconds;
         StatManager.selfstat.Commands += 1;
-        #endif
     }
 
     [Event(EventType.Message)]
@@ -83,20 +79,17 @@ public class Xp : CommandModuleBase
             .Take(10)
             .ToList();
 
-        EmbedBuilder embed = new();
-        EmbedPageBuilder page = new();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
         int i = 1;
         foreach (DBUser user in users)
         {
             PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
-            page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp");
+            embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp").AddRow();
             i += 1;
-            if (page.Items.Count() > 10) {
-                embed.AddPage(page);
-                page = new();
+            if (embed.CurrentPage.Rows.Count > 10) {
+                embed.AddPage();
             }
         }
-        embed.AddPage(page);
         ctx.ReplyAsync(embed);
     }
 }

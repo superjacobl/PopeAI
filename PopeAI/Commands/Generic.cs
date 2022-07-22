@@ -36,6 +36,28 @@ namespace PopeAI.Commands.Generic
             });
         }
 
+        [Command("pfp")]
+        public async Task GetPfp(CommandContext ctx)
+        {
+            string pfp = await ctx.Member.GetPfpUrlAsync();
+            if (pfp == "/media/icon-512.png") {
+                ctx.ReplyAsync("https://app.valour.gg/_content/Valour.Client/icon-512.png");
+                return;
+            }
+            ctx.ReplyAsync(pfp);
+        }
+
+        [Command("pfp")]
+        public async Task GetPfp(CommandContext ctx, PlanetMember member)
+        {
+            string pfp = await member.GetPfpUrlAsync();
+            if (pfp == "/media/icon-512.png") {
+                ctx.ReplyAsync("https://app.valour.gg/_content/Valour.Client/icon-512.png");
+                return;
+            }
+            ctx.ReplyAsync(pfp);
+        }
+
         [Command("calc")]
         public async Task Calc(CommandContext ctx, [Remainder] string content) 
         {

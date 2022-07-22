@@ -9,22 +9,17 @@ public class Info : CommandModuleBase
         [Command("xp")]
         public Task XpInfo(CommandContext ctx)
         {
-            EmbedBuilder embed = new();
-            var page = new EmbedPageBuilder()
-                .AddText("Message Xp", "The more chars (numbers, letters, etc) you type in a given minute, the more xp you earn. However, each additional char adds a little less xp.")
+            var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow()
+                .AddText("Message Xp", "The more chars (numbers, letters, etc) you type in a given minute, the more xp you earn. However, each additional char adds a little less xp.").AddRow()
                 .AddText("Element Xp", "By combining elements, you will earn xp depending on how difficult the combination was.");
-            embed.AddPage(page);
             return ctx.ReplyAsync(embed);
         }
 
         [Command("elements")]
         public Task ElementsInfo(CommandContext ctx)
         {
-            EmbedBuilder embed = new();
-            EmbedPageBuilder page = new EmbedPageBuilder()
+            var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow()
                 .AddText("Elements", "By combining elements, you will earn xp depending on how difficult the combination was.");
-
-            embed.AddPage(page);
             return ctx.ReplyAsync(embed);
         }
     }

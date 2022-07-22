@@ -45,6 +45,24 @@ public class DBCache
 
         return HCache[type].ContainsKey(Id);
     }
+    
+    /// <summary>
+    /// Places an item into the cache
+    /// </summary>
+    public static void Remove<T>(long Id) where T : class
+    {
+
+        // Get the type of the item
+        var type = typeof(T);
+
+        // If there isn't a cache for this type, create one
+        if (!HCache.ContainsKey(type))
+            HCache.Add(type, new ConcurrentDictionary<long, object>());
+
+        if (!HCache[type].ContainsKey(Id)) {
+            HCache[type].Remove(Id, out _);
+        }
+    }
 
     /// <summary>
     /// Places an item into the cache

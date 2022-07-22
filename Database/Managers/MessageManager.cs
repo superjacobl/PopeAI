@@ -24,7 +24,8 @@ public static class MessageManager
                 MessageIndex = message.MessageIndex,
                 PlanetId = message.PlanetId,
                 EmbedData = message.EmbedData,
-                MentionsData = message.MentionsData
+                MentionsData = message.MentionsData,
+                ReplyToId = message.ReplyToId
             };
             msg.Hash = msg.GetHash();
 

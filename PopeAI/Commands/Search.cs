@@ -32,8 +32,7 @@ public class Search : CommandModuleBase
     }
 
     public async Task OutputToList(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
-        EmbedBuilder embed = new();
-        EmbedPageBuilder page = new();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
         if (msgs.Count == 0) {
             ctx.ReplyAsync("No messages were found.");
             return;
@@ -48,20 +47,16 @@ public class Search : CommandModuleBase
                 content = msg.Content;
             }
             if (msg.PlanetIndex == planetIndex) {
-                page.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
+                embed.AddText(text:$"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
             }
             else {
-                page.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
+                embed.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
             }
-            if (page.Items.Count() > 13) {
-                embed.AddPage(page);
-                page = new EmbedPageBuilder();
+            if (embed.CurrentPage.Rows.Count > 13) {
+                embed.AddPage();
             }
         }
-        if (page.Items.Count() != 0) {
-            embed.AddPage(page);
-        }
-        ctx.ReplyAsync(embed:embed);
+        ctx.ReplyAsync(embed);
     }
 
     [Command("view")]
@@ -96,7 +91,13 @@ public class Search : CommandModuleBase
 
         List<string> remove = new List<string>();
 
+        bool HasReply = false;
+
         foreach (string t in words) {
+            if (t.Contains("--reply")) {
+                HasReply = true;
+                continue;
+            }
             string[] word = t.Split(":");
             if (word.Count() != 2) {
                 continue;
@@ -146,6 +147,10 @@ public class Search : CommandModuleBase
                     }
                     break;
             }
+        }
+
+        if (HasReply) {
+            search = search.Where(x => x.ReplyToId != null);
         }
 
         if (need != "")

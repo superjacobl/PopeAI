@@ -58,6 +58,15 @@ public class Stats : CommandModuleBase
 
     static async Task PostGraph(CommandContext ctx, List<int> data, string dataname)
     {
+
+        // TODO: do this
+        // --
+        //    \             /
+        //     \    -- -- -- 
+        //      \  /
+        //       -- 
+
+
         string content = "";
         int maxvalue = data.Max();
 

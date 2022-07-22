@@ -75,8 +75,7 @@ public class Elemental : CommandModuleBase
     }
     public static async Task<EmbedBuilder> _VoteAynsc(PlanetMember member) 
     {
-        EmbedBuilder embed = new();
-        EmbedPageBuilder page = new();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
 
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
@@ -101,24 +100,24 @@ public class Elemental : CommandModuleBase
             }
             //page.AddText(null, "", false);
             if (i != 0) {
-                page.AddText(text:"&nbsp;");
+                embed.AddRow();
             }
-            page.AddText(text:text);
+            embed.AddText(text:text);
+            embed.AddRow();
             if (canvote) {
-                page.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes", inline:true, color:"007F0E");
-                page.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No", inline:true, color:"7F0000");
+                embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes", color:"007F0E");
+                embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No", color:"7F0000");
             }
             else {
-                page.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes", inline:true);
-                page.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No", inline:true);
+                embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes");
+                embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No");
             }
             i += 1;
             if (i >= 5) {
                 break;
             }
         }
-        embed.Title = "Vote";
-        embed.AddPage(page);
+        embed.CurrentPage.Title = "Vote";
         return embed;
     }
 
@@ -129,7 +128,7 @@ public class Elemental : CommandModuleBase
 
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
-        string elementname = ctx.Event.Element_Id;
+        string elementname = ctx.Event.ElementId;
         if (elementname.Contains("VoteFromSuggestion")) {
             long suggestid = long.Parse(elementname.Split("Suggestion:")[1]);
             Suggestion suggestion = await dbctx.Suggestions.FirstOrDefaultAsync(x => x.Id == suggestid);
@@ -167,6 +166,7 @@ public class Elemental : CommandModuleBase
 
                 if (approved) {
                     Combination combination = new(){
+                        Id = idManager.Generate(),
                         Element1 = suggestion.Element1,
                         Element2 = suggestion.Element2,
                         Result = suggestion.Result,
@@ -177,7 +177,7 @@ public class Elemental : CommandModuleBase
                         combination.Element3 = suggestion.Element3;
                     }
                     
-                    await dbctx.Combinations.AddAsync(combination);
+                    dbctx.Combinations.Add(combination);
 
                     Element element = await dbctx.Elements.FirstOrDefaultAsync(x => x.Name == combination.Result);
                     if (element == null) {
@@ -188,7 +188,7 @@ public class Elemental : CommandModuleBase
                             Finder_Id = suggestion.UserId,
                             Time_Created = DateTime.UtcNow
                         };
-                        await dbctx.Elements.AddAsync(_element);
+                        dbctx.Elements.Add(_element);
                     }
 
                     List<SuggestionVote> _votes = await dbctx.SuggestionVotes.Where(x => x.SuggestionId == suggestion.Id).ToListAsync();
@@ -198,7 +198,6 @@ public class Elemental : CommandModuleBase
                     dbctx.Suggestions.Remove(suggestion);
 
                     ctx.ReplyAsync($"Enought votes were reached ({suggestion.Ayes}-{suggestion.Nays}) for this suggestion to be accepted!");
-
                 }
             }
 
@@ -206,7 +205,7 @@ public class Elemental : CommandModuleBase
             
             PlanetMessage message = new() {
                 ChannelId = ctx.Event.ChannelId,
-                Id = ctx.Event.Message_Id,
+                Id = ctx.Event.MessageId,
                 PlanetId = ctx.Event.PlanetId
             };
             await message.DeleteAsync();
@@ -225,12 +224,11 @@ public class Elemental : CommandModuleBase
         if (ctx.Member.UserId != 735182334984193) {
             return;
         }
-        EmbedBuilder embed = new();
-        EmbedPageBuilder page = new();
-        page.AddText("Currently Combining", "Water");
-        page.AddInputBox("", "Element To Combine");
-        page.AddButton("Submit", "Combine");
-        embed.AddPage(page);
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+        //embed.AddText("Currently Combining", "Water");
+        //embed.AddInputBox("", "Element To Combine");
+        //embed.AddButton("Submit", "Combine");
+        //embed.AddPage(page);
         ctx.ReplyAsync(embed);
     }
 
@@ -429,8 +427,7 @@ public class Elemental : CommandModuleBase
     [Alias("i")]
     public static async Task InvAsync(CommandContext ctx)
     {
-        EmbedBuilder embed = new();
-        EmbedPageBuilder page = new();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         List<UserInvItem> items = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).ToListAsync();
@@ -439,16 +436,14 @@ public class Elemental : CommandModuleBase
         foreach(UserInvItem item in items) {
             i += 1;
             if (i <= 8) {
-                page.AddText(name: null, item.Element, true);
+                embed.AddText(name: null, item.Element);
             }
             else {
-                page.AddText(null, "", false);
-                page.AddText(name: null, item.Element, true);
+                embed.AddText(name: null, item.Element);
+                embed.AddRow();
                 i = 0;
             }
         }
-
-        embed.AddPage(page);
         ctx.ReplyAsync(embed);
     }
 
@@ -459,14 +454,14 @@ public class Elemental : CommandModuleBase
         public static async Task ElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            ctx.ReplyAsync($"there are {await dbctx.Elements.CountAsync()} elements");
+            ctx.ReplyAsync($"there are {(await dbctx.Elements.CountAsync())+4} elements");
         }
 
         [Command("mycount")]
         public static async Task MyElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            int elements = await dbctx.Elements.CountAsync();
+            int elements = (await dbctx.Elements.CountAsync())+4;
             int found = await dbctx.UserInvItems.Where(x => x.UserId == ctx.Member.UserId).CountAsync();
             double percent = (double)found/elements*100;
             ctx.ReplyAsync($"You have found {found} ({Math.Round(percent, 2)}%) of all elements");

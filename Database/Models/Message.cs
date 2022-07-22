@@ -47,6 +47,8 @@ public class Message
 
     public NpgsqlTsVector SearchVector { get; set; }
 
+    public long? ReplyToId { get; set; }
+
     public byte[] GetHash()
     {
         using (SHA256 sha = SHA256.Create())

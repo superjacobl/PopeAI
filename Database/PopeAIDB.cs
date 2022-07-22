@@ -29,6 +29,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Logging.Console;
 
 namespace PopeAI.Database;
 
@@ -71,6 +72,7 @@ public class PopeAIDB : DbContext
         options.UseNpgsql(ConnectionString, options => {
             options.EnableRetryOnFailure();
         });
+        //options.UseLoggerFactory(loggerFactory);  //tie-up DbContext with LoggerFactory object
         options.ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
     }
 

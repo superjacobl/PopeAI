@@ -9,13 +9,12 @@ public class Economy : CommandModuleBase
     [Command("commands")]
     public Task ListCommands(CommandContext ctx) 
     {
-        var embed = new EmbedBuilder();
-        var page = new EmbedPageBuilder();
-        page.AddText("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un");
-        page.AddText("Xp", "/xp, /info xp, /leaderboard or /lb");
-        page.AddText("Daily Tasks", "/tasks");
-        page.AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount");
-        embed.AddPage(page);
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased)
+            .AddPage("PopeAI Commands")
+            .AddRow(new EmbedTextItem("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un"))
+            .AddRow(new EmbedTextItem("Xp", "/xp, /info xp, /leaderboard or /lb"))
+            .AddRow(new EmbedTextItem("Daily Tasks", "/tasks"))
+            .AddRow(new EmbedTextItem("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount"));
         return ctx.ReplyAsync(embed);
     } 
 
@@ -50,20 +49,17 @@ public class Economy : CommandModuleBase
             .OrderByDescending(x => x.Coins)
             .Take(10)
             .ToList();
-        var embed = new EmbedBuilder();
-        EmbedPageBuilder page = new();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by coins");
         int i = 1;
         foreach (DBUser user in users)
         {
             PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
-            page.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins");
+            embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins");
             i += 1;
-            if (page.Items.Count > 10) {
-                embed.AddPage(page);
-                page = new EmbedPageBuilder();
+            if (embed.CurrentPage.Items.Count > 10) {
+                embed.AddPage("Users ordered by coins");
             }
         }
-        embed.AddPage(page);
         ctx.ReplyAsync(embed);
     }
 
@@ -193,7 +189,7 @@ public class Economy : CommandModuleBase
     [Command("gamble")]
     public async Task Gamble(CommandContext ctx, string color, int bet)
     {
-        color = color.Replace("red", "Red").Replace("Blue", "blue").Replace("Green", "green").Replace("Black", "black");
+        color = color.Replace("red", "Red").Replace("blue", "Blue").Replace("green", "Green").Replace("black", "Black");
         if (color != "Red" && color != "Blue" && color != "Green" && color != "Black") {
             ctx.ReplyAsync("The color must be Red, Blue, Green, or Black");
             return;

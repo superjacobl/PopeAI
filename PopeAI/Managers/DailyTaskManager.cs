@@ -135,9 +135,17 @@ public static class DailyTaskManager
         // in future process this in chunks of like 10k because we would run out of memory
         // no sense in updating daily tasks for a user that is inactive
         DateTime time = DateTime.UtcNow.AddDays(-2);
-        foreach (DBUser user in await dbctx.Users.Where(x => x.LastSentMessage > time).Include(x => x.DailyTasks).ToListAsync())
+        var users = await dbctx.Users.Where(x => x.LastSentMessage > time).Include(x => x.DailyTasks).ToListAsync();
+        foreach (DBUser user in users)
         {
             DailyTaskManager.UpdateTasks(user, dbctx);
+        }
+
+        DBCache.DeleteAll<DBUser>();
+
+        foreach (var user in users)
+        {
+            DBCache.Put(user.Id, user);
         }
 
         await PopeAIDB.botTime.UpdateDB(false);
