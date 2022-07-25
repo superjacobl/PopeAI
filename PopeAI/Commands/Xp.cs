@@ -76,10 +76,10 @@ public class Xp : CommandModuleBase
         List<DBUser> users = DBCache.GetAll<DBUser>()
             .Where(x => x.PlanetId == ctx.Planet.Id)
             .OrderByDescending(x => x.Xp)
-            .Take(10)
+            .Take(30)
             .ToList();
 
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by Xp").AddRow();
         int i = 1;
         foreach (DBUser user in users)
         {
@@ -87,7 +87,7 @@ public class Xp : CommandModuleBase
             embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp").AddRow();
             i += 1;
             if (embed.CurrentPage.Rows.Count > 10) {
-                embed.AddPage();
+                embed.AddPage("Users ordered by Xp").AddRow();
             }
         }
         ctx.ReplyAsync(embed);

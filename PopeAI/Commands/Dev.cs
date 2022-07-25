@@ -31,18 +31,22 @@ public class Dev : CommandModuleBase
     }
 
     [Command("devinfo")]
-    public async Task DevInfo(CommandContext ctx)
+    public async Task DevInfo(CommandContext ctx, PlanetMember member = null)
     {
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage()
+        PlanetMember _member = null;
+        if (member is null) 
+            _member = ctx.Member;
+        else
+            _member = member;
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage($"{_member.GetNameAsync()}'s Info")
             .AddRow(
-                new EmbedTextItem("User Id", ctx.Member.UserId.ToString()),
-                new EmbedTextItem("Member Id", ctx.Member.Id.ToString()))
+                new EmbedTextItem("User Id", _member.UserId.ToString()),
+                new EmbedTextItem("Member Id", _member.Id.ToString()))
             .AddRow(
                 new EmbedTextItem("Channel Id", ctx.Channel.Id.ToString()),
                 new EmbedTextItem("Planet Id", ctx.Planet.Id.ToString()))
             .AddRow(new EmbedTextItem("Roles"));
-        embed.CurrentPage.Title = "Info";
-        foreach(var role in await ctx.Member.GetRolesAsync()) {
+        foreach(var role in await _member.GetRolesAsync()) {
             embed.AddRow(
                 new EmbedTextItem(text: role.Name, textColor: role.GetColorHex().Replace("#", "")),
                 new EmbedTextItem(text: role.Id.ToString())

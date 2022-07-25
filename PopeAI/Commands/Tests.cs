@@ -50,7 +50,7 @@ namespace PopeAI.Commands.Tests
         [Command("fastcount")]
         public async Task FastCountAsync(CommandContext ctx, int times, int delay, int makebigger)
         {
-            if (!(ctx.Member.UserId == ctx.Planet.OwnerId)) {
+            if (ctx.Member.UserId != 12201879245422592) {
                 return;
             }
             if (times > 10000) {

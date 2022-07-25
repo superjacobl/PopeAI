@@ -141,11 +141,21 @@ public static class DailyTaskManager
             DailyTaskManager.UpdateTasks(user, dbctx);
         }
 
+        DBCache.DeleteAll<DailyTask>();
+
         DBCache.DeleteAll<DBUser>();
 
         foreach (var user in users)
         {
             DBCache.Put(user.Id, user);
+        }
+
+        foreach (var user in users)
+        {
+            foreach(var task in user.DailyTasks)
+            {
+                DBCache.Put(task.Id, task);
+            }
         }
 
         await PopeAIDB.botTime.UpdateDB(false);

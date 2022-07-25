@@ -5,8 +5,11 @@ namespace PopeAI.Commands.Economy;
 public class Economy : CommandModuleBase
 {
     Random rnd = new Random();
+
+    public static ConcurrentDictionary<long, byte> AlreadyDoing = new();
     
     [Command("commands")]
+    [Alias("help")]
     public Task ListCommands(CommandContext ctx) 
     {
         var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased)
@@ -47,17 +50,17 @@ public class Economy : CommandModuleBase
         List<DBUser> users = dbctx.Users
             .Where(x => x.PlanetId ==  ctx.Planet.Id)
             .OrderByDescending(x => x.Coins)
-            .Take(10)
+            .Take(30)
             .ToList();
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by coins");
+        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by coins").AddRow();
         int i = 1;
         foreach (DBUser user in users)
         {
             PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
-            embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins");
+            embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins").AddRow();
             i += 1;
-            if (embed.CurrentPage.Items.Count > 10) {
-                embed.AddPage("Users ordered by coins");
+            if (embed.embed.Pages.Last().Rows.Count > 10) {
+                embed.AddPage("Users ordered by coins").AddRow();
             }
         }
         ctx.ReplyAsync(embed);
@@ -130,6 +133,14 @@ public class Economy : CommandModuleBase
             return;
         }
 
+        if (AlreadyDoing.TryGetValue(ctx.Member.Id, out byte _byte))
+        {
+            ctx.ReplyAsync("You can only run a single /dice or /gamble command at the same time!");
+            return;
+        }
+
+        AlreadyDoing.TryAdd(ctx.Member.Id, 0x0);
+
         await DailyTaskManager.DidTask(DailyTaskType.Dice_Games_Played, ctx.Member.Id, ctx);
 
         int usernum1 = rnd.Next(1, 6);
@@ -147,7 +158,7 @@ public class Economy : CommandModuleBase
 
         if (usernum1+usernum2 == opnum1+opnum2) {
             data.Add($"It's a tie");
-            user.Coins -= bet;
+            //user.Coins -= bet;
         }
         else {
 
@@ -165,6 +176,10 @@ public class Economy : CommandModuleBase
         }
 
         ctx.ReplyWithMessagesAsync(1750, data);
+        Task.Run(async () => {
+            await Task.Delay(5000);
+            AlreadyDoing.TryRemove(ctx.Member.Id, out _);
+        });
     } 
 
     [Command("dice")]
@@ -204,6 +219,15 @@ public class Economy : CommandModuleBase
             ctx.ReplyAsync("Bet must not be 0!");
             return;
         }
+
+        if (AlreadyDoing.TryGetValue(ctx.Member.Id, out byte _byte))
+        {
+            ctx.ReplyAsync("You can only run a single /dice or /gamble command at the same time!");
+            return;
+        }
+
+        AlreadyDoing.TryAdd(ctx.Member.Id, 0x0);
+        
         await DailyTaskManager.DidTask(DailyTaskType.Gamble_Games_Played, ctx.Member.Id, ctx);
 
         long choice = color switch
@@ -239,7 +263,7 @@ public class Economy : CommandModuleBase
                 colorwon = "Black";
                 break;
         }
-        double amount = bet*muit*0.99;
+        double amount = bet*muit;
         user.Coins -= bet;
         List<string> data = new();
         data.Add($"You picked {color}");
@@ -247,7 +271,7 @@ public class Economy : CommandModuleBase
         if (Winner == choice)
         {
             user.Coins += (int)Math.Ceiling(amount);
-            data.Add($"You won {Math.Round(amount - bet)} coins!");
+            data.Add($"You won {Math.Round(amount)} coins!");
             await StatManager.AddStat(CurrentStatType.Coins, (int)amount - bet, ctx.Planet.Id);
         }
         else
@@ -257,6 +281,11 @@ public class Economy : CommandModuleBase
         }
 
         ctx.ReplyWithMessagesAsync(1750, data);
+
+        Task.Run(async () => {
+            await Task.Delay(4000);
+            AlreadyDoing.TryRemove(ctx.Member.Id, out _);
+        });
     }
     
     // roleincome & lotteries will be updated eventually

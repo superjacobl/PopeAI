@@ -40,31 +40,29 @@ public static class StatManager
     {
         await selfstat.UpdateDB(false);
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-        CurrentStat? first = DBCache.GetAll<CurrentStat>().FirstOrDefault();;
-        if (first is not null)
+        if (DateTime.UtcNow > PopeAIDB.botTime.LastStatUpdate.AddHours(24))
         {
-            if (DateTime.UtcNow > first.LastStatUpdate.AddHours(24))
+            DBCache.DeleteAll<CurrentStat>();
+            foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
             {
-                DBCache.DeleteAll<CurrentStat>();
-                foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
+                Stat stat = new()
                 {
-                    Stat stat = new()
-                    {
-                        Id = idManager.Generate(),
-                        PlanetId = currentstat.PlanetId,
-                        NewCoins = currentstat.NewCoins,
-                        MessagesUsersSent = currentstat.MessagesUsersSent,
-                        MessagesSent = currentstat.MessagesSent,
-                        Time = DateTime.UtcNow
-                    };
-                    dbctx.Add(stat);
-                    currentstat.NewCoins = 0;
-                    currentstat.MessagesSent = 0;
-                    currentstat.MessagesUsersSent = 0;
-                    currentstat.LastStatUpdate = DateTime.UtcNow;
-                    DBCache.Put(currentstat.PlanetId, currentstat);
-                }
+                    Id = idManager.Generate(),
+                    PlanetId = currentstat.PlanetId,
+                    NewCoins = currentstat.NewCoins,
+                    MessagesUsersSent = currentstat.MessagesUsersSent,
+                    MessagesSent = currentstat.MessagesSent,
+                    Time = DateTime.UtcNow
+                };
+                dbctx.Add(stat);
+                currentstat.NewCoins = 0;
+                currentstat.MessagesSent = 0;
+                currentstat.MessagesUsersSent = 0;
+                currentstat.LastStatUpdate = DateTime.UtcNow;
+                DBCache.Put(currentstat.PlanetId, currentstat);
             }
+            PopeAIDB.botTime.LastStatUpdate = DateTime.UtcNow;
+            await PopeAIDB.botTime.UpdateDB(false);
         }
 
         // check bot stat now

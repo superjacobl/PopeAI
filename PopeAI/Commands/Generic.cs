@@ -64,33 +64,6 @@ namespace PopeAI.Commands.Generic
             ctx.ReplyAsync($"The result is: {calculator.Evaluate(content)}");
         }
 
-        [Command("help")]
-        [Summary("Returns all commands")]
-        public async Task HelpPage(CommandContext ctx, int page)
-        {
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            int skip = page*10;
-            string content = "| command |\n| :-: |\n";
-            foreach (Help help in dbctx.Helps.Skip(skip).Take(10))
-            {
-                content += $"| {help.Message} |\n";
-            }
-            ctx.ReplyAsync(content);
-        }
-
-        [Command("help")]
-        [Summary("Returns all commands")]
-        public async Task Help(CommandContext ctx)
-        {
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            string content = "| command |\n| :-: |\n";
-            foreach (Help help in dbctx.Helps.Take(10))
-            {
-                content += $"| {help.Message} |\n";
-            }
-            ctx.ReplyAsync(content);
-        }
-
         [Command("isdiscordgood")]
         [Summary("Determines if discord is good or bad.")]
         public Task IsDiscordGood(CommandContext ctx)

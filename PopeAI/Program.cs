@@ -102,6 +102,8 @@ class Program
             {
                 Console.WriteLine(ex.ToString());
             }
+            ValourClient.Self.Status = $"Storing {StatManager.selfstat.StoredMessages} messages";
+            await Valour.Api.Items.Item.UpdateAsync(ValourClient.Self);
             #if DEBUG
             await Task.Delay(1000);
             #else
