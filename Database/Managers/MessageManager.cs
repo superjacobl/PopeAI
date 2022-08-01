@@ -6,6 +6,8 @@ namespace PopeAI.Database.Managers;
 public static class MessageManager
 {
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
+    
+    public static ConcurrentBag<long> MessagesFromHistoryIds = new();
     public static PopeAIDB dbctx = PopeAIDB.DbFactory.CreateDbContext();
     public static DateTime TimeSinceLastSave = DateTime.UtcNow;
 
@@ -100,6 +102,13 @@ public static class MessageManager
             if (!dequeued)
             {
                 continue;
+            }
+
+            if (MessagesFromHistoryIds.Contains(msg!.Id)) {
+                using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+                if (await dbctx.Messages.FirstOrDefaultAsync(x => x.Id == msg.Id) is not null) {
+                    continue;
+                }
             }
 
             TaskResult result = await SaveMessage(msg!);
