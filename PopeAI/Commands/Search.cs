@@ -17,9 +17,9 @@ public class Search : CommandModuleBase
         return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
     }
 
-    public async Task OutputToListOld(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
+    public async Task OutputToListOld(List<PopeAI.Database.Models.Messaging.Message> msgs, CommandContext ctx, int planetIndex = 0) {
         string content = "";
-        foreach(Message msg in msgs) {
+        foreach(var msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId, msg.PlanetId);
             if (msg.PlanetIndex == planetIndex) {
                 content += $"=>({msg.PlanetIndex}) {member.Nickname}: {Truncate(msg.Content,60)}\n";
@@ -31,13 +31,13 @@ public class Search : CommandModuleBase
         ctx.ReplyAsync(content);
     }
 
-    public async Task OutputToList(List<Message> msgs, CommandContext ctx, int planetIndex = 0) {
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+    public async Task OutputToList(List<PopeAI.Database.Models.Messaging.Message> msgs, CommandContext ctx, int planetIndex = 0) {
+        var embed = new EmbedBuilder().AddPage().AddRow();
         if (msgs.Count == 0) {
             ctx.ReplyAsync("No messages were found.");
             return;
         }
-        foreach(Message msg in msgs) {
+        foreach(var msg in msgs) {
             PlanetMember member = await PlanetMember.FindAsync(msg.MemberId, msg.PlanetId);
             string content = "";
             if (msg.EmbedData is not null) {
@@ -64,7 +64,7 @@ public class Search : CommandModuleBase
     public async Task ViewAsync(CommandContext ctx, int planetIndex)
     {
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-        List<Message> msgs = await dbctx.Messages
+        var msgs = await dbctx.Messages
             .Where(x => x.PlanetId == ctx.Planet.Id && x.PlanetIndex > planetIndex - 6 && x.PlanetIndex < planetIndex + 6)
             .Take(20)
             .ToListAsync();  
@@ -75,10 +75,10 @@ public class Search : CommandModuleBase
     [Alias("find")]
     public async Task SearchAsync(CommandContext ctx, [Remainder] string content)
     {
-        List<Message> messages = await SearchFuncAsync(ctx, content);
+        var messages = await SearchFuncAsync(ctx, content);
         await OutputToList(messages, ctx);
     }
-    public static async Task<List<Message>> SearchFuncAsync(CommandContext ctx, string content)
+    public static async Task<List<PopeAI.Database.Models.Messaging.Message>> SearchFuncAsync(CommandContext ctx, string content)
     {
         
         // do the tags
@@ -112,7 +112,7 @@ public class Search : CommandModuleBase
 
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
-        IQueryable<Message> search = dbctx.Messages.AsQueryable();
+        var search = dbctx.Messages.AsQueryable();
 
         foreach (string t in words) {
             string[] word = t.Split(":");
@@ -159,7 +159,7 @@ public class Search : CommandModuleBase
             search = search.Where(x => x.SearchVector.Matches(need));
         }
 
-        List<Message> messages = await search.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.PlanetIndex).Take(100).ToListAsync();
+        var messages = await search.Where(x => x.PlanetId == ctx.Planet.Id).OrderByDescending(x => x.PlanetIndex).Take(100).ToListAsync();
         
         return messages;
     }

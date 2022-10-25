@@ -15,7 +15,7 @@ public static class MessageManager
     {
         try
         {
-            Message msg = new()
+            PopeAI.Database.Models.Messaging.Message msg = new()
             {
                 Id = message.Id,
                 AuthorId = message.AuthorUserId,

@@ -19,13 +19,17 @@
     <PackageReference Include="System.Net.Http.Json" Version="7.0.0-preview.6.22324.4" />
     <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0-preview.6.22324.4" />
     <PackageReference Include="System.Text.Json" Version="7.0.0-preview.6.22324.4" />
+    <PackageReference Include="Valour.Api" Version="0.1.5.6" />
+    <PackageReference Include="Valour.Shared" Version="0.1.5.6"/>
+    <!--<PackageReference Include="Valour.Net" Version="0.6.5.1"/> -->
     <!-- <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" /> -->
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />
-    <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" />
     <ProjectReference Include="..\Database\Database.csproj" />
+     <!-- <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" /> -->
+     <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />
   </ItemGroup>
+
 
 </Project>

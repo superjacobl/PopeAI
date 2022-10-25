@@ -79,7 +79,7 @@ public class Xp : CommandModuleBase
             .Take(30)
             .ToList();
 
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by Xp").AddRow();
+        var embed = new EmbedBuilder().AddPage("Users ordered by Xp").AddRow();
         int i = 1;
         foreach (DBUser user in users)
         {

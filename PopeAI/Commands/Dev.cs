@@ -38,7 +38,7 @@ public class Dev : CommandModuleBase
             _member = ctx.Member;
         else
             _member = member;
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage($"{_member.GetNameAsync()}'s Info")
+        var embed = new EmbedBuilder().AddPage($"{_member.GetNameAsync()}'s Info")
             .AddRow(
                 new EmbedTextItem("User Id", _member.UserId.ToString()),
                 new EmbedTextItem("Member Id", _member.Id.ToString()))
@@ -66,8 +66,8 @@ public class Dev : CommandModuleBase
         string query = $"SELECT pg_total_relation_size('messages');";
         long bytes = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> {Convert.ToInt64(x[0])}).First().First();
 
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
-        embed.CurrentPage.Title = "Database Info";
+        var embed = new EmbedBuilder().AddPage().AddRow();
+        embed.CurrentPage.Title = "PopeAI's Database Info";
         embed.CurrentPage.Footer = $"{DateTime.UtcNow.ToShortDateString()}";
         BotStat stat = StatManager.selfstat;
         embed.AddText("Message Table Size", FormatManager.Format(bytes, FormatType.Bytes)).AddRow();

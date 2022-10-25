@@ -21,11 +21,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-preview.6.22329.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0-preview.6.22324.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0-preview.6" />
+    <!-- <PackageReference Include="Valour.Api" Version="0.1.5.6" />
+    <PackageReference Include="Valour.Shared" Version="0.1.5.6" />
+    <PackageReference Include="Valour.Net" Version="0.6.5.1" /> -->
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" />
-    <ProjectReference Include="..\..\Valour\Valour\Shared\Valour.Shared.csproj" />
+    <!-- <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" />
+    <ProjectReference Include="..\..\Valour\Valour\Shared\Valour.Shared.csproj" /> -->
     <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />
   </ItemGroup>
 

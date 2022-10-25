@@ -41,9 +41,9 @@ public class Combination
 
         Difficulties.Add(await GetDifficulty(Element1, baseelements, dbctx));
         Difficulties.Add(await GetDifficulty(Element2, baseelements, dbctx));
-        if (Element3 != null)
+        if (Element3 is not null)
         {
-            Difficulties.Add(await GetDifficulty(Element1, baseelements, dbctx));
+            Difficulties.Add(await GetDifficulty(Element3, baseelements, dbctx));
         }
 
         return Difficulties.Max() + 1;

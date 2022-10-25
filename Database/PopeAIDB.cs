@@ -79,7 +79,7 @@ public class PopeAIDB : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Message>()
+        modelBuilder.Entity<PopeAI.Database.Models.Messaging.Message>()
             .HasGeneratedTsVectorColumn(
                 p => p.SearchVector,
                 "english",
@@ -141,7 +141,7 @@ public class PopeAIDB : DbContext
     public DbSet<Stat> Stats { get; set; }
     public DbSet<Help> Helps { get; set; }
     public DbSet<DailyTask> DailyTasks { get; set; }
-    public DbSet<Message> Messages { get; set; }
+    public DbSet<PopeAI.Database.Models.Messaging.Message> Messages { get; set; }
     public DbSet<PlanetInfo> PlanetInfos { get; set; }
     public DbSet<Element> Elements { get; set; }
     public DbSet<Combination> Combinations { get; set; }

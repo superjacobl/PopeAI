@@ -49,11 +49,6 @@ public class Config
 public class ConfigManger
 {
     public static Config Config {get; set;}
-
-    public static HubConnection hubConnection = new HubConnectionBuilder()
-        .WithUrl("https://valour.gg/planethub")
-        .WithAutomaticReconnect()
-        .Build();
     
     public static bool Load() {
         Config = null;

@@ -20,7 +20,7 @@ namespace PopeAI.Commands.Tests
         [Command("embed")]
         public Task EmbedAsync(CommandContext ctx)
         {
-            var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+            var embed = new EmbedBuilder().AddPage().AddRow();
             embed.CurrentPage.Title = "Update complete, Your new stats are below!";
             embed.AddText(null, "`Total`").AddRow();
             embed.AddText("\ud83d\udcbe Coinz", "\ud83d\udd3a Coinz:\n4 \u0e3f");
@@ -59,16 +59,18 @@ namespace PopeAI.Commands.Tests
             await Task.Delay(delay);
             Stopwatch sw = new();
             sw.Start();
+            List<Task> tasks = new();
             for (int i = 0; i < times; i++)
             {
                 string str = i.ToString();
                 for (int j = 0; j < makebigger;j++) {
                     str += " "+i.ToString();
                 }
-                ctx.ReplyAsync(str);
+                tasks.Add(ctx.ReplyAsync(str));
             }
+            Task.WaitAll(tasks.ToArray());
             sw.Stop();
-            Console.WriteLine($"Time taken: {sw.ElapsedMilliseconds}ms\nPer Message: {Math.Round((double)sw.ElapsedMilliseconds/times, 2)}ms");
+            ctx.ReplyAsync($"Time taken: {sw.ElapsedMilliseconds}ms\nPer Message: {Math.Round((double)sw.ElapsedMilliseconds/times, 2)}ms");
         }
 
         [Command("count")]
@@ -129,9 +131,12 @@ namespace PopeAI.Commands.Tests
         [Command("say")]
         [Alias("echo")]
         //[Summary("Echoes a message.")]
-        public Task EchoAsync(CommandContext ctx, [Remainder] string echo)
+        public async Task EchoAsync(CommandContext ctx, [Remainder] string echo)
         {
-            return ctx.ReplyAsync(echo);
+            if (ctx.Member.UserId != 12201879245422592) {
+                return;
+            }
+            ctx.ReplyAsync(echo);
         }
 
         [Command("testcommand")]
@@ -171,7 +176,7 @@ namespace PopeAI.Commands.Tests
             [Command("list")]
             public Task EmbedListTest(CommandContext ctx)
             {
-                var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage().AddRow();
+                var embed = new EmbedBuilder().AddPage().AddRow();
                 embed.AddText("Test", "* 1\n* 2\n* 3");
                 return ctx.ReplyAsync(embed); 
             }
@@ -179,16 +184,71 @@ namespace PopeAI.Commands.Tests
             [Command("free")]
             public Task EmbedListTestfree(CommandContext ctx)
             {
-                var embed = new EmbedBuilder(EmbedItemPlacementType.FreelyBased, 400, 200).AddPage();
+                var embed = new EmbedBuilder().AddPage(embedType:EmbedItemPlacementType.FreelyBased, width:400, height:200);
                 embed.AddText("Test", "420", x: 200-14, y: 100-23);
                 //embed.AddText("Test", "* 1\n* 2\n* 3");
                 return ctx.ReplyAsync(embed); 
             }
 
+            [Command("goto2")]
+            public Task EmbedGoToTest2(CommandContext ctx)
+            {
+                var Embed = new EmbedBuilder()
+                    .AddPage("Home")
+                        .AddRow()
+                            .AddGoToPage(1)
+                                .AddButton(text:"Go To Page 2")
+                                .AddText(text:"Click me!")
+                            .EndGoTo()
+                            .AddGoToPage(2)
+                                .AddButton(text:"Go To Page 3")
+                            .EndGoTo()
+                    .AddPage("2nd Page")
+                        .AddRow()
+                            .AddGoToPage(0)
+                                .AddButton(text:"Go Back")
+                            .EndGoTo()
+                            .AddText(text:"g32323ggr")
+                    .AddPage("3rd Page")
+                        .AddRow()
+                            .AddGoToPage(0)
+                                .AddButton(text:"Go Back")
+                            .EndGoTo()
+                            .AddText(text:"32323232");
+                return ctx.ReplyAsync(Embed);
+            }
+
+            [Command("goto")]
+            public Task EmbedGoToTest(CommandContext ctx)
+            {
+                var Embed = new EmbedBuilder()
+                    .AddPage("Home")
+                        .AddRow()
+                            .AddGoToPage(1)
+                                .AddButton(text:"Go To Page 2")
+                            .EndGoTo()
+                            .AddGoToPage(2)
+                                .AddButton(text:"Go To Page 3")
+                            .EndGoTo()
+                    .AddPage("2nd Page")
+                        .AddRow()
+                            .AddGoToPage(0)
+                                .AddButton(text:"Go Back")
+                            .EndGoTo()
+                            .AddText(text:"g32323ggr")
+                    .AddPage("3rd Page")
+                        .AddRow()
+                            .AddGoToPage(0)
+                                .AddButton(text:"Go Back")
+                            .EndGoTo()
+                            .AddText(text:"32323232");
+                return ctx.ReplyAsync(Embed);
+            }
+
             [Command("input")]
             public Task EmbedInputTest(CommandContext ctx)
             {
-                var Embed = new EmbedBuilder(EmbedItemPlacementType.RowBased)
+                var Embed = new EmbedBuilder()
                     .AddPage()
                         .AddRow()
                             .AddForm(EmbedItemPlacementType.RowBased, "testinput")

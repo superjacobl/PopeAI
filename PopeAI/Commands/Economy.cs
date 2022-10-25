@@ -12,7 +12,7 @@ public class Economy : CommandModuleBase
     [Alias("help")]
     public Task ListCommands(CommandContext ctx) 
     {
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased)
+        var embed = new EmbedBuilder()
             .AddPage("PopeAI Commands")
             .AddRow(new EmbedTextItem("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un"))
             .AddRow(new EmbedTextItem("Xp", "/xp, /info xp, /leaderboard or /lb"))
@@ -30,7 +30,7 @@ public class Economy : CommandModuleBase
         if (minutesleft <= 0) {
             await DailyTaskManager.DidTask(DailyTaskType.Hourly_Claims, ctx.Member.Id, ctx);
 
-            int payout = rnd.Next(30, 50);
+            int payout = rnd.Next(20, 75);
             user.Coins += payout;
             user.LastHourly = DateTime.UtcNow;
 
@@ -52,7 +52,7 @@ public class Economy : CommandModuleBase
             .OrderByDescending(x => x.Coins)
             .Take(30)
             .ToList();
-        var embed = new EmbedBuilder(EmbedItemPlacementType.RowBased).AddPage("Users ordered by coins").AddRow();
+        var embed = new EmbedBuilder().AddPage("Users ordered by coins").AddRow();
         int i = 1;
         foreach (DBUser user in users)
         {

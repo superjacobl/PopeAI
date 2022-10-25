@@ -1,6 +1,7 @@
 ﻿global using Valour.Api.Items.Planets;
 global using Valour.Api.Items.Planets.Members;
-global using Valour.Api.Items.Planets.Channels;
+global using Valour.Api.Items.Channels;
+global using Valour.Api.Items.Channels.Planets;
 global using Valour.Api.Items.Messages;
 global using Valour.Api.Items.Messages.Embeds.Items;
 global using Valour.Api.Items.Messages.Embeds;
@@ -73,7 +74,7 @@ class Program
 
         ValourNetClient.AddPrefix("/");
         //ValourNetClient.ExecuteMessagesInParallel = true;
-        //ValourNetClient.BaseUrl = "https://localhost:5000/";
+        //ValourNetClient.BaseUrl = "https://localhost:44331/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
@@ -132,7 +133,9 @@ class Program
                 Console.WriteLine(ex.ToString());
             }
             ValourClient.Self.Status = $"Storing {StatManager.selfstat.StoredMessages} messages";
+            #if !DEBUG
             await Valour.Api.Items.Item.UpdateAsync(ValourClient.Self);
+            #endif
             #if DEBUG
             await Task.Delay(1000);
             #else

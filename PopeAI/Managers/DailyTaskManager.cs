@@ -75,8 +75,8 @@ public static class DailyTaskManager
             switch (tasktype)
             {
                 case DailyTaskType.Messages:
-                    task.Goal = Choice(new short[] { 10, 15, 20, 25, 30, 35, 40, 45, 50 });
-                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175, 200 });
+                    task.Goal = Choice(new short[] { 25, 30, 35, 40, 45, 50 });
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150});
                     break;
                 case DailyTaskType.Hourly_Claims:
                     task.Goal = Choice(new short[] { 3, 4, 5 });
@@ -84,11 +84,11 @@ public static class DailyTaskManager
                     break;
                 case DailyTaskType.Gamble_Games_Played:
                     task.Goal = Choice(new short[] { 5, 6, 7, 8, 9, 10 });
-                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175});
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150});
                     break;
                 case DailyTaskType.Dice_Games_Played:
                     task.Goal = Choice(new short[] { 5, 6, 7, 8, 9, 10 });
-                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150, 175, 200});
+                    task.Reward = Choice(new short[] { 50, 75, 100, 125, 150});
                     break;
                 case DailyTaskType.Combined_Elements:
                     task.Goal = Choice(new short[] { 2, 3, 4, 5, 6 });
