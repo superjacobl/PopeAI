@@ -7,7 +7,6 @@ namespace PopeAI.Commands.Generic
     {
         public static Dictionary<long, string> ScrambledWords = new Dictionary<long, string>();
         static Random rnd = new Random();
-        public static Calculator calculator = new();
 
         [Command("ping")]
         public async Task Ping(CommandContext ctx)
@@ -61,7 +60,7 @@ namespace PopeAI.Commands.Generic
         [Command("calc")]
         public async Task Calc(CommandContext ctx, [Remainder] string content) 
         {
-            ctx.ReplyAsync($"The result is: {calculator.Evaluate(content)}");
+            ctx.ReplyAsync($"The result is: {content.Eval()}");
         }
 
         [Command("isdiscordgood")]
