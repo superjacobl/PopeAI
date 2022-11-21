@@ -74,6 +74,19 @@ public class Economy : CommandModuleBase
         ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {user.Coins}");
     }
 
+    [Command("inflate")]
+    public async Task CountAsync(CommandContext ctx, int coins, PlanetMember target)
+    {
+        if (ctx.Member.UserId != 12201879245422592)
+        {
+            return;
+        }
+
+        await using var user = await DBUser.GetAsync(target.Id);
+        user.Coins += coins;
+        await ctx.ReplyAsync($"Successfully inflated {target.Nickname}'s coins");
+    }
+
     [Command("pay")]
     [Alias("send")]
     public async Task PayAsync(CommandContext ctx, PlanetMember member, int amount)
