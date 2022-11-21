@@ -63,10 +63,10 @@ public class Xp : CommandModuleBase
         var embed = new EmbedBuilder().AddPage($"{ctx.Member.Nickname}'s xp")
             .AddRow()
                 .AddText("Message", Functions.Format(user.MessageXp))
-                .AddText("Elemental", ((long)user.ElementalXp).ToString())
-                .AddText("Gaming", ((long)user.GameXp).ToString())
+                .AddText("Elemental", Functions.Format(user.ElementalXp))
+                .AddText("Gaming", Functions.Format(user.GameXp))
             .AddRow()
-                .AddText("Total Xp", ((long)user.Xp).ToString());
+                .AddText("Total Xp", Functions.Format(user.Xp));
 
         ctx.ReplyAsync(embed);
 
