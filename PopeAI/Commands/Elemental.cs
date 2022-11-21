@@ -494,9 +494,9 @@ public class Elemental : CommandModuleBase
             }
 
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
-            double amount = 2+(combination.Difficulty/4);
+            decimal amount = 2+(combination.Difficulty/4);
             if (element3 != null) {
-                amount *= 1.5;
+                amount *= 1.5m;
             }
             user.ElementalXp += amount;
 

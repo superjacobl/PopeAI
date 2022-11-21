@@ -17,9 +17,15 @@ public class DBUser : DBItem<DBUser>
     public short PointsThisMinute { get; set; }
     public int TotalPoints { get; set; }
     public int TotalChars { get; set; }
-    public double MessageXp { get; set; }
-    public double ElementalXp { get; set; }
-    public double GameXp { get; set; }
+
+    [DecimalType]
+    public decimal MessageXp { get; set; }
+
+    [DecimalType]
+    public decimal ElementalXp { get; set; }
+
+    [DecimalType]
+    public decimal GameXp { get; set; }
     public int Messages { get; set; }
     public int ActiveMinutes { get; set; }
     public DateTime LastHourly { get; set; }
@@ -29,7 +35,7 @@ public class DBUser : DBItem<DBUser>
     public List<DailyTask> DailyTasks { get; set; }
 
     [NotMapped]
-    public double Xp
+    public decimal Xp
     {
         get
         {
@@ -117,8 +123,8 @@ public class DBUser : DBItem<DBUser>
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
-            double xpgain = (Math.Log10(PointsThisMinute) - 1) * 3;
-            xpgain = Math.Max(0.2, xpgain);
+            decimal xpgain = (decimal)(Math.Log10((PointsThisMinute) - 1) * 3);
+            xpgain = Math.Max(0.2m, xpgain);
             MessageXp += xpgain;
             int CoinGain = (int)Math.Max(Math.Round(xpgain*2),0);
             Coins += CoinGain;

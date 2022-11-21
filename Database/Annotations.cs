@@ -34,3 +34,11 @@ public class IndexWithTypeAttribute : Attribute
         Name = name;
     }
 }
+
+public class DecimalType : ColumnAttribute
+{
+    public DecimalType(int precision = 2)
+    {
+        TypeName = $"NUMERIC(30, {precision})";
+    }
+}

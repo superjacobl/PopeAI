@@ -64,7 +64,7 @@ namespace PopeAI.Commands.Unscramble
                 int reward = rnd.Next(1, 3);
                 await StatManager.AddStat(CurrentStatType.Coins, (int)reward, ctx.Planet.Id);
                 user.Coins += reward;
-                user.GameXp += 0.35;
+                user.GameXp += 0.35m;
                 embed.AddRow().AddText(text: $"Correct! Your reward is {reward} coins & 0.35xp.");
                 ctx.UpdateEmbed(embed, ctx.Member.UserId);
             }
