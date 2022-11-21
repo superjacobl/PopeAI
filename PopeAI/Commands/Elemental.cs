@@ -1,3 +1,5 @@
+using PopeAI.Database.Managers;
+
 namespace PopeAI.Commands.Elemental;
 
 public class Node
