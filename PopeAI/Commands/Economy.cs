@@ -147,7 +147,7 @@ public class Economy : CommandModuleBase
 	public async Task OnDiceLoad(InteractionContext ctx)
 	{
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
-		ctx.UpdateEmbed(await GetDiceEmbedAsync(ctx, user), ctx.Member.UserId);
+		ctx.UpdateEmbedForUser(await GetDiceEmbedAsync(ctx, user), ctx.Member.UserId);
 	}
 
     public async Task<EmbedBuilder> GetDiceEmbedAsync(IContext ctx, DBUser user)
@@ -177,12 +177,12 @@ public class Economy : CommandModuleBase
 
         if (user.Coins < bet) {
             embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
         if (bet == 0) {
             embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
 
@@ -232,12 +232,12 @@ public class Economy : CommandModuleBase
         Task.Run(async () => {
             foreach(var content in data) {
                 embed.AddRow().AddText(text:content);
-                ctx.UpdateEmbed(embed, ctx.Member.UserId);
+                ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
                 await Task.Delay(1750);
             }
             var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
             item.Text = $"Your Coins: {user.Coins}";
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
         });
 
@@ -265,7 +265,7 @@ public class Economy : CommandModuleBase
 	public async Task OnGambleLoad(InteractionContext ctx)
 	{
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
-		ctx.UpdateEmbed(await GetGambleEmbedAsync(ctx, user), ctx.Member.UserId);
+		ctx.UpdateEmbedForUser(await GetGambleEmbedAsync(ctx, user), ctx.Member.UserId);
 	}
 
     public async Task<EmbedBuilder> GetGambleEmbedAsync(IContext ctx, DBUser user)
@@ -308,7 +308,7 @@ public class Economy : CommandModuleBase
         if (color == "Pick a Color")
         {
             embed.AddText(text:"You must select a color to bet on!", textColor: "ff0000");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
         
@@ -316,12 +316,12 @@ public class Economy : CommandModuleBase
 
         if (user.Coins < bet) {
             embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
         if (bet == 0) {
             embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
 
@@ -380,15 +380,15 @@ public class Economy : CommandModuleBase
 
         Task.Run(async () => {
             embed.AddRow().AddText(text:$"You picked {color}");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             await Task.Delay(1750);
             embed.AddRow().AddText(text:$"The color drawn is {colorwon}");
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             await Task.Delay(1750);
             embed.AddRow().AddText(text:final_text);
             var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
             item.Text = $"Your Coins: {user.Coins}";
-            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
         });
     }

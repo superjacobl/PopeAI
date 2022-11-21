@@ -20,7 +20,7 @@ namespace PopeAI.Commands.Unscramble
         public async Task OnUnscrambleLoad(InteractionContext ctx)
         {
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
-            ctx.UpdateEmbed(await GetUnscrambleEmbedAsync(ctx, user), ctx.Member.UserId);
+            ctx.UpdateEmbedForUser(await GetUnscrambleEmbedAsync(ctx, user), ctx.Member.UserId);
         }
 
         public async Task<EmbedBuilder> GetUnscrambleEmbedAsync(IContext ctx, DBUser user)
@@ -48,7 +48,7 @@ namespace PopeAI.Commands.Unscramble
             if (!ScrambledWords.ContainsKey(ctx.Member.Id))
             {
                 var embed = await GetUnscrambleEmbedAsync(ctx, user);
-                ctx.UpdateEmbed(embed, ctx.Member.UserId);
+                ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
                 return;
             }
             if (ctx.Event.FormData.Count == 0 || ctx.Event.FormData[0].Value is null || ScrambledWords[ctx.Member.Id] != ctx.Event.FormData[0].Value.ToLower())
@@ -56,7 +56,7 @@ namespace PopeAI.Commands.Unscramble
                 string before = ScrambledWords[ctx.Member.Id];
                 var embed = await GetUnscrambleEmbedAsync(ctx, user);
                 embed.AddRow().AddText(text: $"Incorrect. The correct word was {before}");
-                ctx.UpdateEmbed(embed, ctx.Member.UserId);
+                ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             }
             else
             {
@@ -66,7 +66,7 @@ namespace PopeAI.Commands.Unscramble
                 user.Coins += reward;
                 user.GameXp += 0.35m;
                 embed.AddRow().AddText(text: $"Correct! Your reward is {reward} coins & 0.35xp.");
-                ctx.UpdateEmbed(embed, ctx.Member.UserId);
+                ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             }
         }
 
