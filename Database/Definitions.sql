@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS users (
     totalchars integer NOT NULL,
     messagexp double precision NOT NULL,
     elementalxp double precision NOT NULL,
+    gamexp double precision NOT NULL,
     messages integer NOT NULL,
     activeminutes integer NOT NULL,
     lasthourly timestamp with time zone NOT NULL,

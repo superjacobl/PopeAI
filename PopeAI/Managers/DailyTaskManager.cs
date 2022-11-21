@@ -5,7 +5,7 @@ public static class DailyTaskManager
     public static Random rnd = new();
     public static IdManager idManager = new();
 
-    public static async ValueTask DidTask(DailyTaskType TaskType, long MemberId, CommandContext ctx = null, DBUser user = null)
+    public static async ValueTask DidTask(DailyTaskType TaskType, long MemberId, IContext ctx = null, DBUser user = null)
     {
         bool fromabove = true;
         if (user is null) {

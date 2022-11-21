@@ -10,25 +10,25 @@
 
   <ItemGroup>
     <PackageReference Include="IdGen" Version="3.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.0-rc.2.22476.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0-rc.2.22472.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0-rc.2.22472.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-rc.2.22472.11" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0-rc.2.22472.3" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="StringMath" Version="4.1.0" />
-    <PackageReference Include="System.Net.Http.Json" Version="7.0.0-rc.2.22472.3" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0-rc.2.22472.3" />
-    <PackageReference Include="System.Text.Json" Version="7.0.0-rc.2.22472.3" />
-    <PackageReference Include="Valour.Api" Version="0.1.5.7" />
+    <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+    <!-- <PackageReference Include="Valour.Api" Version="0.1.5.7" />
     <PackageReference Include="Valour.Shared" Version="0.1.5.7" />
-    <PackageReference Include="Valour.Net" Version="0.6.5.3" />
+    <PackageReference Include="Valour.Net" Version="0.6.5.3" /> -->
     <!-- <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" /> -->
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Database\Database.csproj" />
-     <!-- <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" /> 
-     <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />-->
+     <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" /> 
+     <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" />
   </ItemGroup>
 
 

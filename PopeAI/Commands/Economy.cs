@@ -124,22 +124,62 @@ public class Economy : CommandModuleBase
     }
 
     [Command("dice")]
-    public async Task Dice(CommandContext ctx, int bet)
+    public async Task GetDiceAsync(CommandContext ctx)
+	{
+		EmbedBuilder embed = new EmbedBuilder().AddPage("Dice Game").AddRow().AddButton("Dice-Load", text:"Load Embed");
+		ctx.ReplyAsync(embed);
+	}
+
+    [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId:"Dice-Load")]
+	public async Task OnDiceLoad(InteractionContext ctx)
+	{
+        await using var user = await DBUser.GetAsync(ctx.Member.Id);
+		ctx.UpdateEmbed(await GetDiceEmbedAsync(ctx, user), ctx.Member.UserId);
+	}
+
+    public async Task<EmbedBuilder> GetDiceEmbedAsync(IContext ctx, DBUser user)
+    {
+        EmbedBuilder embed = new EmbedBuilder().AddPage("Dice")
+            .AddRow()
+                .AddText(text:$"Your Coins: {user.Coins}")
+            .AddRow()
+                .AddForm(EmbedItemPlacementType.RowBased, "Dice")
+                    .AddRow()
+                        .AddInputBox("Bet", "Bet", "Your Bet")
+                    .AddRow()
+                        .AddButton(text:"Roll", isSubmitButton: true)
+                .EndForm();
+        return embed;
+    }
+
+    [Interaction(EmbedIteractionEventType.FormSubmitted, "Dice")]
+    public async Task DiceFormSubmitted(InteractionContext ctx) 
     {
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
 
+        int bet = (int)Math.Floor(double.Parse(ctx.Event.FormData[0].Value));
+
+        var embed = await GetDiceEmbedAsync(ctx, user);
+        embed.AddRow();
+
         if (user.Coins < bet) {
-            ctx.ReplyAsync("Bet must not be above your coins!");
+            embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            return;
+        }
+        if (bet == 0) {
+            embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
             return;
         }
 
         if (AlreadyDoing.TryGetValue(ctx.Member.Id, out byte _byte))
         {
-            ctx.ReplyAsync("You can only run a single /dice or /gamble command at the same time!");
             return;
         }
 
         AlreadyDoing.TryAdd(ctx.Member.Id, 0x0);
+        
 
         await DailyTaskManager.DidTask(DailyTaskType.Dice_Games_Played, ctx.Member.Id, ctx);
 
@@ -147,6 +187,7 @@ public class Economy : CommandModuleBase
         int usernum2 = rnd.Next(1, 6);
         int opnum1 = rnd.Next(1, 6);
         int opnum2 = rnd.Next(1, 6);
+        
         List<string> data = new()
         {
             $"You throw the dice",
@@ -175,54 +216,99 @@ public class Economy : CommandModuleBase
             }
         }
 
-        ctx.ReplyWithMessagesAsync(1750, data);
+        Task.Run(async () => {
+            foreach(var content in data) {
+                embed.AddRow().AddText(text:content);
+                ctx.UpdateEmbed(embed, ctx.Member.UserId);
+                await Task.Delay(1750);
+            }
+            var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
+            item.Text = $"Your Coins: {user.Coins}";
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            AlreadyDoing.TryRemove(ctx.Member.Id, out _);
+        });
+
         Task.Run(async () => {
             await Task.Delay(5000);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
         });
     } 
 
-    [Command("dice")]
-    public Task Dice(CommandContext ctx)
-    {
-        return ctx.ReplyAsync("Correct Useage: /dice <bet>");
-    }
-
-    [Command("gamble")]
-    public Task Gamble(CommandContext ctx)
+    [Command("gamblerates")]
+    public Task GambleInfo(CommandContext ctx)
     {
         string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 2.86x bet |\n| Blue  | 35%    | 2.86x bet |\n| Green | 20%    | 5x bet   |\n| Black | 10%     | 10x bet  |";
         return ctx.ReplyAsync(content);
     }
-    
+
     [Command("gamble")]
-    public Task Gamble(CommandContext ctx, string t)
+    public async Task GetGambleAsync(CommandContext ctx)
+	{
+		EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling Game").AddRow().AddButton("Gamble-Load", text:"Load Embed");
+		ctx.ReplyAsync(embed);
+	}
+
+    [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId:"Gamble-Load")]
+	public async Task OnGambleLoad(InteractionContext ctx)
+	{
+        await using var user = await DBUser.GetAsync(ctx.Member.Id);
+		ctx.UpdateEmbed(await GetGambleEmbedAsync(ctx, user), ctx.Member.UserId);
+	}
+
+    public async Task<EmbedBuilder> GetGambleEmbedAsync(IContext ctx, DBUser user)
     {
-        return ctx.ReplyAsync("Command Useage: /gamble <color> <bet>");
+        EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling")
+            .AddRow()
+                .AddText(text:$"Your Coins: {user.Coins}")
+            .AddRow()
+                .AddForm(EmbedItemPlacementType.RowBased, "Gamble")
+                    .AddRow()
+                        .AddDropDownMenu("Color", "Pick a Color")
+                            .AddDropDownItem("Red", "ff0000")
+                            .AddDropDownItem("Blue", "0000aa")
+                            .AddDropDownItem("Green", "008000")
+                            .AddDropDownItem("Black", "000000")
+                        .EndDropDownMenu()
+                    .AddRow()
+                        .AddInputBox("Bet", "Bet", "Your Bet")
+                    .AddRow()
+                        .AddButton(text:"Gamble", isSubmitButton: true)
+                .EndForm();
+        return embed;
     }
 
-    [Command("gamble")]
-    public async Task Gamble(CommandContext ctx, string color, int bet)
+    [Interaction(EmbedIteractionEventType.FormSubmitted, "Gamble")]
+    public async Task GambleFormSubmitted(InteractionContext ctx) 
     {
-        color = color.Replace("red", "Red").Replace("blue", "Blue").Replace("green", "Green").Replace("black", "Black");
-        if (color != "Red" && color != "Blue" && color != "Green" && color != "Black") {
-            ctx.ReplyAsync("The color must be Red, Blue, Green, or Black");
-            return;
-        }
-
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
-        if (user.Coins < bet) {
-            ctx.ReplyAsync("Bet must not be above your coins!");
-            return;
-        }
-        if (bet == 0) {
-            ctx.ReplyAsync("Bet must not be 0!");
-            return;
-        }
 
         if (AlreadyDoing.TryGetValue(ctx.Member.Id, out byte _byte))
         {
-            ctx.ReplyAsync("You can only run a single /dice or /gamble command at the same time!");
+            return;
+        }
+
+        var embed = await GetGambleEmbedAsync(ctx, user);
+        string color = ctx.Event.FormData[0].Value;
+
+        embed.AddRow();
+
+        if (color == "Pick a Color")
+        {
+            embed.AddText(text:"You must select a color to bet on!", textColor: "ff0000");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            return;
+        }
+        
+        int bet = (int)Math.Floor(double.Parse(ctx.Event.FormData[1].Value));
+
+        if (user.Coins < bet) {
+            embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            return;
+        }
+        if (bet == 0) {
+            embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
             return;
         }
 
@@ -265,25 +351,31 @@ public class Economy : CommandModuleBase
         }
         double amount = bet*muit;
         user.Coins -= bet;
-        List<string> data = new();
-        data.Add($"You picked {color}");
-        data.Add($"The color drawn is {colorwon}");
+
+        string final_text = "";
         if (Winner == choice)
         {
             user.Coins += (int)Math.Ceiling(amount);
-            data.Add($"You won {Math.Round(amount)} coins!");
+            final_text = $"You won {Math.Round(amount)} coins! 🎉🎉";
             await StatManager.AddStat(CurrentStatType.Coins, (int)amount - bet, ctx.Planet.Id);
         }
         else
         {
-            data.Add($"You did not win.");
+            final_text = "You did not win.";
             await StatManager.AddStat(CurrentStatType.Coins, 0-bet, ctx.Planet.Id);
         }
 
-        ctx.ReplyWithMessagesAsync(1750, data);
-
         Task.Run(async () => {
-            await Task.Delay(4000);
+            embed.AddRow().AddText(text:$"You picked {color}");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            await Task.Delay(1750);
+            embed.AddRow().AddText(text:$"The color drawn is {colorwon}");
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
+            await Task.Delay(1750);
+            embed.AddRow().AddText(text:final_text);
+            var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
+            item.Text = $"Your Coins: {user.Coins}";
+            ctx.UpdateEmbed(embed, ctx.Member.UserId);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
         });
     }

@@ -19,6 +19,7 @@ public class DBUser : DBItem<DBUser>
     public int TotalChars { get; set; }
     public double MessageXp { get; set; }
     public double ElementalXp { get; set; }
+    public double GameXp { get; set; }
     public int Messages { get; set; }
     public int ActiveMinutes { get; set; }
     public DateTime LastHourly { get; set; }
@@ -32,7 +33,7 @@ public class DBUser : DBItem<DBUser>
     {
         get
         {
-            return MessageXp + ElementalXp;
+            return MessageXp + ElementalXp + GameXp;
         }
     }
 
@@ -61,6 +62,7 @@ public class DBUser : DBItem<DBUser>
     {
         MessageXp = 0;
         ElementalXp = 0;
+        GameXp = 0;
         Coins = 0;
         PointsThisMinute = 0;
         TotalPoints = 0;

@@ -16,6 +16,13 @@ public class Xp : CommandModuleBase
         // put this message in queue for storage
         MessageManager.AddToQueue(ctx.Message);
 
+        await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
+
+        if (ctx.Message.AuthorUserId == long.Parse(ConfigManger.Config.BotId))
+        {
+            StatManager.selfstat.MessagesSentSelf += 1;
+        }
+
         if (ctx.Message.AuthorUserId == long.Parse(ConfigManger.Config.BotId) || (await ctx.Member.GetUserAsync()).Bot) {
             return;
         }
@@ -40,7 +47,7 @@ public class Xp : CommandModuleBase
 
         user.NewMessage(ctx.Message);
 
-        await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
+        await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);
         await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
 
         await user.UpdateDB();
