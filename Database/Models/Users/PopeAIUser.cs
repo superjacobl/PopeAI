@@ -123,7 +123,11 @@ public class DBUser : DBItem<DBUser>
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
-            decimal xpgain = (decimal)(Math.Log10((PointsThisMinute) - 1) * 3);
+            if (PointsThisMinute <= 3)
+            {
+                PointsThisMinute += 3;
+            }
+            decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3);
             xpgain = Math.Max(0.2m, xpgain);
             MessageXp += xpgain;
             int CoinGain = (int)Math.Max(Math.Round(xpgain*2),0);
@@ -143,10 +147,10 @@ public class DBUser : DBItem<DBUser>
         // each char grants 1 point
         Points += (short)Content.Length;
 
-        // if there is media then add 100 points
-        if (Content.Contains("https://vmps.valour.gg"))
+        // if there is media then add 150 points
+        if (msg.AttachmentsData.Contains("https://cdn.valour.gg/content/"))
         {
-            Points += 100;
+            Points += 150;
         }
 
         PointsThisMinute += Points;
