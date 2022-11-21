@@ -59,20 +59,18 @@ public class Xp : CommandModuleBase
     {
         var user = await DBUser.GetAsync(ctx.Member.Id, true);
 
-        // was way too ugly
-        /*
-        EmbedBuilder embed = new();
-        var page = new EmbedPageBuilder()
-            .AddText($"{ctx.Member.Nickname}'s Xp")
-            .AddText(text:"&nbsp;")
-            .AddText("Message Xp", ((long)user.MessageXp).ToString())
-            .AddText("Elemental Xp", ((long)user.ElementalXp).ToString())
-            .AddText("Total Xp", ((long)user.Xp).ToString());
 
-        embed.AddPage(page);
-        ctx.ReplyAsync(embed); */
+        var embed = new EmbedBuilder().AddPage($"{ctx.Member.Nickname}'s xp")
+            .AddRow()
+                .AddText("Message Xp", ((long)user.MessageXp).ToString())
+                .AddText("Elemental Xp", ((long)user.ElementalXp).ToString())
+                .AddText("Gaming Xp", ((long)user.GameXp).ToString())
+            .AddRow()
+                .AddText("Total Xp", ((long)user.Xp).ToString());
 
-        ctx.ReplyAsync($"{ctx.Member.Nickname}'s xp: {(long)user.Xp} (msg xp: {(long)user.MessageXp}, elemental xp: {(long)user.ElementalXp})");
+        ctx.ReplyAsync(embed);
+
+        //ctx.ReplyAsync($"{ctx.Member.Nickname}'s xp: {(long)user.Xp} (msg xp: {(long)user.MessageXp}, elemental xp: {(long)user.ElementalXp})");
     }
 
     [Command("leaderboard")]
