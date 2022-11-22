@@ -260,13 +260,13 @@ namespace PopeAI.Commands.Tests
                 return ctx.ReplyAsync(Embed);
             }
 
-            [Interaction(EmbedIteractionEventType.FormSubmitted, "testinput")]
-            public Task FormTest(InteractionContext ctx) 
-            {
+          // [Interaction(EmbedIteractionEventType.FormSubmitted, "testinput")]
+//            public Task FormTest(InteractionContext ctx) 
+         //   {
                 //var str = JsonSerializer.Serialize(ctx.Event.FormData, options: new JsonSerializerOptions() {WriteIndented = true});
                // Console.WriteLine(str);
                 //return ctx.ReplyAsync("You inputted: "+ctx.Event.FormData.FirstOrDefault(x => x.ElementId == "Username").Value);
-            }
+           // }
         }
     }
 }
