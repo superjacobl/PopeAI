@@ -181,40 +181,19 @@ namespace PopeAI.Commands.Tests
                 return ctx.ReplyAsync(embed); 
             }
 
-            [Command("free")]
-            public Task EmbedListTestfree(CommandContext ctx)
-            {
-                var embed = new EmbedBuilder().AddPage(embedType:EmbedItemPlacementType.FreelyBased, width:400, height:200);
-                embed.AddText("Test", "420", x: 200-14, y: 100-23);
-                //embed.AddText("Test", "* 1\n* 2\n* 3");
-                return ctx.ReplyAsync(embed); 
-            }
-
-            [Command("goto2")]
-            public Task EmbedGoToTest2(CommandContext ctx)
+            [Command("newsystem")]
+            public Task NewSystemTest(CommandContext ctx)
             {
                 var Embed = new EmbedBuilder()
                     .AddPage("Home")
-                        .AddRow()
-                            .AddGoToPage(1)
-                                .AddButton(text:"Go To Page 2")
-                                .AddText(text:"Click me!")
-                            .EndGoTo()
-                            .AddGoToPage(2)
-                                .AddButton(text:"Go To Page 3")
-                            .EndGoTo()
-                    .AddPage("2nd Page")
-                        .AddRow()
-                            .AddGoToPage(0)
-                                .AddButton(text:"Go Back")
-                            .EndGoTo()
-                            .AddText(text:"g32323ggr")
-                    .AddPage("3rd Page")
-                        .AddRow()
-                            .AddGoToPage(0)
-                                .AddButton(text:"Go Back")
-                            .EndGoTo()
-                            .AddText(text:"32323232");
+                        .AddButton("Click me!")
+                            .WithStyles(new BackgroundColor(new Color(100, 0, 0)))
+                            .OnCLickGoToLink("https://youtube.com")
+                        .AddText("That button when you click it will take you to youtube")
+                            .WithStyles(new TextColor(new Color(255, 255, 255, 0.75f)))
+                            .WithName("What does that button do?")
+                                .WithStyles(new TextColor(new Color(255, 0, 0)), FontWeight.Bold);
+                
                 return ctx.ReplyAsync(Embed);
             }
 
@@ -224,23 +203,19 @@ namespace PopeAI.Commands.Tests
                 var Embed = new EmbedBuilder()
                     .AddPage("Home")
                         .AddRow()
-                            .AddGoToPage(1)
-                                .AddButton(text:"Go To Page 2")
-                            .EndGoTo()
-                            .AddGoToPage(2)
-                                .AddButton(text:"Go To Page 3")
-                            .EndGoTo()
+                            .AddButton(text:"Go To Page 2")
+                                .OnClickGoToEmbedPage(1)
+                            .AddButton(text:"Go To Page 3")
+                                .OnClickGoToEmbedPage(2)
                     .AddPage("2nd Page")
                         .AddRow()
-                            .AddGoToPage(0)
-                                .AddButton(text:"Go Back")
-                            .EndGoTo()
+                            .AddButton(text:"Go Back")
+                                .OnClickGoToEmbedPage(0)
                             .AddText(text:"g32323ggr")
                     .AddPage("3rd Page")
                         .AddRow()
-                            .AddGoToPage(0)
-                                .AddButton(text:"Go Back")
-                            .EndGoTo()
+                            .AddButton(text:"Go Back")
+                                .OnClickGoToEmbedPage(0)
                             .AddText(text:"32323232");
                 return ctx.ReplyAsync(Embed);
             }
@@ -251,11 +226,12 @@ namespace PopeAI.Commands.Tests
                 var Embed = new EmbedBuilder()
                     .AddPage()
                         .AddRow()
-                            .AddForm(EmbedItemPlacementType.RowBased, "testinput")
+                            .AddForm("testinput")
                                 .AddRow()
                                     .AddInputBox("Username", "Username", "username")
                                 .AddRow()
-                                    .AddButton("submit", "Submit", isSubmitButton: true)
+                                    .AddButton("Submit")
+                                        .OnClickSubmitForm("Submit")
                             .EndForm();
                 return ctx.ReplyAsync(Embed);
             }

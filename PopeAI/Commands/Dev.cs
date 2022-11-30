@@ -39,18 +39,19 @@ public class Dev : CommandModuleBase
         else
             _member = member;
         var embed = new EmbedBuilder().AddPage($"{_member.GetNameAsync()}'s Info")
-            .AddRow(
-                new EmbedTextItem("User Id", _member.UserId.ToString()),
-                new EmbedTextItem("Member Id", _member.Id.ToString()))
-            .AddRow(
-                new EmbedTextItem("Channel Id", ctx.Channel.Id.ToString()),
-                new EmbedTextItem("Planet Id", ctx.Planet.Id.ToString()))
-            .AddRow(new EmbedTextItem("Roles"));
+            .AddRow()
+                .AddText("User Id", _member.UserId.ToString())
+                .AddText("Member Id", _member.Id.ToString())
+            .AddRow()
+                .AddText("Channel Id", ctx.Channel.Id.ToString())
+                .AddText("Planet Id", ctx.Planet.Id.ToString())
+            .AddRow()
+                .AddText("Roles");
         foreach(var role in await _member.GetRolesAsync()) {
-            embed.AddRow(
-                new EmbedTextItem(text: role.Name, textColor: role.GetColorHex().Replace("#", "")),
-                new EmbedTextItem(text: role.Id.ToString())
-            );
+            embed.AddRow()
+                .AddText(text: role.Name)
+                    .WithStyles(new TextColor(new Color(role.GetColorHex().Replace("#", ""))))
+                .AddText(text: role.Id.ToString());
         }
         await ctx.ReplyAsync(embed);
     }

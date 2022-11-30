@@ -32,11 +32,12 @@ namespace PopeAI.Commands.Unscramble
             if (extratext != "")
                 embed.AddRow().AddText(text:extratext);
             embed.AddRow()
-                .AddForm(EmbedItemPlacementType.RowBased, "Unscramble-Channel")
+                .AddForm("Unscramble-Channel")
                     .AddRow()
                         .AddInputBox($"input-{Count}", $"Unscramble {ScrambledWord} first for a reward!", "Your Answer", keepvalueonupdate: false)
                     .AddRow()
-                        .AddButton(text: "Submit", isSubmitButton: true)
+                        .AddButton(text: "Submit")
+                            .OnClickSubmitForm("Unscramble Channel")
                 .EndForm();
             return embed;
         }
@@ -119,11 +120,15 @@ namespace PopeAI.Commands.Unscramble
         [Summary("Unscramble a given word!")]
         public async Task GetUnscrambleAsync(CommandContext ctx)
         {
-            EmbedBuilder embed = new EmbedBuilder().AddPage("Unscramble Game (channel version)").AddRow().AddButton("Unscramble-channel-Load", text: "Play!");
+            EmbedBuilder embed = new EmbedBuilder()
+                .AddPage("Unscramble Game (channel version)")
+                    .AddRow()
+                        .AddButton("Play!")
+                            .OnClickSendInteractionEvent("Unscramble-channel-Load");
             ctx.ReplyAsync(embed);
         }
 
-        [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId: "Unscramble-channel-Load")]
+        [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId: "Unscramble-channel-Load")]
         public async Task OnUnscrambleLoad(InteractionContext ctx)
         {
             UnscrambleGame game = null;

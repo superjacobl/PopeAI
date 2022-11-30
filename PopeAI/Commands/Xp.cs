@@ -1,4 +1,6 @@
 using PopeAI.Database.Models.Planets;
+using Valour.Api.Items.Messages.Embeds.Styles.Flex;
+
 namespace PopeAI.Commands.Xp;
 
 public class Xp : CommandModuleBase
@@ -78,11 +80,13 @@ public class Xp : CommandModuleBase
     [Summary("Returns the leaderboard of the users with the most xp.")]
     public async Task Leaderboard(CommandContext ctx)
     {
-        List<DBUser> users = DBCache.GetAll<DBUser>()
+		using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+
+        List<DBUser> users = await dbctx.Users
             .Where(x => x.PlanetId == ctx.Planet.Id)
             .OrderByDescending(x => x.Xp)
             .Take(30)
-            .ToList();
+            .ToListAsync();
 
         var embed = new EmbedBuilder().AddPage("Users ordered by Xp").AddRow();
         int i = 1;
@@ -91,10 +95,91 @@ public class Xp : CommandModuleBase
             PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
             embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Xp}xp").AddRow();
             i += 1;
-            if (embed.CurrentPage.Rows.Count > 10) {
+            if (embed.CurrentPage.Children.Count > 10) {
                 embed.AddPage("Users ordered by Xp").AddRow();
             }
         }
         ctx.ReplyAsync(embed);
     }
+
+	[Command("leaderboard_detailed")]
+	[Alias("lbd")]
+	[Summary("Returns the leaderboard of the users with the most xp.")]
+	public async Task LeaderboardDetailed(CommandContext ctx)
+	{
+		using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+		List<DBUser> users = await dbctx.Users
+			.Where(x => x.PlanetId == ctx.Planet.Id)
+			.OrderByDescending(x => x.Xp)
+			.Take(30)
+			.ToListAsync();
+
+        var embed = new EmbedBuilder()
+            .AddPage("Users ordered by Xp")
+                .AddRow()
+                    .WithStyles(
+                        FlexDirection.Column,
+                        FlexJustifyContent.SpaceBetween,
+                        new FlexAlignItems(AlignItem.Stretch)
+                    )
+                .WithRow()
+                    .WithStyles(
+						FlexJustifyContent.SpaceBetween
+					)
+                    .AddText("Place")
+                        .WithStyles(new Width(new Size(Unit.Pixels, 40)))
+                    .AddText("Name")
+						.WithStyles(new Width(new Size(Unit.Pixels, 150)))
+					.AddText("Xp")
+						.WithStyles(new Width(new Size(Unit.Pixels, 50)))
+				    .AddText("Message Xp")
+						.WithStyles(new Width(new Size(Unit.Pixels, 90)))
+					.AddText("Game Xp")
+						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+					.AddText("Minutes Active")
+						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+					.AddText("Avg Msg Length")
+						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+					.AddText("Messages")
+						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+				.CloseRow();
+		int i = 1;
+		foreach (DBUser user in users)
+		{
+			PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
+            string color = await member.GetRoleColorAsync();
+            embed
+                .WithRow()
+                    .WithStyles(
+                        FlexJustifyContent.SpaceBetween
+                     )
+                    .AddText(i.ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 40)))
+					.AddText(member.Nickname)
+						.WithStyles(
+                            new Width(new Size(Unit.Pixels, 150)),
+                            new TextColor(color)
+                         )
+					.AddText(((long)user.Xp).ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 50)))
+                    .AddText(((long)user.MessageXp).ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 90)))
+					.AddText(((long)user.GameXp).ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+					.AddText(user.ActiveMinutes.ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+					.AddText(user.AvgMessageLength.ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+					.AddText(user.Messages.ToString())
+						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+				.CloseRow();
+			i += 1;
+			if (embed.CurrentPage.Children.Count > 10)
+			{
+                break;
+                //embed.AddPage("Users ordered by Xp").AddRow();
+			}
+		}
+		ctx.ReplyAsync(embed);
+	}
 }

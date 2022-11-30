@@ -4,6 +4,8 @@ global using Valour.Api.Items.Channels;
 global using Valour.Api.Items.Channels.Planets;
 global using Valour.Api.Items.Messages;
 global using Valour.Api.Items.Messages.Embeds.Items;
+global using Valour.Api.Items.Messages.Embeds.Styles.Basic;
+global using Valour.Api.Items.Messages.Embeds.Styles;
 global using Valour.Api.Items.Messages.Embeds;
 global using Valour.Api.Items.Users;
 global using Valour.Shared.Authorization;

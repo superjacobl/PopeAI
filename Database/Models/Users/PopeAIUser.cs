@@ -34,12 +34,21 @@ public class DBUser : DBItem<DBUser>
     [InverseProperty("User")]
     public List<DailyTask> DailyTasks { get; set; }
 
-    [NotMapped]
     public decimal Xp
     {
         get
         {
             return MessageXp + ElementalXp + GameXp;
+        }
+        set { }
+    }
+
+    [NotMapped]
+    public int AvgMessageLength
+    {
+        get
+        {
+            return (int)Math.Round(TotalChars / ((decimal)Messages));
         }
     }
 

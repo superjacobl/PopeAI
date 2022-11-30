@@ -14,10 +14,15 @@ public class Economy : CommandModuleBase
     {
         var embed = new EmbedBuilder()
             .AddPage("PopeAI Commands")
-            .AddRow(new EmbedTextItem("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un"))
-            .AddRow(new EmbedTextItem("Xp", "/xp, /info xp, /leaderboard or /lb"))
-            .AddRow(new EmbedTextItem("Daily Tasks", "/tasks"))
-            .AddRow(new EmbedTextItem("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount"));
+            .AddRow()
+                .AddText("Economy", "/pay, /hourly or /h, /richest or /r, /coins or /c, /dice <bet>, /gamble <color> <bet>, /unscramble or /un")
+            .AddRow()
+                .AddText("Xp", "/xp, /info xp, /leaderboard or /lb")
+            .AddRow()
+                .AddText("Daily Tasks", "/tasks")
+            .AddRow()
+                .AddText("Element Combining", "Currently being rewritten!");
+                //.AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount");
         return ctx.ReplyAsync(embed);
     } 
 
@@ -59,7 +64,7 @@ public class Economy : CommandModuleBase
             PlanetMember member = await PlanetMember.FindAsync(user.Id, ctx.Planet.Id);
             embed.AddText(text:$"({i}) {member.Nickname} - {(long)user.Coins} coins").AddRow();
             i += 1;
-            if (embed.embed.Pages.Last().Rows.Count > 10) {
+            if (embed.embed.Pages.Last().Children.Count > 10) {
                 embed.AddPage("Users ordered by coins").AddRow();
             }
         }
@@ -139,11 +144,14 @@ public class Economy : CommandModuleBase
     [Command("dice")]
     public async Task GetDiceAsync(CommandContext ctx)
 	{
-		EmbedBuilder embed = new EmbedBuilder().AddPage("Dice Game").AddRow().AddButton("Dice-Load", text:"Load Embed");
+		EmbedBuilder embed = new EmbedBuilder().AddPage("Dice Game")
+            .AddRow()
+                .AddButton("Load Embed")
+                    .OnClickSendInteractionEvent("Dice-Load");
 		ctx.ReplyAsync(embed);
 	}
 
-    [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId:"Dice-Load")]
+    [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId:"Dice-Load")]
 	public async Task OnDiceLoad(InteractionContext ctx)
 	{
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
@@ -156,11 +164,12 @@ public class Economy : CommandModuleBase
             .AddRow()
                 .AddText(text:$"Your Coins: {user.Coins}")
             .AddRow()
-                .AddForm(EmbedItemPlacementType.RowBased, "Dice")
+                .AddForm("Dice")
                     .AddRow()
-                        .AddInputBox("Bet", "Bet", "Your Bet")
+                        .AddInputBox("Bet", placeholder:"Your Bet")
                     .AddRow()
-                        .AddButton(text:"Roll", isSubmitButton: true)
+                        .AddButton(text:"Roll")
+                            .OnClickSubmitForm("Roll")
                 .EndForm();
         return embed;
     }
@@ -176,20 +185,20 @@ public class Economy : CommandModuleBase
         embed.AddRow();
 
         if (user.Coins < bet) {
-            embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
+            embed.AddText(text:"Bet must not be above your coins!")
+                .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
         if (bet == 0) {
-            embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
+            embed.AddText(text:"Bet must not be 0!")
+                .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
 
         if (AlreadyDoing.TryGetValue(ctx.Member.Id, out byte _byte))
-        {
             return;
-        }
 
         AlreadyDoing.TryAdd(ctx.Member.Id, 0x0);
         
@@ -235,7 +244,7 @@ public class Economy : CommandModuleBase
                 ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
                 await Task.Delay(1750);
             }
-            var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
+            var item = (EmbedTextItem)embed.embed.Pages[0].Children[0].Children[0];
             item.Text = $"Your Coins: {user.Coins}";
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
@@ -257,35 +266,51 @@ public class Economy : CommandModuleBase
     [Command("gamble")]
     public async Task GetGambleAsync(CommandContext ctx)
 	{
-		EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling Game").AddRow().AddButton("Gamble-Load", text:"Load Embed");
+		EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling Game").AddRow().AddButton("Load Embed").OnClickSendInteractionEvent("Gamble-Load");
 		ctx.ReplyAsync(embed);
 	}
 
-    [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId:"Gamble-Load")]
+    [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId:"Gamble-Load")]
 	public async Task OnGambleLoad(InteractionContext ctx)
 	{
         await using var user = await DBUser.GetAsync(ctx.Member.Id);
-		ctx.UpdateEmbedForUser(await GetGambleEmbedAsync(ctx, user), ctx.Member.UserId);
+        try {
+		    await ctx.UpdateEmbedForUser(GetGambleEmbed(ctx, user), ctx.Member.UserId);
+        }
+        catch (Exception e) {
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.StackTrace);
+        }
 	}
 
-    public async Task<EmbedBuilder> GetGambleEmbedAsync(IContext ctx, DBUser user)
+    public EmbedBuilder GetGambleEmbed(IContext ctx, DBUser user)
     {
         EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling")
             .AddRow()
                 .AddText(text:$"Your Coins: {user.Coins}")
             .AddRow()
-                .AddForm(EmbedItemPlacementType.RowBased, "Gamble")
+                .AddForm("Gamble")
                     .AddRow()
-                        .AddDropDownMenu("Color", "Pick a Color")
-                            .AddDropDownItem("Red", "ff0000")
-                            .AddDropDownItem("Blue", "0000aa")
-                            .AddDropDownItem("Green", "008000")
-                            .AddDropDownItem("Black", "000000")
+                        .AddDropDownMenu("Color", value:"Pick a Color")
+                            .WithDropDownItem()
+                                .WithText("Red")
+                                    .WithStyles(new TextColor(new Color(255, 0, 0)))
+                            .WithDropDownItem()
+                                .WithText("Blue")
+                                    .WithStyles(new TextColor(new Color(0, 0, 170)))
+                            .WithDropDownItem()
+                                .WithText("Green")
+                                    .WithStyles(new TextColor(new Color(0, 128, 0)))
+                            .WithDropDownItem()
+                                .WithText("Black")
+                                    .WithStyles(new TextColor(new Color(0, 0, 0)))
                         .EndDropDownMenu()
                     .AddRow()
-                        .AddInputBox("Bet", "Bet", "Your Bet")
+                        .AddInputBox("Bet", placeholder:"Your Bet")
+                            .WithStyles(new Margin(Size.Zero, Size.Zero, new Size(Unit.Pixels, 6), Size.Zero))
                     .AddRow()
-                        .AddButton(text:"Gamble", isSubmitButton: true)
+                        .AddButton("Gamble")
+                            .OnClickSubmitForm("Gamble")
                 .EndForm();
         return embed;
     }
@@ -300,14 +325,15 @@ public class Economy : CommandModuleBase
             return;
         }
 
-        var embed = await GetGambleEmbedAsync(ctx, user);
+        var embed = GetGambleEmbed(ctx, user);
         string color = ctx.Event.FormData[0].Value;
 
         embed.AddRow();
 
         if (color == "Pick a Color")
         {
-            embed.AddText(text:"You must select a color to bet on!", textColor: "ff0000");
+            embed.AddText(text:"You must select a color to bet on!")
+                .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
@@ -315,12 +341,14 @@ public class Economy : CommandModuleBase
         int bet = (int)Math.Floor(double.Parse(ctx.Event.FormData[1].Value));
 
         if (user.Coins < bet) {
-            embed.AddText(text:"Bet must not be above your coins!", textColor: "ff0000");
+            embed.AddText(text:"Bet must not be above your coins!")
+                .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
         if (bet == 0) {
-            embed.AddText(text:"Bet must not be 0!", textColor: "ff0000");
+            embed.AddText(text:"Bet must not be 0!")
+                .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
@@ -386,7 +414,7 @@ public class Economy : CommandModuleBase
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             await Task.Delay(1750);
             embed.AddRow().AddText(text:final_text);
-            var item = (EmbedTextItem)embed.embed.Pages[0].Rows[0].Items[0];
+            var item = (EmbedTextItem)embed.embed.Pages[0].Children[0].Children[0];
             item.Text = $"Your Coins: {user.Coins}";
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);

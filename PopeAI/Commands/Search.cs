@@ -53,7 +53,7 @@ public class Search : CommandModuleBase
                 embed.AddText(text: $"({msg.PlanetIndex}) {member.Nickname}: {Truncate(content,60)}\n");
             }
             embed.AddRow();
-            if (embed.CurrentPage.Rows.Count > 13) {
+            if (embed.CurrentPage.Children.Count > 13) {
                 embed.AddPage().AddRow();
             }
         }

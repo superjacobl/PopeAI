@@ -12,11 +12,15 @@ namespace PopeAI.Commands.Unscramble
         [Summary("Unscramble a given word!")]
         public async Task GetUnscrambleAsync(CommandContext ctx)
         {
-            EmbedBuilder embed = new EmbedBuilder().AddPage("Unscramble Game").AddRow().AddButton("Unscramble-Load", text: "Load Embed");
+            EmbedBuilder embed = new EmbedBuilder()
+                .AddPage("Unscramble Game")
+                    .AddRow()
+                        .AddButton("Load Embed")
+                            .OnClickSendInteractionEvent("Unscramble-Load");
             ctx.ReplyAsync(embed);
         }
 
-        [Interaction(EmbedIteractionEventType.ButtonClick, interactionElementId: "Unscramble-Load")]
+        [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId: "Unscramble-Load")]
         public async Task OnUnscrambleLoad(InteractionContext ctx)
         {
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
@@ -32,11 +36,12 @@ namespace PopeAI.Commands.Unscramble
                 .AddRow()
                     .AddText(text: $"Your Coins: {user.Coins}")
                 .AddRow()
-                    .AddForm(EmbedItemPlacementType.RowBased, "Unscramble")
+                    .AddForm("Unscramble")
                         .AddRow()
                             .AddInputBox("input", $"Unscramble {scrambed} for a reward!", "Your Answer", keepvalueonupdate: false)
                         .AddRow()
-                            .AddButton(text: "Submit", isSubmitButton: true)
+                            .AddButton(text: "Submit")
+                                .OnClickSubmitForm("Unscramble")
                     .EndForm();
             return embed;
         }

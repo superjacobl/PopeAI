@@ -46,7 +46,7 @@ public class Elemental : CommandModuleBase
         return s;
     }
 
-    [Command("tree")]
+    //[Command("tree")]
     public static async Task ViewTreeAsync(CommandContext ctx) 
     {
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
@@ -76,7 +76,7 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync("");
     }
 
-    [Command("suggest")]
+    //[Command("suggest")]
     public static async Task SuggestAynsc(CommandContext ctx, string result) 
     {
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
@@ -135,7 +135,7 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync("Successfully added the suggestion!");
     }
 
-    [Command("vote")]
+    //[Command("vote")]
     public static async Task VoteAynsc(CommandContext ctx)
     {
         EmbedBuilder b = await _VoteAynsc(ctx.Member);
@@ -175,12 +175,12 @@ public class Elemental : CommandModuleBase
             embed.AddText(text:text);
             embed.AddRow();
             if (canvote) {
-                embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes", color:"007F0E");
-                embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No", color:"7F0000");
+                //embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes", color:"007F0E");
+                //embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No", color:"7F0000");
             }
             else {
-                embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes");
-                embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No");
+                //embed.AddButton($"YesVoteFromSuggestion:{suggestion.Id}", "Yes");
+                //embed.AddButton($"NoVoteFromSuggestion:{suggestion.Id}", "No");
             }
             i += 1;
             if (i >= 5) {
@@ -191,7 +191,7 @@ public class Elemental : CommandModuleBase
         return embed;
     }
 
-    [Interaction(EmbedIteractionEventType.ButtonClick)]
+    [Interaction(EmbedIteractionEventType.ItemClicked)]
     public static async Task InteractionAynsc(InteractionContext ctx) 
     {
         PlanetMember member = await PlanetMember.FindAsync(ctx.Event.Author_MemberId, ctx.Event.PlanetId);
@@ -302,8 +302,8 @@ public class Elemental : CommandModuleBase
         }
     }
 
-    [Command("test")]
-    [Alias("tes")]
+    //[Command("test")]
+    //[Alias("tes")]
     public async Task TestAynsc(CommandContext ctx) 
     {
         if (ctx.Member.UserId != 735182334984193) {
@@ -317,8 +317,8 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync(embed);
     }
 
-    [Command("createlement")]
-    [Alias("ce")]
+   // [Command("createlement")]
+   // [Alias("ce")]
     public static async Task createlementAynsc(CommandContext ctx, string name) 
     {
         if (ctx.Member.UserId != 735182334984193) {
@@ -341,13 +341,14 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync("Successfully created the element");
     }
 
-    [Command("creatcombination")]
-    [Alias("cc")]
+   // [Command("creatcombination")]
+   // [Alias("cc")]
     public static async Task CreatCombinationAynsc3Elements(CommandContext ctx, string element1, string element2, string element3, string result) {
         await CreateCombinationAsync(ctx, element1, element2, element3, result);
     }
-    [Command("creatcombination")]
-    [Alias("cc")]
+
+   // [Command("creatcombination")]
+   // [Alias("cc")]
     public static async Task CreatCombinationAsync2Elements(CommandContext ctx, string element1, string element2, string result) {
         await CreateCombinationAsync(ctx, element1, element2, "", result);
     }
@@ -389,14 +390,15 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync("Successfully created the combiation");
     }
 
-    [Command("combination")]
-    [Alias("c", "combine")]
+   // [Command("combination")]
+   // [Alias("c", "combine")]
     public static async Task CombinationAsync2Elements(CommandContext ctx, string element1, string element2)
     {
         await CombinationAsync(ctx, element1, element2);
     }
-    [Command("combination")]
-    [Alias("c", "combine")]
+
+   // [Command("combination")]
+    //[Alias("c", "combine")]
     public static async Task CombinationAsync3Elements(CommandContext ctx, string element1, string element2, string element3)
     {
         await CombinationAsync(ctx, element1, element2, element3);
@@ -508,8 +510,8 @@ public class Elemental : CommandModuleBase
         }
     }
 
-    [Command("inv")]
-    [Alias("i")]
+    //[Command("inv")]
+    //[Alias("i")]
     public static async Task InvAsync(CommandContext ctx)
     {
         var embed = new EmbedBuilder().AddPage().AddRow();
@@ -532,17 +534,17 @@ public class Elemental : CommandModuleBase
         ctx.ReplyAsync(embed);
     }
 
-    [Group("element")]
+   // [Group("element")]
     public class RoleIncomeGroup : CommandModuleBase
     {
-        [Command("count")]
+      //  [Command("count")]
         public static async Task ElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             ctx.ReplyAsync($"there are {(await dbctx.Elements.CountAsync())+4} elements");
         }
 
-        [Command("mycount")]
+      //  [Command("mycount")]
         public static async Task MyElementCountAsync(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
