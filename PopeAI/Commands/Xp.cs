@@ -61,8 +61,8 @@ public class Xp : CommandModuleBase
     {
         var user = await DBUser.GetAsync(ctx.Member.Id, true);
 
-
         var embed = new EmbedBuilder().AddPage($"{ctx.Member.Nickname}'s xp")
+            .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
             .AddRow()
                 .AddText("Message", Functions.Format(user.MessageXp))
                 .AddText("Elemental", Functions.Format(user.ElementalXp))
@@ -102,6 +102,39 @@ public class Xp : CommandModuleBase
         ctx.ReplyAsync(embed);
     }
 
+	public void LeaderboardDetailedAddTopRow(EmbedBuilder embed)
+	{
+        embed
+            .AddRow()
+				.WithStyles(
+					FlexDirection.Column,
+					FlexJustifyContent.SpaceBetween,
+					new FlexAlignItems(AlignItem.Stretch),
+                    new FontSize(new Size(Unit.Pixels, 14))
+				)
+			.WithRow()
+				.WithStyles(
+					FlexJustifyContent.SpaceBetween
+				)
+				.AddText("Place")
+					.WithStyles(new Width(new Size(Unit.Pixels, 40)))
+				.AddText("Name")
+					.WithStyles(new Width(new Size(Unit.Pixels, 130)))
+				.AddText("Xp")
+					.WithStyles(new Width(new Size(Unit.Pixels, 50)))
+				.AddText("Msg Xp")
+					.WithStyles(new Width(new Size(Unit.Pixels, 60)))
+				.AddText("Game Xp")
+					.WithStyles(new Width(new Size(Unit.Pixels, 42)))
+				.AddText("Minutes Active")
+					.WithStyles(new Width(new Size(Unit.Pixels, 60)))
+				.AddText("Avg Msg Length")
+					.WithStyles(new Width(new Size(Unit.Pixels, 62)))
+				.AddText("Messages")
+					.WithStyles(new Width(new Size(Unit.Pixels, 62)))
+			.CloseRow();
+	}
+
 	[Command("leaderboard_detailed")]
 	[Alias("lbd")]
 	[Summary("Returns the leaderboard of the users with the most xp.")]
@@ -115,34 +148,8 @@ public class Xp : CommandModuleBase
 			.ToListAsync();
 
         var embed = new EmbedBuilder()
-            .AddPage("Users ordered by Xp")
-                .AddRow()
-                    .WithStyles(
-                        FlexDirection.Column,
-                        FlexJustifyContent.SpaceBetween,
-                        new FlexAlignItems(AlignItem.Stretch)
-                    )
-                .WithRow()
-                    .WithStyles(
-						FlexJustifyContent.SpaceBetween
-					)
-                    .AddText("Place")
-                        .WithStyles(new Width(new Size(Unit.Pixels, 40)))
-                    .AddText("Name")
-						.WithStyles(new Width(new Size(Unit.Pixels, 150)))
-					.AddText("Xp")
-						.WithStyles(new Width(new Size(Unit.Pixels, 50)))
-				    .AddText("Message Xp")
-						.WithStyles(new Width(new Size(Unit.Pixels, 90)))
-					.AddText("Game Xp")
-						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
-					.AddText("Minutes Active")
-						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
-					.AddText("Avg Msg Length")
-						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
-					.AddText("Messages")
-						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
-				.CloseRow();
+            .AddPage("Users ordered by Xp");
+        LeaderboardDetailedAddTopRow(embed);
 		int i = 1;
 		foreach (DBUser user in users)
 		{
@@ -157,27 +164,27 @@ public class Xp : CommandModuleBase
 						.WithStyles(new Width(new Size(Unit.Pixels, 40)))
 					.AddText(member.Nickname)
 						.WithStyles(
-                            new Width(new Size(Unit.Pixels, 150)),
+                            new Width(new Size(Unit.Pixels, 130)),
                             new TextColor(color)
                          )
 					.AddText(((long)user.Xp).ToString())
 						.WithStyles(new Width(new Size(Unit.Pixels, 50)))
                     .AddText(((long)user.MessageXp).ToString())
-						.WithStyles(new Width(new Size(Unit.Pixels, 90)))
+						.WithStyles(new Width(new Size(Unit.Pixels, 60)))
 					.AddText(((long)user.GameXp).ToString())
-						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+						.WithStyles(new Width(new Size(Unit.Pixels, 42)))
 					.AddText(user.ActiveMinutes.ToString())
-						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+						.WithStyles(new Width(new Size(Unit.Pixels, 60)))
 					.AddText(user.AvgMessageLength.ToString())
-						.WithStyles(new Width(new Size(Unit.Pixels, 120)))
+						.WithStyles(new Width(new Size(Unit.Pixels, 62)))
 					.AddText(user.Messages.ToString())
-						.WithStyles(new Width(new Size(Unit.Pixels, 70)))
+						.WithStyles(new Width(new Size(Unit.Pixels, 62)))
 				.CloseRow();
 			i += 1;
-			if (embed.CurrentPage.Children.Count > 10)
+			if (embed.CurrentPage.Children[0].Children.Count() > 10)
 			{
-                break;
-                //embed.AddPage("Users ordered by Xp").AddRow();
+                embed.AddPage("Users ordered by Xp");
+				LeaderboardDetailedAddTopRow(embed);
 			}
 		}
 		ctx.ReplyAsync(embed);
