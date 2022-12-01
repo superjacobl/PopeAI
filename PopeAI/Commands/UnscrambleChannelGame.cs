@@ -37,7 +37,7 @@ namespace PopeAI.Commands.Unscramble
                         .AddInputBox($"input-{Count}", $"Unscramble {ScrambledWord} first for a reward!", "Your Answer", keepvalueonupdate: false)
                     .AddRow()
                         .AddButton(text: "Submit")
-                            .OnClickSubmitForm("Unscramble Channel")
+                            .OnClickSubmitForm()
                 .EndForm();
             return embed;
         }

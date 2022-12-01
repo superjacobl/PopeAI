@@ -169,7 +169,7 @@ public class Economy : CommandModuleBase
                         .AddInputBox("Bet", placeholder:"Your Bet")
                     .AddRow()
                         .AddButton(text:"Roll")
-                            .OnClickSubmitForm("Roll")
+                            .OnClickSubmitForm()
                 .EndForm();
         return embed;
     }
@@ -310,7 +310,7 @@ public class Economy : CommandModuleBase
                             .WithStyles(new Margin(Size.Zero, Size.Zero, new Size(Unit.Pixels, 6), Size.Zero))
                     .AddRow()
                         .AddButton("Gamble")
-                            .OnClickSubmitForm("Gamble")
+                            .OnClickSubmitForm()
                 .EndForm();
         return embed;
     }

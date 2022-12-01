@@ -10,7 +10,7 @@ public class DBCache
     /// <summary>
     /// The high level cache object which contains the lower level caches
     /// </summary>
-    public static Dictionary<Type, ConcurrentDictionary<long, object>> HCache = new();
+    public static ConcurrentDictionary<Type, ConcurrentDictionary<long, object>> HCache = new();
 
     public static void DeleteAll<T>() where T : class
     {
@@ -57,7 +57,7 @@ public class DBCache
 
         // If there isn't a cache for this type, create one
         if (!HCache.ContainsKey(type))
-            HCache.Add(type, new ConcurrentDictionary<long, object>());
+            HCache.TryAdd(type, new ConcurrentDictionary<long, object>());
 
         if (!HCache[type].ContainsKey(Id)) {
             HCache[type].Remove(Id, out _);
@@ -78,7 +78,7 @@ public class DBCache
 
         // If there isn't a cache for this type, create one
         if (!HCache.ContainsKey(type))
-            HCache.Add(type, new ConcurrentDictionary<long, object>());
+            HCache.TryAdd(type, new ConcurrentDictionary<long, object>());
 
         if (!HCache[type].ContainsKey(Id)) {
             HCache[type].TryAdd(Id, obj);

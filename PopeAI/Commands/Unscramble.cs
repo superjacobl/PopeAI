@@ -41,7 +41,7 @@ namespace PopeAI.Commands.Unscramble
                             .AddInputBox("input", $"Unscramble {scrambed} for a reward!", "Your Answer", keepvalueonupdate: false)
                         .AddRow()
                             .AddButton(text: "Submit")
-                                .OnClickSubmitForm("Unscramble")
+                                .OnClickSubmitForm()
                     .EndForm();
             return embed;
         }
