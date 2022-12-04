@@ -160,20 +160,7 @@ public class Stats : CommandModuleBase
 
 		// make sure that the max-y is 175px
 
-		double muit = (double)175 / (double)maxvalue;
-
-        List<int> newdata = new();
-
-        foreach (int num in data)
-        {
-            double n = num * muit;
-            if (n < 0) {
-                n = 0;
-            }
-            newdata.Add((int)n);
-        }
-
-        data = newdata;
+		double muit = 175 / (double)maxvalue;
 
         var embed = new EmbedBuilder()
             .AddPage($"Graph of {ctx.Planet.Name}'s {dataname}")
@@ -186,7 +173,6 @@ public class Stats : CommandModuleBase
                         FlexDirection.Row,
 						new Width(new Size(Unit.Pixels, 330)),
 					    new Height(new Size(Unit.Pixels, 175))
-                       
 					);
 
 		// build y-axis label 
@@ -194,7 +180,7 @@ public class Stats : CommandModuleBase
 		// use 5 labels
 		for (int i = 1; i < 6; i++)
 		{
-            embed.AddText($"{(int)((5-i)*(maxvalue/5))}")
+            embed.AddText($"{(int)((5-i+1)*(maxvalue/5))}")
                 .WithStyles(
                     new Position(left: new Size(Unit.Pixels, 7), top: new Size(Unit.Pixels, (i - 1) * (200 / 5) + 38))
                 );
