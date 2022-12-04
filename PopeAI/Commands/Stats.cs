@@ -160,7 +160,7 @@ public class Stats : CommandModuleBase
 
         // make sure that the max-y is 125px
 
-        double muit = 125 / (double)maxvalue;
+        double muit = 330 / (double)maxvalue;
 
         List<int> newdata = new();
 
