@@ -158,9 +158,9 @@ public class Stats : CommandModuleBase
         int maxvalue = data.Max();
         Console.WriteLine($"Max Value: {maxvalue}");
 
-        // make sure that the max-y is 125px
+		// make sure that the max-y is 175px
 
-        double muit = 330 / (double)maxvalue;
+		double muit = 175 / (double)maxvalue;
 
         List<int> newdata = new();
 
