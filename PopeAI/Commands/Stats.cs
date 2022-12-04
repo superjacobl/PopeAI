@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
 namespace PopeAI.Commands.Stats;
@@ -29,6 +30,7 @@ public class Stats : CommandModuleBase
                 .ToListAsync();
             List<int> data = new();
 			List<string> xaxisdata = new();
+			var last = stats.First().Time;
 			foreach (Stat stat in stats)
             {
                 data.Add(stat.NewCoins);
@@ -37,7 +39,10 @@ public class Stats : CommandModuleBase
             data.Reverse();
             data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).NewCoins);
 			xaxisdata.Reverse();
-			xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
+			if (last.Day == DateTime.UtcNow.Day)
+				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+			else
+				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
 			await PostGraph(ctx, xaxisdata, data, "coins");
         }
 
@@ -53,13 +58,11 @@ public class Stats : CommandModuleBase
                 .ToListAsync();
             List<int> data = new();
             List<string> xaxisdata = new();
-			DateTime last = DateTime.UtcNow;
-            foreach (Stat stat in stats)
+			var last = stats.First().Time;
+			foreach (Stat stat in stats)
             {
                 data.Add(stat.MessagesSent);
                 xaxisdata.Add(stat.Time.ToString("MMM dd"));
-				last = stat.Time;
-
 			}
             data.Reverse();
             data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).MessagesSent);
