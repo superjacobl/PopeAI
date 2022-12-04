@@ -53,15 +53,21 @@ public class Stats : CommandModuleBase
                 .ToListAsync();
             List<int> data = new();
             List<string> xaxisdata = new();
+			DateTime last = DateTime.UtcNow;
             foreach (Stat stat in stats)
             {
                 data.Add(stat.MessagesSent);
                 xaxisdata.Add(stat.Time.ToString("MMM dd"));
-            }
+				last = stat.Time;
+
+			}
             data.Reverse();
             data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).MessagesSent);
             xaxisdata.Reverse();
-			xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
+			if (last.Day == DateTime.UtcNow.Day)
+				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+			else
+				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
             await PostGraph(ctx, xaxisdata, data, "messages");
         }
     }
