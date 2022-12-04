@@ -160,7 +160,7 @@ public class Stats : CommandModuleBase
 
 		// make sure that the max-y is 175px
 
-		double muit = 175 / (double)maxvalue;
+		double muit = (double)175 / (double)maxvalue;
 
         List<int> newdata = new();
 
@@ -203,12 +203,16 @@ public class Stats : CommandModuleBase
         bool first = true;
 		foreach (int num in data)
         {
-            embed.WithRow();
+			int h = (int)(num * muit);
+			if (h > 175)
+				h = 175;
+
+			embed.WithRow();
             if (first)
 			{
 				embed.WithStyles(
 					new Width(new Size(Unit.Pixels, 330 / data.Count)),
-					new Height(new Size(Unit.Pixels, (int)(num * muit))),
+					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
 					new Margin(left: new Size(Unit.Pixels, 11), right: new Size(Unit.Pixels, 3), top: new Size(Unit.Auto))
 				);
@@ -217,7 +221,7 @@ public class Stats : CommandModuleBase
 			{
 				embed.WithStyles(
 					new Width(new Size(Unit.Pixels, 330 / data.Count)),
-					new Height(new Size(Unit.Pixels, (int)(num * muit))),
+					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
 					new Margin(right: new Size(Unit.Pixels, 3), top: new Size(Unit.Auto))
 				);
