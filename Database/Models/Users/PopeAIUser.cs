@@ -34,7 +34,8 @@ public class DBUser : DBItem<DBUser>
     [InverseProperty("User")]
     public List<DailyTask> DailyTasks { get; set; }
 
-    public decimal Xp
+	[DecimalType]
+	public decimal Xp
     {
         get
         {

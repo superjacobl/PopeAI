@@ -7,4 +7,5 @@ public class BotTime : DBItem<BotTime>
 
     public DateTime LastDailyTasksUpdate { get; set; }
     public DateTime LastStatUpdate { get; set; }
+    //public DateTime LastUserStatUpdate { get; set; }
 }

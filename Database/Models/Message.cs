@@ -8,7 +8,6 @@ namespace PopeAI.Database.Models.Messaging;
 [Index(nameof(PlanetId))]
 [Index(nameof(PlanetIndex))]
 [Index(nameof(TimeSent))]
-[Index(nameof(MessageIndex))]
 [Index(nameof(Hash))]
 public class Message
 {
@@ -33,10 +32,6 @@ public class Message
     /// </summary>
     public DateTime TimeSent { get; set; }
 
-    /// <summary>
-    /// Index of the message
-    /// </summary>
-    public long MessageIndex { get; set; }
     public string? EmbedData {get; set;}
     public string? MentionsData { get; set; }
 
@@ -53,7 +48,7 @@ public class Message
     {
         using (SHA256 sha = SHA256.Create())
         {
-            string conc = $"{AuthorId}{Content}{TimeSent}{ChannelId}{MessageIndex}{EmbedData}{MentionsData}";
+            string conc = $"{Id}{AuthorId}{Content}{TimeSent}{ChannelId}{EmbedData}{MentionsData}";
 
             byte[] buffer = Encoding.Unicode.GetBytes(conc);
 

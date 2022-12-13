@@ -31,7 +31,7 @@ public class Info : CommandModuleBase
             .AddRow()
                 .AddText("Creator", "Superjacobl")
             .AddRow()
-                .AddText("Version", "1.2.1")
+                .AddText("Version", "1.2.2")
             .AddRow()
                 .AddText("Currently in", $"{ValourCache.GetAll<Planet>().Count()} Planets");
         return ctx.ReplyAsync(embed);

@@ -8,7 +8,7 @@ public static class MessageManager
     static public ConcurrentQueue<PlanetMessage> messageQueue = new();
     
     public static ConcurrentBag<long> MessagesFromHistoryIds = new();
-    public static PopeAIDB dbctx = PopeAIDB.DbFactory.CreateDbContext();
+    public static PopeAIDB dbctx = null;
     public static DateTime TimeSinceLastSave = DateTime.UtcNow;
 
     public static async ValueTask<TaskResult> SaveMessage(PlanetMessage message)
@@ -23,7 +23,6 @@ public static class MessageManager
                 Content = message.Content,
                 TimeSent = message.TimeSent,
                 ChannelId = message.ChannelId,
-                MessageIndex = message.MessageIndex,
                 PlanetId = message.PlanetId,
                 EmbedData = message.EmbedData,
                 MentionsData = message.MentionsData,
@@ -67,7 +66,7 @@ public static class MessageManager
 
             return new TaskResult(true, result);
         }
-        catch (SystemException ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
         }
@@ -89,7 +88,8 @@ public static class MessageManager
 
     public static async Task<bool> Run()
     {
-        while (true)
+		dbctx = PopeAIDB.DbFactory.CreateDbContext();
+		while (true)
         {
             if (messageQueue.IsEmpty)
             {
@@ -111,12 +111,12 @@ public static class MessageManager
                 }
             }
 
-            TaskResult result = await SaveMessage(msg!);
+			TaskResult result = await SaveMessage(msg!);
 
             string success = "SUCC";
             if (!result.Success) success = "FAIL";
 
             Console.WriteLine($"[{success}] Processed Message [{result.Message}].");
-        }
+		}
     }
 }

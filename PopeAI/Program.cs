@@ -75,7 +75,7 @@ class Program
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        //ValourNetClient.ExecuteMessagesInParallel = true;
+        ValourNetClient.ExecuteMessagesInParallel = true;
         //ValourNetClient.BaseUrl = "https://localhost:44331/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
@@ -89,7 +89,11 @@ class Program
         Console.WriteLine("   Worker threads: {0:N0}", worker);
         Console.WriteLine("   Asynchronous I/O threads: {0:N0}", io);
 
-        await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
+        Valour.Shared.Logger.OnLog += async (message, color) => {
+            Console.WriteLine(message);
+        };
+
+		await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
 
         Console.WriteLine("Getting Messages from all channels");
         if (false) {
@@ -103,7 +107,7 @@ class Program
                     if (_msgs.Count == 0) {
                         continue;
                     }
-                    long index = _msgs.First().MessageIndex;
+                    long index = _msgs.First().Id;
                     while (msgs is null || msgs.Count > 0) {
                         msgs = await channel.GetMessagesAsync(index, 64);
                         foreach(var msg in msgs) {
@@ -112,7 +116,7 @@ class Program
                             MessageManager.AddToQueue(msg);
                         }
                         if (msgs.Count > 0) {
-                            index = msgs.First().MessageIndex-1;
+                            index = msgs.First().Id-1;
                         }
                     }
                 }

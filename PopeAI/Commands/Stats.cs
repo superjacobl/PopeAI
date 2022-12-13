@@ -180,7 +180,7 @@ public class Stats : CommandModuleBase
                 .AddRow()
                     .WithStyles(
                         FlexDirection.Row,
-						new Width(new Size(Unit.Pixels, 330)),
+						new Width(new Size(Unit.Pixels, 325)),
 					    new Height(new Size(Unit.Pixels, 175))
 					);
 
@@ -206,16 +206,16 @@ public class Stats : CommandModuleBase
             if (first)
 			{
 				embed.WithStyles(
-					new Width(new Size(Unit.Pixels, 330 / data.Count)),
+					new Width(new Size(Unit.Pixels, 325 / data.Count)),
 					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
-					new Margin(left: new Size(Unit.Pixels, 11), right: new Size(Unit.Pixels, 3), top: new Size(Unit.Auto))
+					new Margin(left: new Size(Unit.Pixels, 11), right: new Size(Unit.Pixels, 6), top: new Size(Unit.Auto))
 				);
 			}
 			else
 			{
 				embed.WithStyles(
-					new Width(new Size(Unit.Pixels, 330 / data.Count)),
+					new Width(new Size(Unit.Pixels, 325 / data.Count)),
 					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
 					new Margin(right: new Size(Unit.Pixels, 3), top: new Size(Unit.Auto))
@@ -234,7 +234,7 @@ public class Stats : CommandModuleBase
 		{
             embed.AddText($"{xaxisdata[i-1]}")
 				.WithStyles(
-					new Position(left: new Size(Unit.Pixels, (i - 1) * (330 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
+					new Position(left: new Size(Unit.Pixels, (i - 1) * (325 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
 					new FontSize(new Size(Unit.Pixels, 12))
 				);
 			moveoverleft -= 1;

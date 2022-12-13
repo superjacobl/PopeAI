@@ -43,7 +43,8 @@ public static class StatManager
         if (DateTime.UtcNow > PopeAIDB.botTime.LastStatUpdate.AddHours(24))
         {
             DBCache.DeleteAll<CurrentStat>();
-            foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
+			int idsgenerated = 0;
+			foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
             {
                 Stat stat = new()
                 {
@@ -60,10 +61,56 @@ public static class StatManager
                 currentstat.MessagesUsersSent = 0;
                 currentstat.LastStatUpdate = DateTime.UtcNow;
                 DBCache.Put(currentstat.PlanetId, currentstat);
+
+                idsgenerated += 1;
+				// stop snowflake ids from running out of seq ids
+				if (idsgenerated >= 255)
+                {
+                    idsgenerated = 0;
+                    await Task.Delay(1);
+                }
             }
-            PopeAIDB.botTime.LastStatUpdate = DateTime.UtcNow;
-            await PopeAIDB.botTime.UpdateDB(false);
-        }
+            
+            // do userstats now
+            var currentdateonly = DateOnly.FromDateTime(DateTime.UtcNow);
+            var PrevStats = await dbctx.UserStats.Where(x => x.Date.AddDays(1) > currentdateonly).ToListAsync();
+            var newstats = new List<UserStat>();
+            foreach(var user in DBCache.GetAll<DBUser>())
+            {
+                var prevstat = PrevStats.FirstOrDefault(x => x.MemberId == user.Id);
+                // only save stats if the user has sent a message in the last day
+                if (prevstat is not null && prevstat.TotalMessages == user.Messages)
+                    continue;
+
+                var newstat = new UserStat()
+                {
+                    Id = idManager.Generate(),
+                    MemberId = user.Id,
+                    TotalCoins = user.Coins,
+                    TotalPoints = user.TotalPoints,
+                    TotalChars = user.TotalChars,
+                    TotalActiveMinutes = user.ActiveMinutes,
+                    TotalMessages = user.Messages,
+                    TotalXp = user.Xp,
+                    Date = currentdateonly
+                };
+
+                newstats.Add(newstat);
+
+                idsgenerated += 1;
+				// stop snowflake ids from running out of seq ids
+				if (idsgenerated >= 255)
+				{
+					idsgenerated = 0;
+					await Task.Delay(1);
+				}
+			}
+
+            dbctx.AddRange(newstats);
+
+			PopeAIDB.botTime.LastStatUpdate = DateTime.UtcNow;
+			await PopeAIDB.botTime.UpdateDB(false);
+		}
 
         // check bot stat now
         if (DateTime.UtcNow > selfstat.Time.AddHours(1))

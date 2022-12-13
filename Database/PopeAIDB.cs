@@ -151,8 +151,9 @@ public class PopeAIDB : DbContext
     public DbSet<SuggestionVote> SuggestionVotes { get; set; }
 
     public DbSet<BotTime> BotTimes { get; set; }
+	public DbSet<UserStat> UserStats { get; set; }
 
-    public PopeAIDB(DbContextOptions options)
+	public PopeAIDB(DbContextOptions options)
     {
 
     }
