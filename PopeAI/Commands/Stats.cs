@@ -253,7 +253,7 @@ public class Stats : CommandModuleBase
 		{
             embed.AddText($"{xaxisdata[i-1]}")
 				.WithStyles(
-					new Position(left: new Size(Unit.Pixels, (i - 1) * (275 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
+					new Position(left: new Size(Unit.Pixels, (i - 1) * (300 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
 					new FontSize(new Size(Unit.Pixels, 12))
 				);
 			moveoverleft -= 1;
