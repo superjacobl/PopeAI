@@ -14,7 +14,10 @@ public class CurrentStat : DBItem<CurrentStat>
     public int NewCoins { get; set; }
     public int MessagesSent { get; set; }
     public int MessagesUsersSent { get; set; }
-    public DateTime LastStatUpdate { get; set; }
+	public int TotalCoins { get; set; }
+	public int TotalMessagesUsersSent { get; set; }
+	public int TotalMessagesSent { get; set; }
+	public DateTime LastStatUpdate { get; set; }
 
     public CurrentStat()
     {

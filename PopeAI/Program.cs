@@ -75,7 +75,7 @@ class Program
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        ValourNetClient.ExecuteMessagesInParallel = true;
+        //ValourNetClient.ExecuteMessagesInParallel = true;
         //ValourNetClient.BaseUrl = "https://localhost:44331/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);

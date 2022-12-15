@@ -24,13 +24,17 @@ public static class StatManager
         {
             case CurrentStatType.Coins:
                 current.NewCoins += value;
+                current.TotalCoins += value;
                 break;
             case CurrentStatType.UserMessage:
                 current.MessagesUsersSent += value;
                 current.MessagesSent += value;
+                current.TotalMessagesUsersSent += value;
+                current.TotalMessagesSent += value;
                 break;
             case CurrentStatType.Message:
                 current.MessagesSent += value;
+                current.TotalMessagesSent += value;
                 break;
         }
         await current.UpdateDB();
@@ -53,6 +57,9 @@ public static class StatManager
                     NewCoins = currentstat.NewCoins,
                     MessagesUsersSent = currentstat.MessagesUsersSent,
                     MessagesSent = currentstat.MessagesSent,
+                    TotalCoins = currentstat.TotalCoins,
+                    TotalMessagesSent = currentstat.TotalMessagesSent,
+                    TotalMessagesUsersSent = currentstat.TotalMessagesUsersSent,
                     Time = DateTime.UtcNow
                 };
                 dbctx.Add(stat);
@@ -60,7 +67,7 @@ public static class StatManager
                 currentstat.MessagesSent = 0;
                 currentstat.MessagesUsersSent = 0;
                 currentstat.LastStatUpdate = DateTime.UtcNow;
-                DBCache.Put(currentstat.PlanetId, currentstat);
+				DBCache.Put(currentstat.PlanetId, currentstat);
 
                 idsgenerated += 1;
 				// stop snowflake ids from running out of seq ids

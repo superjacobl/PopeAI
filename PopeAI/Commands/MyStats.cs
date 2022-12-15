@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
 namespace PopeAI.Commands.Stats;
@@ -27,23 +28,36 @@ public class MyStats : CommandModuleBase
                 .OrderByDescending(x => x.Date)
                 .Take(7)
                 .ToListAsync();
+
             List<int> data = new();
-            List<string> xaxisdata = new();
+			List<int> protoxaxisdata = new();
+
 			var last = stats.First().Date;
 			foreach (var stat in stats)
             {
                 data.Add(stat.TotalMessages);
-                xaxisdata.Add(stat.Date.ToString("MMM dd"));
+				protoxaxisdata.Add(stat.Date.DayNumber);
 			}
+
             data.Reverse();
             data.Add(user.Messages);
-            xaxisdata.Reverse();
+
+			protoxaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
-				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+				protoxaxisdata.Add(last.AddDays(1).DayNumber);
 			else
-				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-            await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Messages Over Time", true);
-        }
+				protoxaxisdata.Add(DateOnly.FromDateTime(DateTime.UtcNow).DayNumber);
+
+			List<string> xaxisdata = new();
+			double muit = ((double)protoxaxisdata.Count()) / 5;
+			for (int i = 0; i < 5; i++)
+			{
+				int x = (int)(i * muit);
+				int lerped = Stats.linear(x, 0, protoxaxisdata.Count, protoxaxisdata[0], protoxaxisdata.Last());
+				xaxisdata.Add(DateOnly.FromDayNumber(lerped).ToString("MMM dd"));
+			}
+			await Stats.PostLineGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Messages Over Time", true);
+		}
 
 		[Command("xp")]
 		public async Task StatsXp(CommandContext ctx)
@@ -55,22 +69,34 @@ public class MyStats : CommandModuleBase
 				.OrderByDescending(x => x.Date)
 				.Take(7)
 				.ToListAsync();
+
 			List<int> data = new();
-			List<string> xaxisdata = new();
+			List<int> protoxaxisdata = new();
+
 			var last = stats.First().Date;
 			foreach (var stat in stats)
 			{
 				data.Add((int)stat.TotalXp);
-				xaxisdata.Add(stat.Date.ToString("MMM dd"));
+				protoxaxisdata.Add(stat.Date.DayNumber);
 			}
 			data.Reverse();
 			data.Add((int)user.Xp);
-			xaxisdata.Reverse();
+			protoxaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
-				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+				protoxaxisdata.Add(last.AddDays(1).DayNumber);
 			else
-				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-			await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Xp Over Time", true);
+				protoxaxisdata.Add(DateOnly.FromDateTime(DateTime.UtcNow).DayNumber);
+
+			List<string> xaxisdata = new();
+			double muit = ((double)protoxaxisdata.Count()) / 5;
+			for (int i = 0; i < 5; i++)
+			{
+				int x = (int)(i * muit);
+				int lerped = Stats.linear(x, 0, protoxaxisdata.Count, protoxaxisdata[0], protoxaxisdata.Last());
+				xaxisdata.Add(DateOnly.FromDayNumber(lerped).ToString("MMM dd"));
+			}
+
+			await Stats.PostLineGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Xp Over Time", true);
 		}
 	}
 }

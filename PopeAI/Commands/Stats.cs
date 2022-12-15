@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
@@ -43,7 +44,7 @@ public class Stats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-			await PostGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name} daily coin gain");
+			await PostBarGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name} daily coin gain");
         }
 
         [Command("messages")]
@@ -71,7 +72,7 @@ public class Stats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-            await PostGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name}'s messages");
+            await PostBarGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name}'s messages");
         }
     }
 
@@ -152,7 +153,128 @@ public class Stats : CommandModuleBase
 		ctx.ReplyAsync(content);
 	}
 
-	public static async Task PostGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string graphname = "", bool startfrommin = false)
+	static public int linear(int x, int x0, int x1, int y0, int y1)
+	{
+		if ((x1 - x0) == 0)
+		{
+			return (y0 + y1) / 2;
+		}
+		return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+	}
+
+	public static async Task PostLineGraph(CommandContext ctx, List<string> xaxisdata, List<int> xdata, string graphname = "", bool startfrommin = false)
+	{
+		int height = 250;
+		int width = 360;
+		var embed = new EmbedBuilder()
+			.AddPage(graphname)
+				.WithStyles(
+					new Width(new Size(Unit.Pixels, width)),
+					new Height(new Size(Unit.Pixels, height))
+				);
+
+		int maxvalue = xdata.Max();
+		int minvalue = xdata.Min() - 3;
+		if (minvalue < 0)
+			minvalue = 0;
+
+		// make sure that the max-y is 175px
+		double muit = 0;
+
+		if (startfrommin)
+		{
+			muit = 175 / ((double)maxvalue - (double)minvalue);
+		}
+		else
+			muit = 175 / (double)maxvalue;
+
+		// each "x" is 7px wide and ~14px high
+		int neededxvalues = (width-70) / 7;
+
+		List<int> newxdata = new();
+		int i = 0;
+		int eachdataequalsi = (int)Math.Ceiling((double)neededxvalues / (double)xdata.Count);
+
+		// if xdata contains less than *neededxvalues*, then we need to fill in the data
+		if (xdata.Count < neededxvalues)
+		{
+			i = 1;
+			int dataindex = 1;
+			int prevdatavalue = xdata[0];
+			for (int j = 0; j < neededxvalues; j++)
+			{
+				if (i > eachdataequalsi)
+				{
+					i = 1;
+					prevdatavalue = xdata[dataindex];
+					dataindex += 1;
+				}
+				if (dataindex >= xdata.Count)
+				{
+					dataindex -= 1;
+				}
+				int value = linear(j, (dataindex - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
+				newxdata.Add(value);
+				i += 1;
+			}
+		}
+
+		Console.WriteLine(String.Join(", ", xdata));
+		Console.WriteLine(String.Join(", ", newxdata));
+
+		newxdata.Reverse();
+		i = 0;
+		foreach (var value in newxdata)
+		{
+			int x = (int)(i * 7 + 50);
+			if (x > 340)
+				x = 340;
+			int y = 0;
+			if (startfrommin)
+				y = (int)((value - minvalue) * muit);
+			else
+				y = (int)(value * muit);
+			y += 24;
+			embed
+				.AddText("x")
+					.WithStyles(
+						new Position(left: new Size(Unit.Pixels, x), top: new Size(Unit.Pixels, y))
+					);
+			i += 1;
+		}
+
+		// build y-axis label 
+
+		// use 5 labels
+		for (int j = 1; j < 6; j++)
+		{
+			int l = 0;
+			if (startfrommin)
+				l = (int)((5 - j + 1) * ((maxvalue - minvalue) / 5) + minvalue);
+			else
+				l = (int)((5 - j + 1) * (maxvalue / 5));
+			embed.AddText($"{l}")
+				.WithStyles(
+					new Position(left: new Size(Unit.Pixels, 7), top: new Size(Unit.Pixels, (j - 1) * (200 / 5) + 38))
+				);
+		}
+
+		// build x-axis label 
+
+		// use 5 labels
+		for (int j = 1; j < xaxisdata.Count + 1; j++)
+		{
+			embed.AddText($"{xaxisdata[j - 1]}")
+			.WithStyles(
+					new Position(left: new Size(Unit.Pixels, (j - 1) * (300 / xaxisdata.Count) + 50), top: new Size(Unit.Pixels, 225)),
+					new FontSize(new Size(Unit.Pixels, 11))
+				);
+		}
+
+		ctx.ReplyAsync(embed);
+	}
+
+	public static async Task PostBarGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string graphname = "", bool startfrommin = false)
     {
 
         // TODO: do this
@@ -248,13 +370,13 @@ public class Stats : CommandModuleBase
 
         embed.AddRow();
 		// use 5 labels
-		int moveoverleft = 55;
+		int moveoverleft = 50;
 		for (int i = 1; i < data.Count+1; i++)
 		{
             embed.AddText($"{xaxisdata[i-1]}")
 				.WithStyles(
 					new Position(left: new Size(Unit.Pixels, (i - 1) * (300 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
-					new FontSize(new Size(Unit.Pixels, 12))
+					new FontSize(new Size(Unit.Pixels, 11))
 				);
 			moveoverleft -= 1;
 		}
