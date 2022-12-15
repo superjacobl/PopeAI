@@ -209,7 +209,7 @@ public class Stats : CommandModuleBase
 					new Width(new Size(Unit.Pixels, 325 / data.Count)),
 					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
-					new Margin(left: new Size(Unit.Pixels, 11), right: new Size(Unit.Pixels, 6), top: new Size(Unit.Auto))
+					new Margin(left: new Size(Unit.Pixels, 34), right: new Size(Unit.Pixels, 6), top: new Size(Unit.Auto))
 				);
 			}
 			else
@@ -218,7 +218,7 @@ public class Stats : CommandModuleBase
 					new Width(new Size(Unit.Pixels, 325 / data.Count)),
 					new Height(new Size(Unit.Pixels, h)),
 					new BackgroundColor(new Color(255, 255, 255)),
-					new Margin(right: new Size(Unit.Pixels, 3), top: new Size(Unit.Auto))
+					new Margin(right: new Size(Unit.Pixels, 6), top: new Size(Unit.Auto))
 				);
 			}
             embed.CloseRow();
