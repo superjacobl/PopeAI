@@ -218,7 +218,7 @@ public class Stats : CommandModuleBase
 		Console.WriteLine(String.Join(", ", xdata));
 		Console.WriteLine(String.Join(", ", newxdata));
 
-		newxdata.Reverse();
+		//newxdata.Reverse();
 		i = 0;
 		foreach (var value in newxdata)
 		{
@@ -233,6 +233,8 @@ public class Stats : CommandModuleBase
 			y += 24;
 			if (y > 205)
 				y = 205;
+			y = (205 - y);
+
 			embed
 				.AddText("x")
 					.WithStyles(
