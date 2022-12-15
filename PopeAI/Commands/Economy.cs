@@ -190,8 +190,8 @@ public class Economy : CommandModuleBase
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
-        if (bet == 0) {
-            embed.AddText(text:"Bet must not be 0!")
+        if (bet <= 0) {
+            embed.AddText(text:"Bet must be above 0!")
                 .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
@@ -346,8 +346,8 @@ public class Economy : CommandModuleBase
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
         }
-        if (bet == 0) {
-            embed.AddText(text:"Bet must not be 0!")
+        if (bet <= 0) {
+            embed.AddText(text:"Bet must be above 0!")
                 .WithStyles(new TextColor(new Color(255, 0, 0)));
             ctx.UpdateEmbedForUser(embed, ctx.Member.UserId);
             return;
