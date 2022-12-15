@@ -43,7 +43,7 @@ public class Stats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-			await PostGraph(ctx, xaxisdata, data, "coins");
+			await PostGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name} daily coin gain");
         }
 
         [Command("messages")]
@@ -71,7 +71,7 @@ public class Stats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-            await PostGraph(ctx, xaxisdata, data, "messages");
+            await PostGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name}'s messages");
         }
     }
 
@@ -152,7 +152,7 @@ public class Stats : CommandModuleBase
 		ctx.ReplyAsync(content);
 	}
 
-	static async Task PostGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string dataname)
+	public static async Task PostGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string graphname = "")
     {
 
         // TODO: do this
@@ -172,7 +172,7 @@ public class Stats : CommandModuleBase
 		double muit = 175 / (double)maxvalue;
 
         var embed = new EmbedBuilder()
-            .AddPage($"Graph of {ctx.Planet.Name}'s {dataname}")
+            .AddPage(graphname)
                 .WithStyles(
                     new Width(new Size(Unit.Pixels, 360)),
 					new Height(new Size(Unit.Pixels, 250))
