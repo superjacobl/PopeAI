@@ -230,10 +230,10 @@ public class Stats : CommandModuleBase
 				y = (int)((value - minvalue) * muit);
 			else
 				y = (int)(value * muit);
-			y += 24;
 			if (y > 205)
 				y = 205;
 			y = (205 - y);
+			y += 24;
 
 			embed
 				.AddText("x")
