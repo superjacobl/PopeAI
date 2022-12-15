@@ -193,7 +193,7 @@ public class Stats : CommandModuleBase
 
 		List<int> newxdata = new();
 		int i = 0;
-		int eachdataequalsi = (int)Math.Ceiling((double)neededxvalues / (double)xdata.Count);
+		int eachdataequalsi = (int)Math.Floor((double)neededxvalues / (double)(xdata.Count-1));
 
 		// if xdata contains less than *neededxvalues*, then we need to fill in the data
 		if (xdata.Count < neededxvalues)
