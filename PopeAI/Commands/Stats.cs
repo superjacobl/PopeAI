@@ -203,15 +203,11 @@ public class Stats : CommandModuleBase
 			int prevdatavalue = xdata[0];
 			for (int j = 0; j < neededxvalues; j++)
 			{
-				if (i > eachdataequalsi)
+				if (i > eachdataequalsi && dataindex+1 <= xdata.Count-1)
 				{
 					i = 1;
 					prevdatavalue = xdata[dataindex];
 					dataindex += 1;
-				}
-				if (dataindex >= xdata.Count)
-				{
-					dataindex -= 1;
 				}
 				int value = linear(j, (dataindex - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
 				newxdata.Add(value);
@@ -235,6 +231,8 @@ public class Stats : CommandModuleBase
 			else
 				y = (int)(value * muit);
 			y += 24;
+			if (y > 205)
+				y = 205;
 			embed
 				.AddText("x")
 					.WithStyles(
