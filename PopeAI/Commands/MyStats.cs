@@ -42,7 +42,7 @@ public class MyStats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-            await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Messages Over Time");
+            await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Messages Over Time", true);
         }
 
 		[Command("xp")]
@@ -70,7 +70,7 @@ public class MyStats : CommandModuleBase
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
 			else
 				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
-			await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Xp Over Time");
+			await Stats.PostGraph(ctx, xaxisdata, data, $"{ctx.Member.Nickname}'s Xp Over Time", true);
 		}
 	}
 }

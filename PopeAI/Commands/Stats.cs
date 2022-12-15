@@ -152,7 +152,7 @@ public class Stats : CommandModuleBase
 		ctx.ReplyAsync(content);
 	}
 
-	public static async Task PostGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string graphname = "")
+	public static async Task PostGraph(CommandContext ctx, List<string> xaxisdata, List<int> data, string graphname = "", bool startfrommin = false)
     {
 
         // TODO: do this
@@ -165,11 +165,21 @@ public class Stats : CommandModuleBase
 
         string content = "";
         int maxvalue = data.Max();
-        Console.WriteLine($"Max Value: {maxvalue}");
+		int minvalue = data.Min() - 3;
+		if (minvalue < 0)
+			minvalue = 0;
+
+		Console.WriteLine($"Max Value: {maxvalue}");
 
 		// make sure that the max-y is 175px
+		double muit = 0;
 
-		double muit = 175 / (double)maxvalue;
+		if (startfrommin)
+		{
+			muit = 175 / ((double)maxvalue - (double)minvalue);
+		}
+		else
+			muit = 175 / (double)maxvalue;
 
         var embed = new EmbedBuilder()
             .AddPage(graphname)
@@ -189,7 +199,12 @@ public class Stats : CommandModuleBase
 		// use 5 labels
 		for (int i = 1; i < 6; i++)
 		{
-            embed.AddText($"{(int)((5-i+1)*(maxvalue/5))}")
+			int l = 0;
+			if (startfrommin)
+				l = (int)((5 - i + 1) * ((maxvalue - minvalue) / 5) + minvalue);
+			else
+				l = (int)((5 - i + 1) * (maxvalue / 5));
+			embed.AddText($"{l}")
                 .WithStyles(
                     new Position(left: new Size(Unit.Pixels, 7), top: new Size(Unit.Pixels, (i - 1) * (200 / 5) + 38))
                 );
@@ -198,7 +213,11 @@ public class Stats : CommandModuleBase
         bool first = true;
 		foreach (int num in data)
         {
-			int h = (int)(num * muit);
+			int h = 0;
+			if (startfrommin)
+				h = (int)((num - minvalue) * muit);
+			else
+				h = (int)(num * muit);
 			if (h > 175)
 				h = 175;
 
@@ -229,12 +248,12 @@ public class Stats : CommandModuleBase
 
         embed.AddRow();
 		// use 5 labels
-		int moveoverleft = 25;
+		int moveoverleft = 55;
 		for (int i = 1; i < data.Count+1; i++)
 		{
             embed.AddText($"{xaxisdata[i-1]}")
 				.WithStyles(
-					new Position(left: new Size(Unit.Pixels, (i - 1) * (325 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
+					new Position(left: new Size(Unit.Pixels, (i - 1) * (275 / data.Count) + moveoverleft), top: new Size(Unit.Pixels, 225)),
 					new FontSize(new Size(Unit.Pixels, 12))
 				);
 			moveoverleft -= 1;
