@@ -233,7 +233,7 @@ public class Stats : CommandModuleBase
 			if (y > 205)
 				y = 205;
 			y = (205 - y);
-			y += 12;
+			y += 8;
 
 			embed
 				.AddText("x")

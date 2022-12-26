@@ -26,7 +26,7 @@ public class MyStats : CommandModuleBase
             var stats = await dbctx.UserStats
                 .Where(x => x.MemberId == ctx.Member.Id)
                 .OrderByDescending(x => x.Date)
-                .Take(7)
+                .Take(14)
                 .ToListAsync();
 
             List<int> data = new();
@@ -67,7 +67,7 @@ public class MyStats : CommandModuleBase
 			var stats = await dbctx.UserStats
 				.Where(x => x.MemberId == ctx.Member.Id)
 				.OrderByDescending(x => x.Date)
-				.Take(7)
+				.Take(14)
 				.ToListAsync();
 
 			List<int> data = new();
