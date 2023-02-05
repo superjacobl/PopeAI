@@ -19,7 +19,7 @@
     <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.0" />
-    <PackageReference Include="Valour.Net" Version="0.6.7.1" />
+    <PackageReference Include="Valour.Net" Version="0.6.7.2" />
   </ItemGroup>
   <ItemGroup Condition="true">
 	<PackageReference Include="Valour.Api" Version="0.1.7" />
