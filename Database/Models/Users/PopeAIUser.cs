@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Valour.Api.Items.Users;
 
 namespace PopeAI.Database.Models.Users;
 

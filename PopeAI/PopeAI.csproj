@@ -20,7 +20,7 @@
     <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.0" />
   </ItemGroup>
-  <ItemGroup Condition="true">
+  <ItemGroup Condition="false">
 	<PackageReference Include="Valour.Api" Version="0.1.6.30" />
     <PackageReference Include="Valour.Shared" Version="0.1.6.30" />
 	<PackageReference Include="Valour.Net" Version="0.6.6.6" />
@@ -30,7 +30,7 @@
     <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="false">
+  <ItemGroup Condition="true">
     <ProjectReference Include="..\Database\Database.csproj" />
      <ProjectReference Include="..\..\Valour\Valour\API\Valour.Api.csproj" /> 
      <ProjectReference Include="..\..\Valour.Net\Valour.Net\Valour.Net.csproj" /> 

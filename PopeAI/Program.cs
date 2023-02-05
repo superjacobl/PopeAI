@@ -1,13 +1,10 @@
-﻿global using Valour.Api.Items.Planets;
-global using Valour.Api.Items.Planets.Members;
-global using Valour.Api.Items.Channels;
-global using Valour.Api.Items.Channels.Planets;
-global using Valour.Api.Items.Messages;
-global using Valour.Api.Items.Messages.Embeds.Items;
-global using Valour.Api.Items.Messages.Embeds.Styles.Basic;
-global using Valour.Api.Items.Messages.Embeds.Styles;
-global using Valour.Api.Items.Messages.Embeds;
-global using Valour.Api.Items.Users;
+﻿global using Valour.Api.Models;
+global using Valour.Api.Models.Messages.Embeds;
+global using Valour.Api.Models.Messages.Embeds.Items;
+global using Valour.Api.Models.Messages.Embeds.Styles;
+global using Valour.Api.Models.Messages.Embeds.Styles.Basic;
+//global using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
+global using Valour.Api.Models.Messages.Embeds.Styles.Flex;
 global using Valour.Shared.Authorization;
 global using System.Net.Http.Json;
 global using Valour.Net.Client;
@@ -113,7 +110,7 @@ class Program
                         foreach(var msg in msgs) {
                             MessageManager.MessagesFromHistoryIds.Add(msg.Id);
                             msg.TimeSent = DateTime.SpecifyKind(msg.TimeSent, DateTimeKind.Utc);
-                            MessageManager.AddToQueue(msg);
+                            //MessageManager.AddToQueue(msg);
                         }
                         if (msgs.Count > 0) {
                             index = msgs.First().Id-1;

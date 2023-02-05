@@ -1,5 +1,4 @@
 using System;
-using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
 namespace PopeAI.Commands.Banking;
 
@@ -21,11 +20,12 @@ public class Parliament : CommandModuleBase
 {
     public static List<Party> Parties = new()
     {
-        new Party("New Vooperis People's Party (NVPP)",60 ,"C7ACE0"),
-        new Party("New Vooperis Social Democratic Party (NVSDP)",20 , "1E46F7")
-    };
+        new Party("New Vooperis People's Party (NVPP)",32 ,"C7ACE0"),
+        new Party("New Vooperis Social Democratic Party (NVSDP)",11 , "1E46F7"),
+		new Party("Free Democratic Party (FDP)",7 , "FFED00")
+	};
 
-    public static double pi = 3.1415926535;
+    public static double pi = 3.14159265358979;
 
     public (int, int, double, string) Coords(double r, double b)
     {
@@ -155,10 +155,10 @@ public class Parliament : CommandModuleBase
         return 0;
 	}
 
-	[Command("graph")]
+	[Command("graph1")]
     public async Task ViewGraph(CommandContext ctx)
     {
-        int seatCount = 80;
+        int seatCount = 50;
         int r0 = 150;
 
         int numberofRings = calculateNumberOfRings(seatCount, r0);

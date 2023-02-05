@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
 namespace PopeAI.Commands.Stats;
 

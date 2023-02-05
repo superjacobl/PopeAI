@@ -1,5 +1,3 @@
-using Valour.Api.Items.Users;
-
 namespace PopeAI.Commands.Economy;
 
 public class Economy : CommandModuleBase

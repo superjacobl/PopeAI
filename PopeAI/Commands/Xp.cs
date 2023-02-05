@@ -1,5 +1,4 @@
 using PopeAI.Database.Models.Planets;
-using Valour.Api.Items.Messages.Embeds.Styles.Flex;
 
 namespace PopeAI.Commands.Xp;
 

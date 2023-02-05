@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS currentstats (
     newcoins integer NOT NULL,
     messagessent integer NOT NULL,
     messagesuserssent integer NOT NULL,
+    totalcoins integer NOT NULL,
+    totalmessagesuserssent integer NOT NULL,
+    totalmessagessent integer NOT NULL,
     laststatupdate timestamp with time zone NOT NULL,
     CONSTRAINT pk_currentstats PRIMARY KEY (planetid)
 );
@@ -93,6 +96,9 @@ CREATE TABLE IF NOT EXISTS stats (
     newcoins integer NOT NULL,
     messagesuserssent integer NOT NULL,
     messagessent integer NOT NULL,
+    totalcoins integer NOT NULL,
+    totalmessagesuserssent integer NOT NULL,
+    totalmessagessent integer NOT NULL,
     time timestamp with time zone NOT NULL,
     CONSTRAINT pk_stats PRIMARY KEY (id)
 );

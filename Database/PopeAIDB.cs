@@ -1,6 +1,5 @@
 ﻿global using PopeAI.Database.Models.Users;
 global using System.ComponentModel.DataAnnotations;
-global using Valour.Api.Items.Planets.Members;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using PopeAI.Database;
 global using PopeAI.Database.Caching;
@@ -9,7 +8,6 @@ global using System.Threading.Tasks;
 global using System.Collections.Concurrent;
 global using System.Collections.Generic;
 global using System.Linq.Expressions;
-global using Valour.Api.Items.Messages;
 global using PopeAI.Database.Models.Elements;
 global using PopeAI.Database.Managers;
 global using PopeAI.Database.Models.Messaging;

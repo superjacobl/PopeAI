@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 /*
  * testgraph
@@ -170,7 +172,75 @@ namespace PopeAI.Commands.Tests
             }
         }
 
-        [Group("embed")]
+        [Command("map")]
+        public Task MapTestModule(CommandContext ctx)
+        {
+            // 7 by 7
+            string map = """
+0,0,1,1,1,1,0;
+0,0,1,2,2,1,0;
+0,0,1,2,1,0,0;
+0,0,1,2,1,1,0;
+0,0,1,2,2,2,1;
+0,0,1,2,2,2,1;
+0,0,1,1,1,1,1
+""";
+            List<List<int>> MapData = new();
+            
+            foreach(var row in map.Split(";"))
+            {
+                var r = new List<int>();
+                foreach (var col in row.Split(","))
+                    r.Add(int.Parse(col));
+                MapData.Add(r);
+            }
+
+            var embed = new EmbedBuilder()
+                .AddPage()
+				    .WithStyles(
+					    new Width(new Size(Unit.Pixels, 360)),
+					    new Height(new Size(Unit.Pixels, 190))
+				    )
+				    .AddRow()
+					    .WithStyles(
+						    FlexDirection.Column,
+						    new Width(new Size(Unit.Pixels, 325)),
+						    new Height(new Size(Unit.Pixels, 190))
+					    );
+
+
+
+			foreach (var row in MapData)
+			{
+                embed.WithRow()
+						.WithStyles(
+							FlexDirection.Row,
+							new Width(new Size(Unit.Pixels, 325)),
+							new Height(new Size(Unit.Pixels, 24))
+						);
+				foreach (var cell in row)
+                {
+                    Color c = cell switch
+                    {
+                        0 => new(61, 102, 204),
+                        1 => new(194, 178, 128),
+                        2 => new(76, 143, 59)
+                    };
+                    embed.WithRow()
+                        .WithStyles(
+                            new Width(new Size(Unit.Pixels, 24)),
+                            new Height(new Size(Unit.Pixels, 24)),
+                            new BackgroundColor(c),
+                            new Margin(right: new Size(Unit.Pixels, 0))
+                        )
+                        .CloseRow();
+				}
+                embed.CloseRow();
+            }
+            return ctx.ReplyAsync(embed);
+        }
+
+	    [Group("embed")]
         public class TestModule : CommandModuleBase
         {
             [Command("list")]
