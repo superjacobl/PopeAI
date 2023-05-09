@@ -20,6 +20,42 @@ public static class Functions
                         num /= 1000;
                         symbol = "b";
                     }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "t";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "q";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "Q";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "s";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "S";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "o";
+                    }
                 }
             }
             else
@@ -41,6 +77,42 @@ public static class Functions
                     muit *= 1000;
                     num /= 1000;
                     symbol = "b";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "t";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "q";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "Q";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "s";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "S";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "o";
                 }
             }
         else
@@ -112,6 +184,36 @@ public static class Functions
                 return $"{ExtraSymbol}{amount.ToString("#,##0.##")}{data.symbol}";
             }
             return $"{ExtraSymbol}{amount.ToString("#,##0.##")}{data.symbol}";
+        }
+    }
+
+    public static string Format(double Value, bool AddPlusSign = false, bool WholeNum = false, int Rounding = 2, bool NoK = false, string ExtraSymbol = "", bool Under1KNoDecimals = false)
+    {
+        var data = GetValues(Value, NoK);
+        if (WholeNum)
+        {
+            long amount = (long)data.amount;
+            if (AddPlusSign)
+            {
+                if (amount >= 0)
+                    return $"+{ExtraSymbol}{amount.ToString("#,##0")}{data.symbol}";
+                return $"{ExtraSymbol}{amount.ToString("#,##0")}{data.symbol}";
+            }
+            return $"{ExtraSymbol}{amount.ToString("#,##0")}{data.symbol}";
+        }
+        else
+        {
+            double amount = Math.Round(data.amount, Rounding);
+            string places = new string('#', Rounding);
+            if (Under1KNoDecimals)
+                places = "";
+            if (AddPlusSign)
+            {
+                if (amount >= 0)
+                    return $"+{ExtraSymbol}{amount.ToString("#,##0.##")}{data.symbol}";
+                return $"{ExtraSymbol}{amount.ToString("#,##0.##")}{data.symbol}";
+            }
+            return $"{ExtraSymbol}{amount.ToString($"#,##0.{places}")}{data.symbol}";
         }
     }
 

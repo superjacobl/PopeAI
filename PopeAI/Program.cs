@@ -34,6 +34,8 @@ global using System.IO;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
+using Database.Managers;
+using Valour_Bot.Commands.EggCoopGame;
 
 namespace PopeAI;
 
@@ -73,7 +75,8 @@ class Program
 
         ValourNetClient.AddPrefix("/");
         //ValourNetClient.ExecuteMessagesInParallel = true;
-        //ValourNetClient.BaseUrl = "https://localhost:44331/";
+        ValourNetClient.ExecuteInteractionsInParallel = true;
+        //ValourNetClient.BaseUrl = "http://localhost:5000/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
@@ -124,6 +127,10 @@ class Program
         UpdateHourly();
 
         MessageManager.Run();
+
+        await MessageQueueForChannelConversationsManager.StartAsync();
+
+        await EggCoopGame.StartAsync();
 
         while (true)
         {

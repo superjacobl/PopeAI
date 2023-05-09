@@ -1,4 +1,6 @@
+using Database.Managers;
 using PopeAI.Database.Models.Planets;
+using System.Collections.Concurrent;
 
 namespace PopeAI.Commands.Xp;
 
@@ -32,26 +34,23 @@ public class Xp : CommandModuleBase
 
         if (user == null)
         {
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             user = new(ctx.Member);
             user.DailyTasks = DailyTaskManager.GenerateNewDailyTasks(user.Id).ToList();
-            DBCache.Put(user.Id, user);
-            dbctx.Users.Add(user);
-            await dbctx.SaveChangesAsync();
+            DBCache.AddNew(user.Id, user);
         }
 
-        if ((DateTime.UtcNow-user.LastSentMessage).TotalDays >= 1.5) {
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            DailyTaskManager.UpdateTasks(user, dbctx);
-            await dbctx.SaveChangesAsync();
+        if (DateOnly.FromDateTime(DateTime.UtcNow).DayNumber - user.LastUpdatedDailyTasks.DayNumber >= 1) {
+            DailyTaskManager.UpdateTasks(user);
         }
-
-        user.NewMessage(ctx.Message);
 
         await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);
         await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
 
+        user.NewMessage(ctx.Message);
+
         await user.UpdateDB();
+
+        MessageQueueForChannelConversationsManager.AddToQueue(ctx.Message);
     }
 
     [Command("xp")]

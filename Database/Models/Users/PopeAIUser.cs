@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Database.Managers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,8 @@ public class DBUser : DBItem<DBUser>
     public int ActiveMinutes { get; set; }
     public DateTime LastHourly { get; set; }
     public DateTime LastSentMessage { get; set; }
+
+    public DateOnly LastUpdatedDailyTasks { get; set; }
 
     [InverseProperty("User")]
     public List<DailyTask> DailyTasks { get; set; }
@@ -87,6 +90,7 @@ public class DBUser : DBItem<DBUser>
         Id = planetMember.Id;
         UserId = planetMember.UserId;
         PlanetId = planetMember.PlanetId;
+        LastUpdatedDailyTasks = DateOnly.FromDateTime(DateTime.UtcNow);
     }
 
     public static string RemoveWhitespace(string input)
@@ -132,11 +136,12 @@ public class DBUser : DBItem<DBUser>
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
-            if (PointsThisMinute <= 3)
+            var bonus = MessageQueueForChannelConversationsManager.GetBonus(MessageQueueForChannelConversationsManager.GetChannelConversationType(msg.ChannelId));
+            if (PointsThisMinute <= 5)
             {
-                PointsThisMinute += 3;
+                PointsThisMinute += 5;
             }
-            decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3);
+            decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3 * bonus);
             xpgain = Math.Max(0.2m, xpgain);
             MessageXp += xpgain;
             int CoinGain = (int)Math.Max(Math.Round(xpgain*2),0);

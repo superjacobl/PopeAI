@@ -28,6 +28,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Console;
+using Database.Models.Users;
 
 namespace PopeAI.Database;
 
@@ -150,6 +151,8 @@ public class PopeAIDB : DbContext
 
     public DbSet<BotTime> BotTimes { get; set; }
 	public DbSet<UserStat> UserStats { get; set; }
+
+    public DbSet<UserEmbedState> UserEmbedStates { get; set; }
 
 	public PopeAIDB(DbContextOptions options)
     {

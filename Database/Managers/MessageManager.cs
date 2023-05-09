@@ -41,7 +41,7 @@ public static class MessageManager
                 {
                     PlanetId = message.PlanetId
                 };
-                DBCache.Put(info.PlanetId, info);
+                DBCache.AddNew(info.PlanetId, info);
                 dbctx.PlanetInfos.Add(info);
                 await dbctx.SaveChangesAsync();
             }

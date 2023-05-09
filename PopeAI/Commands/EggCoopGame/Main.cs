@@ -1,0 +1,831 @@
+﻿using Database.Models.Users;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Valour.Net.EmbedMenu;
+using System.Threading;
+using Valour.Net.CommandHandling;
+using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
+using PopeAI.Commands.Search;
+using IdGen;
+using System.IO;
+using Valour.Api.Models.Messages.Embeds;
+
+namespace Valour_Bot.Commands.EggCoopGame;
+
+public class EggCoopGame : CommandModuleBase
+{
+    public static ConcurrentDictionary<long, InteractionContext> InteractionContexts = new();
+    public static ConcurrentDictionary<long, DateTime> UserIdsCurrentlyConnected = new();
+    public static int ItemsPerResearchPage = 5;
+    public static IdManager FoxIdManager = new();
+
+    // Timer for executing timed tasks
+    private static Timer _timer;
+
+    public static Task StartAsync()
+    {
+        Console.WriteLine("Starting Message Worker");
+
+        _timer = new Timer(DoWork, null, TimeSpan.Zero,
+                TimeSpan.FromMilliseconds(300));
+
+        return Task.CompletedTask;
+    }
+
+    public static async void DoWork(object? _state)
+    {
+        foreach (var pair in UserIdsCurrentlyConnected)
+        {
+            // process game updates
+
+            var ctx = InteractionContexts[pair.Key];
+
+            var player = (await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id)).Data.EggCoopGameData;
+            await Game.ProcessTick(player);
+
+            // handle inactivity somehow
+            if (DateTime.UtcNow.Subtract(pair.Value).TotalMinutes > 5 && false)
+            {
+
+            }
+            else
+            {
+                await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+            }
+        }
+    }
+
+    [Command("coop")]
+    public async Task UpdateGameScreen(CommandContext ctx)
+    {
+        EmbedBuilder embed = new EmbedBuilder().AddPage("Egg Coop Game").AddRow().AddButton("Load The Game").OnClickSendInteractionEvent("EggCoop-Load");
+        await ctx.ReplyAsync(embed);
+    }
+
+    public static void LoadStartup(InteractionContext ctx)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+        UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+        InteractionContexts[ctx.Member.UserId] = ctx;
+    }
+
+    [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId: "EggCoop-Load")]
+    public async Task OnGameLoad(InteractionContext ctx)
+    {
+        LoadStartup(ctx);
+
+        await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask ClickedHatchChicken(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        if (state.Data.EggCoopGameData.Chickens < state.Data.EggCoopGameData.MaxChickens)
+            state.Data.EggCoopGameData.Chickens += (int)state.Data.EggCoopGameData.ChickensGainedPerClick;
+
+        await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetGameScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetResearchScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+        
+        await ctx.SendTargetedEmbedUpdateForUser(await GetResearchScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetHabitatsScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        await ctx.SendTargetedEmbedUpdateForUser(await GetHabitatsScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetStatsScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        await ctx.SendTargetedEmbedUpdateForUser(await GetStatsScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetPrestigeScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        await ctx.UpdateEmbedForUser(await GetPrestigeScreen(ctx), ctx.Member.UserId);
+    }
+
+    public static async ValueTask<EmbedBuilder> GetPrestigeScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 4;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Prestige");
+
+        AddHeader(embed, state);
+
+        var breadgain = Game.GetBreadGain(player);
+        var breadperhour = (breadgain - player.LastBreadGain) * 3600 * (1000 / player.MsPerTick);
+        var bonus = player.Bread * (0.1 + Game.GetTotalResearchEffectForType(player, ModifierType.BonusPerBread) - 1) * 100;
+
+        embed
+        .AddRow()
+            .AddText("Current :bread:", Functions.Format(player.Bread, Rounding: 3, NoK: true))
+        .AddRow()
+            .AddText("Current bonus", $"+{Functions.Format(bonus, Rounding: 2, NoK: true)}% egg value")
+        .AddRow()
+            .AddText(":bread: Gain", $"{Functions.Format(breadgain, Rounding: 3, NoK: true)} ({Functions.Format(breadperhour, Rounding: 3, NoK: true)}/h)")
+        .AddRow()
+            .AddText("Total Prestige Earnings", Functions.Format(player.TotalPrestigeEarnings, Rounding: 3, NoK: true, ExtraSymbol: "$"))
+        .AddRow()
+            .AddButton("Prestige").OnClick(Prestige);
+
+        HandleFoxes(embed, state);
+        return embed;
+    }
+
+    public static async ValueTask<EmbedBuilder> GetStatsScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 3;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Stats");
+
+        AddHeader(embed, state);
+
+        var breadgain = Game.GetBreadGain(player);
+        var breadperhour = (breadgain - player.LastBreadGain) * 3600 * (1000 / player.MsPerTick);
+
+        embed.AddRow().SetId("1")
+            .AddText("Farm's Value", Functions.Format(player.FarmValue, Rounding: 3, NoK: true, ExtraSymbol: "$"))
+                .SetId("Farm-Value-Text")
+        .AddRow().SetId("2")
+            .AddText("Total Prestige Earnings", Functions.Format(player.TotalPrestigeEarnings, Rounding: 3, NoK: true, ExtraSymbol: "$"))
+                .SetId("Total Prestige Earnings")
+        .AddRow().SetId("3")
+            .AddText(":bread: Gain", $"{Functions.Format(breadgain, Rounding: 3, NoK: true)} ({Functions.Format(breadperhour, Rounding: 3, NoK: true)}/h)")
+                .SetId(":bread: Gain")
+        .AddRow().SetId("4")
+            .AddText("Chickens Gain", Functions.Format(player.ChickenGain, Rounding: 3, NoK: true) + "/m")
+                .SetId("Chickens Gain");
+
+        HandleFoxes(embed, state);
+
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
+        return embed;
+    }
+
+    public static async ValueTask<EmbedBuilder> GetGameScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 0;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Home");
+
+        AddHeader(embed, state);
+
+        var nextegg = GameData.EggData[player.EggTypeIndex + 1];
+        var currenteggOoMs = Math.Log10(GameData.EggData[player.EggTypeIndex].UnlockAtFarmValue);
+        var farmvalueOoMs = Math.Log10(player.FarmValue);
+        var diffinOoMsfarmvalue = farmvalueOoMs - currenteggOoMs;
+        var progresstodiscovernext = Math.Max(0, Math.Min(diffinOoMsfarmvalue / (Math.Log10(nextegg.DiscoverAtFarmValue)-currenteggOoMs), 1.0))*100;
+        var progresstounlocknext = Math.Max(0, Math.Min(diffinOoMsfarmvalue / (Math.Log10(nextegg.UnlockAtFarmValue) - currenteggOoMs), 1.0)) * 100;
+
+        embed
+            .AddRow()
+                .AddText($"{Functions.Format(player.Chickens, WholeNum: true, NoK: true)}/{Functions.Format(player.MaxChickens, WholeNum: true, NoK: true)}")
+            .AddRow();
+        if (progresstodiscovernext <= 99.999) { 
+                embed.AddProgress("Progress to next egg")
+                    .WithName($"Progress to discover next egg ({Math.Round(progresstodiscovernext,2)}%)")
+                        .SetId("name-for-progress")
+                    .WithProgressBar((int)progresstodiscovernext)
+                        .WithBootStrapClasses(BootstrapBackgroundColorClass.Info)
+                    .Close();
+        }
+        else
+        {
+            embed.AddProgress("Progress to next egg")
+                    .WithName($"Progress to unlock {nextegg.Name} ({Math.Round(progresstounlocknext, 2)}%)")
+                        .SetId("name-for-progress")
+                    .WithProgressBar((int)progresstounlocknext)
+                        .WithBootStrapClasses(BootstrapBackgroundColorClass.Info)
+                    .Close();
+            if (progresstounlocknext >= 99.999)
+            {
+                embed.AddButton("Go to next egg").OnClick(NextEgg);
+            }
+        }
+            embed.AddRow()
+                .AddButton($"+{(int)player.ChickensGainedPerClick}")
+                    .OnClick(ClickedHatchChicken)
+                .WithStyles(new Padding(new Size(Unit.Pixels, 40), new Size(Unit.Pixels, 40)));
+
+        HandleFoxes(embed, state);
+
+        return embed;
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask NextEgg(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        var nextegg = GameData.EggData[player.EggTypeIndex+1];
+
+        if (player.FarmValue > nextegg.UnlockAtFarmValue && nextegg.Name != null)
+        {
+            player.Chickens = 0;
+            player.Money = 0;
+            player.ResearchesCompleted = new();
+            player.Houses = new() 
+            {
+                { 0, 1 },
+                { 1, 0 },
+                { 2, 0 },
+                { 3, 0 }
+            };
+            player.EggTypeIndex += 1;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask ChangeResearchType(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        player.InResearchType = player.InResearchType == 0 ? 1 : 0;
+        state.Data.EmbedItemsHashes = null;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask BuyCommonResearch(InteractionContext ctx)
+    {
+        ushort id = ushort.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
+        var research = GameData.ResearchData.First(x => x.Id == id);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (research.CostFunc(player.GetCommonResearchLevel(research.Id)) < player.Money && player.GetCommonResearchLevel(id) < research.MaxLevel)
+        {
+            player.Money -= research.CostFunc(player.GetCommonResearchLevel(research.Id));
+            if (!player.ResearchesCompleted.ContainsKey(id))
+                player.ResearchesCompleted[id] = 0;
+            player.ResearchesCompleted[id] += 1;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask BuyBaconResearch(InteractionContext ctx)
+    {
+        ushort id = ushort.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
+        var research = GameData.BaconResearchData.First(x => x.Id == id);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (research.CostFunc(player.GetBaconResearchLevel(research.Id)) < player.Bacon && player.GetBaconResearchLevel(id) < research.MaxLevel)
+        {
+            player.Bacon -= (long)research.CostFunc(player.GetBaconResearchLevel(research.Id));
+            if (!player.BaconResearchesCompleted.ContainsKey(id))
+                player.BaconResearchesCompleted[id] = 0;
+            player.BaconResearchesCompleted[id] += 1;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+
+    [EmbedMenuFunc]
+    public static async ValueTask ClickedFox(InteractionContext ctx)
+    {
+        string data = ctx.Event.ElementId.Split("::MENU$-")[0];
+        var foxid = long.Parse(data);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        var fox = player.Foxes.FirstOrDefault(x => x.Id == foxid);
+        if (fox is not null && !fox.IsTakenDown)
+        {
+            player.FoxesPetted += 1;
+            fox.IsTakenDown = true;
+            fox.TakenDownAt = DateTime.UtcNow;
+            var reward = fox.GetReward(player);
+            fox.Reward = reward;
+
+            if (reward.Type == RewardType.Bacon)
+                player.Bacon += (int)reward.Amount;
+            else if (reward.Type == RewardType.Dollars)
+            {
+                fox.Reward.Amount = reward.Amount * player.FarmValue / 100;
+                player.Money += fox.Reward.Amount;
+                player.TotalPrestigeEarnings += fox.Reward.Amount;
+            }
+        }
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask BuyHab(InteractionContext ctx)
+    {
+        string data = ctx.Event.ElementId.Split("::MENU$-")[0];
+        var playerhabindex = ushort.Parse(data.Split("?")[0]);
+        var habid = int.Parse(data.Split("?")[1]);
+
+        var hab = GameData.HouseData[habid];
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (hab.Cost < player.Money)
+        {
+            player.Money -= hab.Cost;
+            player.Houses[playerhabindex] = habid;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask Prestige(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        player.Bread += Game.GetBreadGain(player);
+
+        player.TotalPrestigeEarnings = 0;
+        player.Chickens = 0;
+        player.Money = 0;
+        player.ResearchesCompleted = new();
+        player.Houses = new()
+        {
+            { 0, 1 },
+            { 1, 0 },
+            { 2, 0 },
+            { 3, 0 }
+        };
+        player.EggTypeIndex = 0;
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask PrevResearchpage(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        if (player.InResearchType == 0)
+        {
+            if (player.CurrentResearchPageNumber > 0)
+                player.CurrentResearchPageNumber -= 1;
+        }
+        else
+        {
+            if (player.CurrentBaconResearchPageNumber > 0)
+                player.CurrentBaconResearchPageNumber -= 1;
+        }
+        state.Data.EmbedItemsHashes = null;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask NextResearchpage(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        if (player.InResearchType == 0)
+        {
+            if (player.CurrentResearchPageNumber < Math.Ceiling(GameData.ResearchData.Count / (double)ItemsPerResearchPage))
+                player.CurrentResearchPageNumber += 1;
+        }
+        else
+        {
+            if (player.CurrentBaconResearchPageNumber < Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage))
+                player.CurrentBaconResearchPageNumber += 1;
+        }
+        state.Data.EmbedItemsHashes = null;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    public static async ValueTask<EmbedBuilder> GetResearchScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 1;
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Research");
+
+        AddHeader(embed, state);
+
+        Color colorforback = null;
+        Color colorforfront = null;
+        if (player.InResearchType == 0) {
+            colorforback = player.CurrentResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
+            var currentnum = player.CurrentResearchPageNumber;
+            var totalnum = (int)(Math.Ceiling(GameData.ResearchData.Count / (double)ItemsPerResearchPage)) - 1;
+            colorforfront = currentnum < totalnum ? new Color(0, 0, 0) : new Color(50, 0, 0);
+        }
+        else {
+            colorforback = player.CurrentBaconResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
+            var currentnum = player.CurrentBaconResearchPageNumber;
+            var totalnum = (int)(Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage)) - 1;
+            colorforfront = currentnum < totalnum ? new Color(0, 0, 0) : new Color(50, 0, 0);
+        }
+
+        embed
+        .AddRow()
+            .SetId("research-change-page-and-type-row")
+            .WithStyles(new FlexJustifyContent(JustifyContent.SpaceBetween), new FlexDirection(Direction.Row))
+            .WithRow()
+                .SetId("research-change-page-buttons")
+                .AddButtonWithNoText()
+                    .SetId("back-button")
+                    .OnClick(PrevResearchpage)
+                    .WithStyles(new BackgroundColor(colorforback))
+                    .AddText("&#60;")
+                .Close()
+                .AddButtonWithNoText()
+                    .SetId("forward-button")
+                    .OnClick(NextResearchpage)
+                    .WithStyles(new BackgroundColor(colorforfront))
+                    .AddText("&#62;")
+                .Close()
+            .CloseRow()
+            .WithRow()
+                .SetId("change-research-type-row")
+                .AddButtonWithNoText()
+                    .SetId("change-research-type-button")
+                    .OnClick(ChangeResearchType)
+                    .WithStyles(new BackgroundColor(player.InResearchType == 1 ? new Color(0, 150, 0) : new Color("DF3F32")))
+                    .AddText(player.InResearchType == 0 ? "Switch to Bacon" : "Switch to Common")
+                .Close();
+
+        embed
+            .AddRow()
+                .WithStyles(FlexDirection.Column)
+                .SetId("embed-body");
+
+        var count = 0;
+        var startingi = player.InResearchType == 0 ? player.CurrentResearchPageNumber * ItemsPerResearchPage : player.CurrentBaconResearchPageNumber * ItemsPerResearchPage;
+        var max = player.InResearchType == 0 ? GameData.ResearchData.Count : GameData.BaconResearchData.Count;
+        for (var i = startingi; i < max; i++)
+        {
+            count += 1;
+            Research research = null;
+            research = player.InResearchType == 0 ? GameData.ResearchData[i] : GameData.BaconResearchData[i];
+            int researchlevel = player.InResearchType == 0 ? player.GetCommonResearchLevel(research.Id) : player.GetBaconResearchLevel(research.Id);
+            embed.WithRow()
+                .WithStyles(
+                    FlexDirection.Row,
+                    FlexJustifyContent.SpaceBetween,
+                    new FlexAlignItems(AlignItem.Stretch),
+                    new Margin(top: new Size(Unit.Pixels, 8))
+                )
+                .SetId($"embed-row-for-research-row-{count}")
+                .WithRow()
+                    .WithStyles(
+                        FlexDirection.Column,
+                        FlexJustifyContent.SpaceBetween,
+                        new FlexAlignItems(AlignItem.Stretch),
+                        new FlexAlignSelf(AlignSelf.FlexStart)
+                    )
+                    .SetId($"embed-row-for-research-info-{count}")
+                    .AddText(research.Name).WithStyles(new FontSize(new Size(Unit.Pixels, 16)))
+                    .WithRow()
+                        .AddText(research.Description)
+                    .CloseRow()
+                    .AddProgress()
+                        .SetId($"research-progress-{count}")
+                        .WithName($"{researchlevel}/{research.MaxLevel}")
+                        .SetId($"research-progress-name-{count}")
+                        .WithProgressBar((int)(researchlevel * 100.0 / (double)research.MaxLevel))
+                            .WithBootStrapClasses(BootstrapBackgroundColorClass.Info)
+                    .Close()
+                .CloseRow()
+                .WithRow()
+                    .WithStyles(new FlexAlignSelf(AlignSelf.FlexEnd))
+                    .AddButtonWithNoText()
+                        .SetId($"research-button-{count}");
+            if (((player.InResearchType == 0 && research.CostFunc(researchlevel) < player.Money) || (player.InResearchType == 1 && research.CostFunc(researchlevel) < player.Bacon)) && researchlevel < research.MaxLevel)
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(player.InResearchType == 0 ? new Color(0, 175, 0) : new Color("9f1313"))).OnClick(player.InResearchType == 0 ? BuyCommonResearch : BuyBaconResearch, research.Id.ToString());
+            else
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+            if (researchlevel == research.MaxLevel)
+            {
+                embed.AddText("Max Level")
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                        .SetId($"research-button-text3-{count}")
+                    .Close()
+                .CloseRow();
+            }
+            else
+            {
+                var text = "";
+                if (player.InResearchType == 0)
+                    text = $"${Functions.Format(research.CostFunc(researchlevel), Rounding: 2, NoK: true)}";
+                else if (player.InResearchType == 1)
+                    text = $"{Functions.Format(research.CostFunc(researchlevel), WholeNum: true, NoK: true)} :bacon:";
+                embed.AddText("Research")
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                        .SetId($"research-button-text3-{count}")
+                    .AddText(text)
+                        .WithStyles(new Margin(left: new Size(Unit.Auto), right: new Size(Unit.Auto)))
+                        .SetId($"research-button-text2-{count}")
+                    .Close()
+                .CloseRow();
+            }
+            embed.CloseRow();
+
+            if (count >= ItemsPerResearchPage)
+                break;
+        }
+
+        //.WithStyles(new Padding(new Size(Unit.Pixels, 40), new Size(Unit.Pixels, 40), new Size(Unit.Pixels, 6), new Size(Unit.Pixels, 6)));
+        HandleFoxes(embed, state);
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
+        return embed;
+    }
+
+    public static async ValueTask<EmbedBuilder> GetHabitatsScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 2;
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Habitats");
+
+        AddHeader(embed, state);
+
+        embed
+            .AddRow()
+                .WithStyles(FlexDirection.Column)
+                .SetId("embed-body");
+
+        foreach (var pair in player.Houses)
+        {
+            var id = pair.Key;
+            var currenthab = GameData.HouseData[pair.Value];
+            var nexthab = pair.Value + 1 < GameData.HouseData.Count ? GameData.HouseData[pair.Value + 1] : null;
+            embed.WithRow()
+                .WithStyles(
+                    FlexDirection.Row,
+                    FlexJustifyContent.SpaceBetween,
+                    new FlexAlignItems(AlignItem.Stretch),
+                    new Margin(top: new Size(Unit.Pixels, 8))
+                )
+                .SetId($"row-for-house-{id}")
+                .WithRow()
+                    .WithStyles(
+                        FlexDirection.Column,
+                        FlexJustifyContent.SpaceBetween,
+                        new FlexAlignItems(AlignItem.Stretch),
+                        new FlexAlignSelf(AlignSelf.FlexStart)
+                    )
+                .SetId($"left-side-row-for-house-{id}");
+            if (currenthab is not null) {
+                    embed.AddText(currenthab.Name)
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 16)))
+                        .SetId($"inner-left-row--name-for-house-{id}")
+                    .WithRow()
+                        .SetId($"inner-left-row-for-house-{id}")
+                        .AddText(Functions.Format(currenthab.Capacity, Rounding: 2, NoK: true))
+                            .SetId($"house-capacity-{id}")
+                    .CloseRow();
+            }
+            else
+            {
+                embed.AddText("none").WithStyles(new FontSize(new Size(Unit.Pixels, 16))).SetId($"inner-left-side-for-house-{id}");
+            }
+                embed.CloseRow()
+                .WithRow()
+                    .WithStyles(new FlexAlignSelf(AlignSelf.FlexEnd))
+                    .SetId($"right-side-row-for-house-{id}")
+                    .AddButtonWithNoText()
+                        .SetId($"right-side-row-for-house-button-{id}");
+            if (nexthab is not null && nexthab.Cost < player.Money)
+            {
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(0, 175, 0))).OnClick(BuyHab, $"{pair.Key}?{nexthab.Id}")
+                    .AddText($"{nexthab.Name} ({Functions.Format(nexthab.Capacity, Rounding: 2, NoK: true)})")
+                        .SetId($"button-hab-name-capacity-for-house-{id}")
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                    .AddText($"${Functions.Format(nexthab.Cost, Rounding: 2, NoK: true)}")
+                        .SetId($"button-hab-cost-for-house-{id}")
+                        .WithStyles(new Margin(left: new Size(Unit.Auto), right: new Size(Unit.Auto)), new FontSize(new Size(Unit.Pixels, 14)));
+            }
+            else if (nexthab is null)
+            {
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+                embed.AddText("Max Habitat Tier")
+                    .SetId($"button-hab-name-capacity-for-house-{id}")
+                    .WithStyles(new FontSize(new Size(Unit.Pixels, 14)));
+            }
+            else
+            {
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+                embed.AddText($"{nexthab.Name} ({Functions.Format(nexthab.Capacity, Rounding: 2, NoK: true)})")
+                        .SetId($"button-hab-name-capacity-for-house-{id}")
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                    .AddText($"${Functions.Format(nexthab.Cost, Rounding: 2, NoK: true)}")
+                        .SetId($"button-hab-cost-for-house-{id}")
+                        .WithStyles(new Margin(left: new Size(Unit.Auto), right: new Size(Unit.Auto)), new FontSize(new Size(Unit.Pixels, 14)));
+            }
+            embed.Close()
+            .CloseRow()
+            .CloseRow();
+        }
+
+        HandleFoxes(embed, state);
+
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
+
+        return embed;
+    }
+
+    private static List<string> HeaderItems = "Home,Research,Habitats,Stats,Prestige".Split(",").ToList();
+    private static List<Func<InteractionContext, ValueTask>> HeaderClicks = new() { GetGameScreenAsync, GetResearchScreenAsync, GetHabitatsScreenAsync, GetStatsScreenAsync, GetPrestigeScreenAsync };
+
+    public static EmbedBuilder HandleFoxes(EmbedBuilder embed, UserEmbedState state)
+    {
+        var player = state.Data.EggCoopGameData;
+
+        if (player.CurrentEmbedMenuPageNum != 0 && player.CurrentEmbedMenuPageNum != 3 && player.CurrentEmbedMenuPageNum != 4)
+            return embed;
+        // handle the fox (drone) system
+        // 25s
+        // 35s
+        if (DateTime.UtcNow.Subtract(player.LastRegularFoxSpawn).TotalSeconds > 25)
+        {
+            Random rng = new Random();
+            var upperbound = (int)((1000 / player.MsPerTick) * 12);
+            if (rng.Next(0, upperbound) == 1)
+            {
+                int numtospawn = 1;
+                if (rng.Next(0, 5) == 0) numtospawn = 2;
+                if (rng.Next(0, 25) == 0) numtospawn = 3;
+
+                for (int i = 0; i < numtospawn; i++)
+                {
+                    // spawn a common fox
+                    var fox = new Fox()
+                    {
+                        IsCommon = true,
+                        IsTakenDown = false,
+                        Spawned = DateTime.UtcNow,
+                        X = rng.Next(10, 40) + 35,
+                        Y = 79 + rng.Next(1, 5),//rng.Next(10, 80),
+                        Id = FoxIdManager.Generate()
+                    };
+                    player.Foxes.Add(fox);
+                }
+                player.LastRegularFoxSpawn = DateTime.UtcNow;
+            }
+        }
+
+        embed.AddRow().SetId("foxes-row").HasChanged(true);
+        // render the foxes
+        foreach (var fox in player.Foxes)
+        {
+            if (fox.IsTakenDown)
+            {
+                embed.AddText("🦊")
+                    .SetId($"fox-{fox.Id}")
+                    .WithStyles(
+                        new Position(new Size(Unit.Percent, fox.X), top: new Size(Unit.Percent, fox.Y)),
+                        new FontSize(new Size(Unit.Pixels, 18))
+                    );
+                if (fox.Reward.Type == RewardType.Bacon) {
+                    embed.AddText($"+{fox.Reward.Amount} :bacon:").SetId($"fox-{fox.Id}-reward").WithStyles(
+                        new Position(new Size(Unit.Percent, fox.X-2), top: new Size(Unit.Percent, fox.Y-7)));
+                }
+                else
+                {
+                    embed.AddText($"+{Functions.Format(fox.Reward.Amount, Rounding: 2, NoK: true, ExtraSymbol: "$")}").SetId($"fox-{fox.Id}-reward").WithStyles(
+                        new Position(new Size(Unit.Percent, fox.X-2), top: new Size(Unit.Percent, fox.Y-7)));
+                }
+            }
+            else
+            {
+                embed.AddText("🦊").SetId($"fox-{fox.Id}")
+                    .WithStyles(
+                        new Position(new Size(Unit.Percent, fox.X), top: new Size(Unit.Percent, fox.Y)),
+                        new FontSize(new Size(Unit.Pixels, 18))
+                    )
+                    .OnClick(ClickedFox, fox.Id.ToString());
+            }
+        }
+        return embed;
+    }
+
+    public static EmbedBuilder AddHeader(EmbedBuilder embed, UserEmbedState state)
+    {
+        int i = 0;
+        var player = state.Data.EggCoopGameData;
+        if (state.Data.LastEmbedMenuPageNum != player.CurrentEmbedMenuPageNum)
+        {
+            state.Data.EmbedItemsHashes = null;
+            state.Data.LastEmbedMenuPageNum = player.CurrentEmbedMenuPageNum;
+        }
+
+        embed.WithStyles(new FontSize(new Size(Unit.Pixels, 13)));
+        embed.AddRow()
+            .SetId("top-row-for-menu")
+            .WithStyles(
+                new FlexAlignItems(AlignItem.Center),
+                Width.Full);
+        foreach (var item in HeaderItems)
+        {
+            if (i == state.Data.EggCoopGameData.CurrentEmbedMenuPageNum)
+                embed.AddText($"**{item}**")
+                    .WithStyles(TextDecoration.UnderLine)
+                    .SetId($"text-for-top-menu-{i}")
+                    .OnClick(HeaderClicks[i]);
+            else
+                embed.AddText(item)
+                    .SetId($"text-for-top-menu-{i}")
+                    .OnClick(HeaderClicks[i]);
+            i += 1;
+        }
+        embed.AddRow()
+            .WithStyles(new FlexJustifyContent(JustifyContent.SpaceBetween), new FlexDirection(Direction.Row))
+                .SetId("money-bacon-text-row")
+                .WithRow()
+                    .SetId("money-text-row")
+                        .AddText(Functions.Format(state.Data.EggCoopGameData.Money, Rounding: 2, NoK: true, ExtraSymbol: "$") + $@" ({Functions.Format(state.Data.EggCoopGameData.MoneyGain, AddPlusSign: true, Rounding: 2, NoK: false, ExtraSymbol: "$")}/s)")
+                            .SetId("money-text")
+                .CloseRow()
+                .WithRow()
+                    .SetId("money-text-row")
+                    .AddText(Functions.Format(state.Data.EggCoopGameData.Bacon, Rounding: 2, NoK: true, Under1KNoDecimals: true) + " 🥓")
+                        .SetId("bacon-text")
+                .CloseRow();
+        return embed;
+    }
+}

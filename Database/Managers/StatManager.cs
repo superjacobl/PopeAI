@@ -15,10 +15,7 @@ public static class StatManager
         if (current is null)
         {
             current = new(PlanetId);
-            DBCache.Put(current.PlanetId, current);
-            using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-            dbctx.CurrentStats.Add(current);
-            dbctx.SaveChanges();
+            DBCache.AddNew(current.PlanetId, current);
         }
         switch (type)
         {

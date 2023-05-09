@@ -1,8 +1,29 @@
-﻿namespace PopeAI.Database.Caching;
+﻿using Database.Models.Users;
+
+namespace PopeAI.Database.Caching;
+
+public class DBCacheItemAddition
+{
+    public Type Type { get; set; }
+    public object Item { get; set; }
+
+    public void AddToDB()
+    {
+        if (Type == typeof(DBUser))
+            DBCache.dbctx.Add((DBUser)Item);
+        else if (Type == typeof(CurrentStat))
+            DBCache.dbctx.Add((CurrentStat)Item);
+        else if (Type == typeof(DailyTask))
+            DBCache.dbctx.Add((DailyTask)Item);
+        else if (Type == typeof(PlanetInfo))
+            DBCache.dbctx.Add((PlanetInfo)Item);
+        else if (Type == typeof(UserEmbedState))
+            DBCache.dbctx.Add((UserEmbedState)Item);
+    }
+}
 
 public class DBCache
 {
-
     // in the future, due to memory, we will only beable to store pretty much planets, roles, mutes, and bans in this cache
     // everything else would need to be stored on the DB
     // but for right now we can just store the entire db in cache for SPEED
@@ -11,6 +32,17 @@ public class DBCache
     /// The high level cache object which contains the lower level caches
     /// </summary>
     public static ConcurrentDictionary<Type, ConcurrentDictionary<long, object>> HCache = new();
+
+    public static ConcurrentQueue<DBCacheItemAddition> ItemQueue = new();
+
+    public static PopeAIDB dbctx { get; set; }
+
+    public static void AddNew<T>(long Id, T? obj, bool AddToCache = true) where T : class
+    {
+        if (AddToCache)
+            Put(Id, obj);
+        ItemQueue.Enqueue(new() { Type = typeof(T), Item = obj });
+    }
 
     public static void DeleteAll<T>() where T : class
     {
@@ -102,12 +134,13 @@ public class DBCache
     public static async Task Load()
     {
         //#if !DEBUG
-        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-        IEnumerable<DBUser> UsersToCache = await dbctx.Users
+        dbctx = PopeAIDB.DbFactory.CreateDbContext();
+        List<DBUser> UsersToCache = await dbctx.Users
             .Where(x => x.LastSentMessage.AddDays(99999) > DateTime.UtcNow)
             .OrderByDescending(x => x.Messages).Take(50000)
             .Include(x => x.DailyTasks)
             .ToListAsync();
+        List<long> UserIds = UsersToCache.Select(x => x.Id).ToList();
         foreach (var _obj in UsersToCache)
         {
             Put(_obj.Id, _obj);
@@ -116,13 +149,16 @@ public class DBCache
         {
             Put(_obj.PlanetId, _obj);
         }
-        foreach (var user in UsersToCache)
-        {
-            foreach (var _obj in user.DailyTasks)
-            {
-                Put(_obj.Id, _obj);
-            }
-        }
+        foreach (var _obj in dbctx.UserEmbedStates.Where(x => UserIds.Contains(x.MemberId)))
+            Put(_obj.MemberId, _obj);
+
+        //foreach (var user in UsersToCache)
+        //{
+        //     foreach (var _obj in user.DailyTasks)
+        //    {
+        //        Put(_obj.Id, _obj);
+        //    }
+        //  }
         foreach (var _obj in dbctx.PlanetInfos)
         {
             Put(_obj.PlanetId, _obj);
@@ -131,6 +167,20 @@ public class DBCache
     }
 
     public static async Task SaveAsync()
+    {
+        while (ItemQueue.Count > 0)
+        {
+            if (ItemQueue.TryDequeue(out var item))
+                item.AddToDB();
+        }
+        foreach (var item in GetAll<UserEmbedState>())
+        {
+            dbctx.Entry(item).Property(b => b.Data).IsModified = true;
+        }
+        await dbctx.SaveChangesAsync();
+    }
+
+    public static async Task SaveAsync_Old()
     {
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         dbctx.Users.UpdateRange(GetAll<DBUser>());
