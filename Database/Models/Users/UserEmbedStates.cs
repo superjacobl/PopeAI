@@ -220,7 +220,13 @@ public class Contract
 {
     public long Id { get; set; }
     public string Name { get; set; }
-    public List<GeneralReward> Rewards { get; set; }
+    public ushort EggId { get; set; }
+    public List<ContractGoal> Goals { get; set; }
+    public DateTime TimeCreated { get; set; }
+    public DateTime ExpiresAt { get; set; }
+
+    [NotMapped, JsonIgnore]
+    public TimeSpan TimeLeft => ExpiresAt.Subtract(DateTime.UtcNow);
 }
 
 public class Farm
@@ -254,11 +260,16 @@ public class Farm
         { 3, 0 }
     };
 
+    public List<Contract> ActiveContracts { get; set; } = new();
+    public List<Contract> AvailableContracts { get; set; } = new();
+
     [JsonIgnore]
     [NotMapped]
     public double NextChicken { get; set; } = 0;
 
     public FarmType FarmType { get; set; } = FarmType.Home;
+
+    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 }
 
 public class UserEggCoopGameData
@@ -272,7 +283,6 @@ public class UserEggCoopGameData
     public Dictionary<ushort, int> BaconResearchesCompleted { get; set; } = new();
     public List<int> GoalsDone { get; set; } = new();
     public List<int> CurrentGoals { get; set;} = new();
-    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     public DateTime LastRegularFoxSpawn { get; set; } = DateTime.UtcNow;
     public DateTime LastEliteFoxSpawn { get; set; } = DateTime.UtcNow;
     public List<Fox> Foxes { get; set; } = new();
@@ -282,6 +292,8 @@ public class UserEggCoopGameData
     [JsonIgnore]
     public Farm CurrentFarm => Farms[CurrentFarmId];
     public Dictionary<long, Farm> Farms { get; set; } = new();
+
+    public bool IsInOfflineProgressPage { get; set; } = false;
 
     public int GetCommonResearchLevel(ushort id)
     {
@@ -299,6 +311,8 @@ public class UserEggCoopGameData
 
     [JsonIgnore, NotMapped]
     public double MsPerTick { get; set; } = 300;
+
+    public bool IsNotLookingAtChannel { get; set; } = false;
 }
 
 public class UserEmbedStateData

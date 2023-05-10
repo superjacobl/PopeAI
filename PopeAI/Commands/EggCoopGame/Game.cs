@@ -131,10 +131,12 @@ public static class Game
         }
         return total;
     }
-    public static async ValueTask ProcessTick(UserEggCoopGameData player)
+
+    public static async ValueTask ProcessTick(UserEggCoopGameData player, double mspertick = 0)
     {
         // delta time
-        var dt = 1.0 / (1000 / player.MsPerTick);
+        var pertick = mspertick > 1 ? mspertick : player.MsPerTick;
+        var dt = 1.0 / (1000 / pertick);
 
         var currentegg = GameData.EggData[player.CurrentFarm.EggTypeIndex];
 
@@ -206,6 +208,6 @@ public static class Game
             fox.Tick(player);
         }
 
-        player.LastUpdated = DateTime.UtcNow;
+        farm.LastUpdated = DateTime.UtcNow;
     }
 }

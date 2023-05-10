@@ -47,13 +47,33 @@ public class EggCoopGame : CommandModuleBase
             await Game.ProcessTick(player);
 
             // handle inactivity somehow
-            if (DateTime.UtcNow.Subtract(pair.Value).TotalMinutes > 5 && false)
+            if (DateTime.UtcNow.Subtract(pair.Value).TotalMinutes >= 5)
             {
+                player.MsPerTick = 1000;
+            }
+            else if (DateTime.UtcNow.Subtract(pair.Value).TotalMinutes >= 2) {
 
             }
             else
             {
-                await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+                player.MsPerTick = 300;
+                if (!player.IsInOfflineProgressPage)
+                    await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+            }
+        }
+    }
+
+    [Event(EventType.OnChannelWatching)]
+    public void OnChannelWatching(ChannelWatchingContext ctx)
+    {
+        var oldctxs = InteractionContexts.Values.Where(x => x.Channel.Id == ctx.Channel.Id).ToList();
+        foreach (var oldctx in oldctxs) {
+            if (!ctx.channelWatchingUpdate.UserIds.Contains(oldctx.Member.UserId)) {
+                // means user is no long watching the channel
+                if (DateTime.UtcNow.Subtract(UserIdsCurrentlyConnected[oldctx.Member.Id]).TotalSeconds > 30) {
+                    InteractionContexts.TryRemove(oldctx.Member.Id, out var _);
+                    UserIdsCurrentlyConnected.TryRemove(oldctx.Member.Id, out var _);
+                }
             }
         }
     }
@@ -63,6 +83,67 @@ public class EggCoopGame : CommandModuleBase
     {
         EmbedBuilder embed = new EmbedBuilder().AddPage("Egg Coop Game").AddRow().AddButton("Load The Game").OnClickSendInteractionEvent("EggCoop-Load");
         await ctx.ReplyAsync(embed);
+    }
+
+    public static async ValueTask ProcessOfflineTime(InteractionContext ctx) 
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        var timedifference = DateTime.UtcNow.Subtract(player.CurrentFarm.LastUpdated);
+        var secondspertick = 1.0;
+        var secondstouse = timedifference.TotalSeconds;
+        if (timedifference.TotalDays > 3) {
+            var max = 60*60*24*3.0;
+            if (secondstouse > max)
+                secondstouse = max;
+            secondspertick = 256;
+        }
+        else if (timedifference.TotalDays > 1)
+            secondspertick = 100;
+        else if (timedifference.TotalHours > 6)
+            secondspertick = 50;
+        else
+            secondspertick = 20;
+        var farm = player.CurrentFarm;
+        var starting_chickens = farm.Chickens;
+        var starting_money = farm.Money;
+        var starting_eggs = farm.EggsLaid;
+        while (secondstouse > 0) {
+            Game.ProcessTick(player, secondspertick*1000);
+        }
+
+        var text = "";
+        if (timedifference.TotalMinutes < 60)
+            text = $"{(long)timedifference.TotalMinutes} minutes";
+        else if (timedifference.TotalHours < 24)
+            text = $"{(long)timedifference.TotalHours} hours";
+        else
+            text = $"{(long)timedifference.TotalDays} days";
+
+        player.IsInOfflineProgressPage = true;
+
+        var embed = new EmbedBuilder()
+            .AddPage("Processed Time Away!")
+                .AddRow()
+                    .AddText($"You were away for about {text}")
+                .AddRow()
+                    .AddText($"+{Functions.Format(starting_chickens-farm.Chickens, Rounding: 2, NoK: true)} chickens")
+                    .AddText($"+${Functions.Format(starting_money-farm.Money, Rounding: 2, NoK: true)}")
+                    .AddText($"+{Functions.Format(starting_eggs-farm.EggsLaid, Rounding: 2, NoK: true)} eggs laid")
+                .AddRow()
+                    .AddButton("Okay").OnClick(HeaderClicks[0]);
+        await ctx.ReplyAsync(embed);
+    }
+
+    public static async ValueTask<bool> CheckOfflineTime(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        if (DateTime.UtcNow.Subtract(state.Data.EggCoopGameData.CurrentFarm.LastUpdated).TotalMinutes >= 1) {
+            await ProcessOfflineTime(ctx);
+            return true;
+        }
+        else
+            return false;
     }
 
     public static void LoadStartup(InteractionContext ctx)
@@ -77,8 +158,9 @@ public class EggCoopGame : CommandModuleBase
     public async Task OnGameLoad(InteractionContext ctx)
     {
         LoadStartup(ctx);
-
-        await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
+        
+        if (!await CheckOfflineTime(ctx))
+            await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
     }
 
     [EmbedMenuFunc]
@@ -99,7 +181,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
 
-        await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
+        if (!await CheckOfflineTime(ctx))
+            await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
     }
 
     [EmbedMenuFunc]
@@ -108,7 +191,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
         
-        await ctx.SendTargetedEmbedUpdateForUser(await GetResearchScreen(ctx), ctx.Member.UserId);
+        if (!await CheckOfflineTime(ctx))
+            await ctx.SendTargetedEmbedUpdateForUser(await GetResearchScreen(ctx), ctx.Member.UserId);
     }
 
     [EmbedMenuFunc]
@@ -117,7 +201,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
 
-        await ctx.SendTargetedEmbedUpdateForUser(await GetHabitatsScreen(ctx), ctx.Member.UserId);
+        if (!await CheckOfflineTime(ctx))
+            await ctx.SendTargetedEmbedUpdateForUser(await GetHabitatsScreen(ctx), ctx.Member.UserId);
     }
 
     [EmbedMenuFunc]
@@ -126,7 +211,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
 
-        await ctx.SendTargetedEmbedUpdateForUser(await GetStatsScreen(ctx), ctx.Member.UserId);
+        if (!await CheckOfflineTime(ctx))
+            await ctx.SendTargetedEmbedUpdateForUser(await GetStatsScreen(ctx), ctx.Member.UserId);
     }
 
     [EmbedMenuFunc]
@@ -135,7 +221,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
 
-        await ctx.UpdateEmbedForUser(await GetPrestigeScreen(ctx), ctx.Member.UserId);
+        if (!await CheckOfflineTime(ctx))
+            await ctx.UpdateEmbedForUser(await GetPrestigeScreen(ctx), ctx.Member.UserId);
     }
 
     public static async ValueTask<EmbedBuilder> GetPrestigeScreen(InteractionContext ctx, UserEmbedState? state = null)
