@@ -87,8 +87,8 @@ public class EggCoopGame : CommandModuleBase
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
             UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
-        if (state.Data.EggCoopGameData.Chickens < state.Data.EggCoopGameData.MaxChickens)
-            state.Data.EggCoopGameData.Chickens += (int)state.Data.EggCoopGameData.ChickensGainedPerClick;
+        if (state.Data.EggCoopGameData.CurrentFarm.Chickens < state.Data.EggCoopGameData.CurrentFarm.MaxChickens)
+            state.Data.EggCoopGameData.CurrentFarm.Chickens += (int)state.Data.EggCoopGameData.CurrentFarm.ChickensGainedPerClick;
 
         await ctx.UpdateEmbedForUser(await GetGameScreen(ctx), ctx.Member.UserId);
     }
@@ -192,8 +192,10 @@ public class EggCoopGame : CommandModuleBase
         var breadperhour = (breadgain - player.LastBreadGain) * 3600 * (1000 / player.MsPerTick);
 
         embed.AddRow().SetId("1")
-            .AddText("Farm's Value", Functions.Format(player.FarmValue, Rounding: 3, NoK: true, ExtraSymbol: "$"))
+            .AddText("Farm's Value", Functions.Format(player.CurrentFarm.FarmValue, Rounding: 3, NoK: true, ExtraSymbol: "$"))
                 .SetId("Farm-Value-Text")
+            .AddText("Current Egg", GameData.EggData[player.CurrentFarm.EggTypeIndex].Name)
+                .SetId("current-egg")
         .AddRow().SetId("2")
             .AddText("Total Prestige Earnings", Functions.Format(player.TotalPrestigeEarnings, Rounding: 3, NoK: true, ExtraSymbol: "$"))
                 .SetId("Total Prestige Earnings")
@@ -201,7 +203,7 @@ public class EggCoopGame : CommandModuleBase
             .AddText(":bread: Gain", $"{Functions.Format(breadgain, Rounding: 3, NoK: true)} ({Functions.Format(breadperhour, Rounding: 3, NoK: true)}/h)")
                 .SetId(":bread: Gain")
         .AddRow().SetId("4")
-            .AddText("Chickens Gain", Functions.Format(player.ChickenGain, Rounding: 3, NoK: true) + "/m")
+            .AddText("Chickens Gain", Functions.Format(player.CurrentFarm.ChickenGain, Rounding: 3, NoK: true) + "/m")
                 .SetId("Chickens Gain");
 
         HandleFoxes(embed, state);
@@ -228,16 +230,16 @@ public class EggCoopGame : CommandModuleBase
 
         AddHeader(embed, state);
 
-        var nextegg = GameData.EggData[player.EggTypeIndex + 1];
-        var currenteggOoMs = Math.Log10(GameData.EggData[player.EggTypeIndex].UnlockAtFarmValue);
-        var farmvalueOoMs = Math.Log10(player.FarmValue);
+        var nextegg = GameData.EggData[player.CurrentFarm.EggTypeIndex + 1];
+        var currenteggOoMs = Math.Log10(GameData.EggData[player.CurrentFarm.EggTypeIndex].UnlockAtFarmValue);
+        var farmvalueOoMs = Math.Log10(player.CurrentFarm.FarmValue);
         var diffinOoMsfarmvalue = farmvalueOoMs - currenteggOoMs;
         var progresstodiscovernext = Math.Max(0, Math.Min(diffinOoMsfarmvalue / (Math.Log10(nextegg.DiscoverAtFarmValue)-currenteggOoMs), 1.0))*100;
         var progresstounlocknext = Math.Max(0, Math.Min(diffinOoMsfarmvalue / (Math.Log10(nextegg.UnlockAtFarmValue) - currenteggOoMs), 1.0)) * 100;
 
         embed
             .AddRow()
-                .AddText($"{Functions.Format(player.Chickens, WholeNum: true, NoK: true)}/{Functions.Format(player.MaxChickens, WholeNum: true, NoK: true)}")
+                .AddText($"{Functions.Format(player.CurrentFarm.Chickens, WholeNum: true, NoK: true)}/{Functions.Format(player.CurrentFarm.MaxChickens, WholeNum: true, NoK: true)}")
             .AddRow();
         if (progresstodiscovernext <= 99.999) { 
                 embed.AddProgress("Progress to next egg")
@@ -261,7 +263,7 @@ public class EggCoopGame : CommandModuleBase
             }
         }
             embed.AddRow()
-                .AddButton($"+{(int)player.ChickensGainedPerClick}")
+                .AddButton($"+{(int)player.CurrentFarm.ChickensGainedPerClick}")
                     .OnClick(ClickedHatchChicken)
                 .WithStyles(new Padding(new Size(Unit.Pixels, 40), new Size(Unit.Pixels, 40)));
 
@@ -276,21 +278,21 @@ public class EggCoopGame : CommandModuleBase
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
 
-        var nextegg = GameData.EggData[player.EggTypeIndex+1];
+        var nextegg = GameData.EggData[player.CurrentFarm.EggTypeIndex+1];
 
-        if (player.FarmValue > nextegg.UnlockAtFarmValue && nextegg.Name != null)
+        if (player.CurrentFarm.FarmValue > nextegg.UnlockAtFarmValue && nextegg.Name != null)
         {
-            player.Chickens = 0;
-            player.Money = 0;
-            player.ResearchesCompleted = new();
-            player.Houses = new() 
+            player.CurrentFarm.Chickens = 0;
+            player.CurrentFarm.Money = 0;
+            player.CurrentFarm.ResearchesCompleted = new();
+            player.CurrentFarm.Houses = new() 
             {
                 { 0, 1 },
                 { 1, 0 },
                 { 2, 0 },
                 { 3, 0 }
             };
-            player.EggTypeIndex += 1;
+            player.CurrentFarm.EggTypeIndex += 1;
         }
 
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -301,7 +303,7 @@ public class EggCoopGame : CommandModuleBase
     {
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
-        player.InResearchType = player.InResearchType == 0 ? 1 : 0;
+        player.CurrentFarm.InResearchType = player.CurrentFarm.InResearchType == 0 ? 1 : 0;
         state.Data.EmbedItemsHashes = null;
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
     }
@@ -315,12 +317,12 @@ public class EggCoopGame : CommandModuleBase
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
 
-        if (research.CostFunc(player.GetCommonResearchLevel(research.Id)) < player.Money && player.GetCommonResearchLevel(id) < research.MaxLevel)
+        if (research.CostFunc(player.GetCommonResearchLevel(research.Id)) < player.CurrentFarm.Money && player.GetCommonResearchLevel(id) < research.MaxLevel)
         {
-            player.Money -= research.CostFunc(player.GetCommonResearchLevel(research.Id));
-            if (!player.ResearchesCompleted.ContainsKey(id))
-                player.ResearchesCompleted[id] = 0;
-            player.ResearchesCompleted[id] += 1;
+            player.CurrentFarm.Money -= research.CostFunc(player.GetCommonResearchLevel(research.Id));
+            if (!player.CurrentFarm.ResearchesCompleted.ContainsKey(id))
+                player.CurrentFarm.ResearchesCompleted[id] = 0;
+            player.CurrentFarm.ResearchesCompleted[id] += 1;
         }
 
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -368,8 +370,8 @@ public class EggCoopGame : CommandModuleBase
                 player.Bacon += (int)reward.Amount;
             else if (reward.Type == RewardType.Dollars)
             {
-                fox.Reward.Amount = reward.Amount * player.FarmValue / 100;
-                player.Money += fox.Reward.Amount;
+                fox.Reward.Amount = reward.Amount * player.CurrentFarm.FarmValue / 100;
+                player.CurrentFarm.Money += fox.Reward.Amount;
                 player.TotalPrestigeEarnings += fox.Reward.Amount;
             }
         }
@@ -388,10 +390,10 @@ public class EggCoopGame : CommandModuleBase
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
 
-        if (hab.Cost < player.Money)
+        if (hab.Cost < player.CurrentFarm.Money)
         {
-            player.Money -= hab.Cost;
-            player.Houses[playerhabindex] = habid;
+            player.CurrentFarm.Money -= hab.Cost;
+            player.CurrentFarm.Houses[playerhabindex] = habid;
         }
 
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -406,17 +408,17 @@ public class EggCoopGame : CommandModuleBase
         player.Bread += Game.GetBreadGain(player);
 
         player.TotalPrestigeEarnings = 0;
-        player.Chickens = 0;
-        player.Money = 0;
-        player.ResearchesCompleted = new();
-        player.Houses = new()
+        player.CurrentFarm.Chickens = 0;
+        player.CurrentFarm.Money = 0;
+        player.CurrentFarm.ResearchesCompleted = new();
+        player.CurrentFarm.Houses = new()
         {
             { 0, 1 },
             { 1, 0 },
             { 2, 0 },
             { 3, 0 }
         };
-        player.EggTypeIndex = 0;
+        player.CurrentFarm.EggTypeIndex = 0;
 
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
     }
@@ -426,15 +428,15 @@ public class EggCoopGame : CommandModuleBase
     {
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
-        if (player.InResearchType == 0)
+        if (player.CurrentFarm.InResearchType == 0)
         {
-            if (player.CurrentResearchPageNumber > 0)
-                player.CurrentResearchPageNumber -= 1;
+            if (player.CurrentFarm.CurrentResearchPageNumber > 0)
+                player.CurrentFarm.CurrentResearchPageNumber -= 1;
         }
         else
         {
-            if (player.CurrentBaconResearchPageNumber > 0)
-                player.CurrentBaconResearchPageNumber -= 1;
+            if (player.CurrentFarm.CurrentBaconResearchPageNumber > 0)
+                player.CurrentFarm.CurrentBaconResearchPageNumber -= 1;
         }
         state.Data.EmbedItemsHashes = null;
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -445,15 +447,15 @@ public class EggCoopGame : CommandModuleBase
     {
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
         var player = state.Data.EggCoopGameData;
-        if (player.InResearchType == 0)
+        if (player.CurrentFarm.InResearchType == 0)
         {
-            if (player.CurrentResearchPageNumber < Math.Ceiling(GameData.ResearchData.Count / (double)ItemsPerResearchPage))
-                player.CurrentResearchPageNumber += 1;
+            if (player.CurrentFarm.CurrentResearchPageNumber < Math.Ceiling(GameData.ResearchData.Count / (double)ItemsPerResearchPage))
+                player.CurrentFarm.CurrentResearchPageNumber += 1;
         }
         else
         {
-            if (player.CurrentBaconResearchPageNumber < Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage))
-                player.CurrentBaconResearchPageNumber += 1;
+            if (player.CurrentFarm.CurrentBaconResearchPageNumber < Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage))
+                player.CurrentFarm.CurrentBaconResearchPageNumber += 1;
         }
         state.Data.EmbedItemsHashes = null;
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -476,15 +478,15 @@ public class EggCoopGame : CommandModuleBase
 
         Color colorforback = null;
         Color colorforfront = null;
-        if (player.InResearchType == 0) {
-            colorforback = player.CurrentResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
-            var currentnum = player.CurrentResearchPageNumber;
+        if (player.CurrentFarm.InResearchType == 0) {
+            colorforback = player.CurrentFarm.CurrentResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
+            var currentnum = player.CurrentFarm.CurrentResearchPageNumber;
             var totalnum = (int)(Math.Ceiling(GameData.ResearchData.Count / (double)ItemsPerResearchPage)) - 1;
             colorforfront = currentnum < totalnum ? new Color(0, 0, 0) : new Color(50, 0, 0);
         }
         else {
-            colorforback = player.CurrentBaconResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
-            var currentnum = player.CurrentBaconResearchPageNumber;
+            colorforback = player.CurrentFarm.CurrentBaconResearchPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
+            var currentnum = player.CurrentFarm.CurrentBaconResearchPageNumber;
             var totalnum = (int)(Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage)) - 1;
             colorforfront = currentnum < totalnum ? new Color(0, 0, 0) : new Color(50, 0, 0);
         }
@@ -513,8 +515,8 @@ public class EggCoopGame : CommandModuleBase
                 .AddButtonWithNoText()
                     .SetId("change-research-type-button")
                     .OnClick(ChangeResearchType)
-                    .WithStyles(new BackgroundColor(player.InResearchType == 1 ? new Color(0, 150, 0) : new Color("DF3F32")))
-                    .AddText(player.InResearchType == 0 ? "Switch to Bacon" : "Switch to Common")
+                    .WithStyles(new BackgroundColor(player.CurrentFarm.InResearchType == 1 ? new Color(0, 150, 0) : new Color("DF3F32")))
+                    .AddText(player.CurrentFarm.InResearchType == 0 ? "Switch to Bacon" : "Switch to Common")
                 .Close();
 
         embed
@@ -523,14 +525,14 @@ public class EggCoopGame : CommandModuleBase
                 .SetId("embed-body");
 
         var count = 0;
-        var startingi = player.InResearchType == 0 ? player.CurrentResearchPageNumber * ItemsPerResearchPage : player.CurrentBaconResearchPageNumber * ItemsPerResearchPage;
-        var max = player.InResearchType == 0 ? GameData.ResearchData.Count : GameData.BaconResearchData.Count;
+        var startingi = player.CurrentFarm.InResearchType == 0 ? player.CurrentFarm.CurrentResearchPageNumber * ItemsPerResearchPage : player.CurrentFarm.CurrentBaconResearchPageNumber * ItemsPerResearchPage;
+        var max = player.CurrentFarm.InResearchType == 0 ? GameData.ResearchData.Count : GameData.BaconResearchData.Count;
         for (var i = startingi; i < max; i++)
         {
             count += 1;
             Research research = null;
-            research = player.InResearchType == 0 ? GameData.ResearchData[i] : GameData.BaconResearchData[i];
-            int researchlevel = player.InResearchType == 0 ? player.GetCommonResearchLevel(research.Id) : player.GetBaconResearchLevel(research.Id);
+            research = player.CurrentFarm.InResearchType == 0 ? GameData.ResearchData[i] : GameData.BaconResearchData[i];
+            int researchlevel = player.CurrentFarm.InResearchType == 0 ? player.GetCommonResearchLevel(research.Id) : player.GetBaconResearchLevel(research.Id);
             embed.WithRow()
                 .WithStyles(
                     FlexDirection.Row,
@@ -563,8 +565,8 @@ public class EggCoopGame : CommandModuleBase
                     .WithStyles(new FlexAlignSelf(AlignSelf.FlexEnd))
                     .AddButtonWithNoText()
                         .SetId($"research-button-{count}");
-            if (((player.InResearchType == 0 && research.CostFunc(researchlevel) < player.Money) || (player.InResearchType == 1 && research.CostFunc(researchlevel) < player.Bacon)) && researchlevel < research.MaxLevel)
-                embed.WithStyles(FlexDirection.Column, new BackgroundColor(player.InResearchType == 0 ? new Color(0, 175, 0) : new Color("9f1313"))).OnClick(player.InResearchType == 0 ? BuyCommonResearch : BuyBaconResearch, research.Id.ToString());
+            if (((player.CurrentFarm.InResearchType == 0 && research.CostFunc(researchlevel) < player.CurrentFarm.Money) || (player.CurrentFarm.InResearchType == 1 && research.CostFunc(researchlevel) < player.Bacon)) && researchlevel < research.MaxLevel)
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(player.CurrentFarm.InResearchType == 0 ? new Color(0, 175, 0) : new Color("9f1313"))).OnClick(player.CurrentFarm.InResearchType == 0 ? BuyCommonResearch : BuyBaconResearch, research.Id.ToString());
             else
                 embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
             if (researchlevel == research.MaxLevel)
@@ -578,9 +580,9 @@ public class EggCoopGame : CommandModuleBase
             else
             {
                 var text = "";
-                if (player.InResearchType == 0)
+                if (player.CurrentFarm.InResearchType == 0)
                     text = $"${Functions.Format(research.CostFunc(researchlevel), Rounding: 2, NoK: true)}";
-                else if (player.InResearchType == 1)
+                else if (player.CurrentFarm.InResearchType == 1)
                     text = $"{Functions.Format(research.CostFunc(researchlevel), WholeNum: true, NoK: true)} :bacon:";
                 embed.AddText("Research")
                         .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
@@ -626,7 +628,7 @@ public class EggCoopGame : CommandModuleBase
                 .WithStyles(FlexDirection.Column)
                 .SetId("embed-body");
 
-        foreach (var pair in player.Houses)
+        foreach (var pair in player.CurrentFarm.Houses)
         {
             var id = pair.Key;
             var currenthab = GameData.HouseData[pair.Value];
@@ -667,7 +669,7 @@ public class EggCoopGame : CommandModuleBase
                     .SetId($"right-side-row-for-house-{id}")
                     .AddButtonWithNoText()
                         .SetId($"right-side-row-for-house-button-{id}");
-            if (nexthab is not null && nexthab.Cost < player.Money)
+            if (nexthab is not null && nexthab.Cost < player.CurrentFarm.Money)
             {
                 embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(0, 175, 0))).OnClick(BuyHab, $"{pair.Key}?{nexthab.Id}")
                     .AddText($"{nexthab.Name} ({Functions.Format(nexthab.Capacity, Rounding: 2, NoK: true)})")
@@ -818,7 +820,7 @@ public class EggCoopGame : CommandModuleBase
                 .SetId("money-bacon-text-row")
                 .WithRow()
                     .SetId("money-text-row")
-                        .AddText(Functions.Format(state.Data.EggCoopGameData.Money, Rounding: 2, NoK: true, ExtraSymbol: "$") + $@" ({Functions.Format(state.Data.EggCoopGameData.MoneyGain, AddPlusSign: true, Rounding: 2, NoK: false, ExtraSymbol: "$")}/s)")
+                        .AddText(Functions.Format(state.Data.EggCoopGameData.CurrentFarm.Money, Rounding: 2, NoK: true, ExtraSymbol: "$") + $@" ({Functions.Format(state.Data.EggCoopGameData.CurrentFarm.MoneyGain, AddPlusSign: true, Rounding: 2, NoK: false, ExtraSymbol: "$")}/s)")
                             .SetId("money-text")
                 .CloseRow()
                 .WithRow()

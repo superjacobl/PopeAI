@@ -17,7 +17,14 @@ public enum ModifierType
     ChickenProductionPerHab,
     ChickensPerClick,
     ChickenProductionPerHabFactor,
-    BonusPerBread
+    BonusPerBread,
+    BreadGain
+}
+
+public enum FarmType
+{
+    Home,
+    Contract
 }
 
 public enum EffectType
@@ -198,7 +205,25 @@ public class Fox
     }
 }
 
-public class UserEggCoopGameData
+public class ContractGoal
+{
+    public GeneralReward GeneralReward { get; set; }
+    public double NumberOfEggsRequired { get; set; }
+}
+
+public class ContractModifier
+{
+
+}
+
+public class Contract
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public List<GeneralReward> Rewards { get; set; }
+}
+
+public class Farm
 {
     [Column("money", TypeName = "numeric(64, 4)")]
     public double Money { get; set; } = 0;
@@ -215,20 +240,12 @@ public class UserEggCoopGameData
     public ushort EggTypeIndex { get; set; } = 0;
     public double MoneyGain { get; set; } = 0;
     public double ChickenGain { get; set; } = 0;
-    public double TotalPrestigeEarnings { get; set; } = 0;
-    public int CurrentEmbedMenuPageNum { get; set; } = 0;
+    public double EggsLaid { get; set; } = 0;
     public int CurrentResearchPageNumber { get; set; } = 0;
     public int CurrentBaconResearchPageNumber { get; set; } = 0;
     public int InResearchType { get; set; } = 0;
     public double ChickensGainedPerClick { get; set; } = 2;
-    public double LastBreadGain { get; set; } = 0;
-    public double Bread { get; set; } = 0;
-    public long Bacon { get; set; } = 0;
-    public long FoxesPetted { get; set; } = 0;
     public Dictionary<ushort, int> ResearchesCompleted { get; set; } = new();
-
-    public Dictionary<ushort, int> BaconResearchesCompleted { get; set; } = new();
-
     public Dictionary<ushort, int> Houses { get; set; } = new()
     {
         { 0, 1 },
@@ -237,19 +254,39 @@ public class UserEggCoopGameData
         { 3, 0 }
     };
 
-    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
-    public DateTime LastRegularFoxSpawn { get; set; } = DateTime.UtcNow;
-    public DateTime LastEliteFoxSpawn { get; set; } = DateTime.UtcNow;
-    public List<Fox> Foxes { get; set; } = new();
-
     [JsonIgnore]
     [NotMapped]
     public double NextChicken { get; set; } = 0;
 
+    public FarmType FarmType { get; set; } = FarmType.Home;
+}
+
+public class UserEggCoopGameData
+{
+    public double TotalPrestigeEarnings { get; set; } = 0;
+    public int CurrentEmbedMenuPageNum { get; set; } = 0;
+    public double LastBreadGain { get; set; } = 0;
+    public double Bread { get; set; } = 0;
+    public long Bacon { get; set; } = 0;
+    public long FoxesPetted { get; set; } = 0;
+    public Dictionary<ushort, int> BaconResearchesCompleted { get; set; } = new();
+    public List<int> GoalsDone { get; set; } = new();
+    public List<int> CurrentGoals { get; set;} = new();
+    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    public DateTime LastRegularFoxSpawn { get; set; } = DateTime.UtcNow;
+    public DateTime LastEliteFoxSpawn { get; set; } = DateTime.UtcNow;
+    public List<Fox> Foxes { get; set; } = new();
+    public long CurrentFarmId { get; set; } = 0;
+
+    [NotMapped]
+    [JsonIgnore]
+    public Farm CurrentFarm => Farms[CurrentFarmId];
+    public Dictionary<long, Farm> Farms { get; set; } = new();
+
     public int GetCommonResearchLevel(ushort id)
     {
-        if (ResearchesCompleted.ContainsKey(id))
-            return ResearchesCompleted[id];
+        if (CurrentFarm.ResearchesCompleted.ContainsKey(id))
+            return CurrentFarm.ResearchesCompleted[id];
         return 0;
     }
 
@@ -325,6 +362,10 @@ public class UserEmbedState
         }
         if (state.Data.LastEmbedMenuPageNum != state.Data.EggCoopGameData.CurrentEmbedMenuPageNum)
             state.Data.EmbedItemsHashes = new();
+        if (state.Data.EggCoopGameData.Farms.Count == 0)
+        {
+            state.Data.EggCoopGameData.Farms.Add(0, new());
+        }
         return state;
     }
 }
