@@ -18,7 +18,8 @@ public enum ModifierType
     ChickensPerClick,
     ChickenProductionPerHabFactor,
     BonusPerBread,
-    BreadGain
+    BreadGain,
+    TotalEarningsGainForBreadFactor
 }
 
 public enum FarmType
@@ -31,6 +32,38 @@ public enum EffectType
 {
     Multiplicative,
     Additive
+}
+
+public class Boost
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Icon { get; set; }
+    public List<Modifier> Modifiers { get; set; }
+    public TimeSpan Duration { get; set; }
+
+    /// <summary>
+    /// In bacon
+    /// </summary>
+    public long Price { get; set; }
+
+    public Boost(int id, string icon, string name, string description, List<Modifier> modifiers, TimeSpan duration, long price)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+        Icon = icon;
+        Modifiers = modifiers;
+        Duration = duration;
+        Price = price;
+    }
+}
+
+public class ActiveBoost
+{
+    public int Id { get; set; }
+    public double SecondsLeft { get; set; }
 }
 
 public class Modifier
@@ -85,10 +118,10 @@ public class Goal
     public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public Func<UserEggCoopGameData, bool> IsCompletedFunc { get; set; }
+    public Func<UserEggCoopGameData, double> IsCompletedFunc { get; set; }
     public GeneralReward Reward { get; set; }
 
-    public Goal(int id, string name, string description, GeneralReward reward, Func<UserEggCoopGameData, bool> isCompletedFunc)
+    public Goal(int id, string name, string description, GeneralReward reward, Func<UserEggCoopGameData, double> isCompletedFunc)
     {
         Id = id;
         Name = name;
@@ -142,6 +175,16 @@ public class GeneralReward
         Type = type;
         Amount = amount;
     }
+
+    public void Execute(UserEggCoopGameData player)
+    {
+        if (Type == RewardType.Bacon)
+            player.Bacon += (long)Amount;
+        else if (Type == RewardType.Dollars)
+            player.CurrentFarm.Money += Amount;
+        else if (Type == RewardType.Bread)
+            player.Bread += Amount;
+    }
 }
 
 public class Fox
@@ -181,11 +224,11 @@ public class Fox
         {
             var value = rnd.Next(1, 1001);
             var amount = 0.0;
-            if (value <= 250) amount = 9;
-            else if (value <= 850) amount = 20;
-            else if (value <= 949) amount = 36;
-            else if (value <= 990) amount = 72;
-            else amount = 152;
+            if (value <= 250) amount = 16;
+            else if (value <= 850) amount = 28;
+            else if (value <= 949) amount = 48;
+            else if (value <= 990) amount = 96;
+            else amount = 196;
 
             reward = new(RewardType.Bacon, amount);
         }
@@ -193,11 +236,11 @@ public class Fox
         {
             var value = rnd.Next(1, 1001);
             var amount = 0.0;
-            if (value <= 250) amount = 0.01;
-            else if (value <= 850) amount = 0.035;
-            else if (value <= 949) amount = 0.1;
-            else if (value <= 990) amount = 0.15;
-            else amount = 0.5;
+            if (value <= 250) amount = 0.015;
+            else if (value <= 850) amount = 0.05;
+            else if (value <= 949) amount = 0.15;
+            else if (value <= 990) amount = 0.25;
+            else amount = 1;
 
             reward = new(RewardType.Dollars, amount);
         }
@@ -216,11 +259,21 @@ public class ContractModifier
 
 }
 
-public class Contract
+public class ContractBase
 {
     public long Id { get; set; }
     public string Name { get; set; }
     public ushort EggId { get; set; }
+
+    [Column("goals", TypeName = "TEXT")]
+    public List<ContractGoal> Goals { get; set; }
+    public TimeSpan Duration { get; set; }
+}
+
+public class Contract
+{
+    public long Id { get; set; }
+
     public List<ContractGoal> Goals { get; set; }
     public DateTime TimeCreated { get; set; }
     public DateTime ExpiresAt { get; set; }
@@ -260,16 +313,12 @@ public class Farm
         { 3, 0 }
     };
 
-    public List<Contract> ActiveContracts { get; set; } = new();
-    public List<Contract> AvailableContracts { get; set; } = new();
-
     [JsonIgnore]
     [NotMapped]
     public double NextChicken { get; set; } = 0;
-
     public FarmType FarmType { get; set; } = FarmType.Home;
-
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    public List<ActiveBoost> ActiveBoosts { get; set; } = new();
 }
 
 public class UserEggCoopGameData
@@ -293,7 +342,15 @@ public class UserEggCoopGameData
     public Farm CurrentFarm => Farms[CurrentFarmId];
     public Dictionary<long, Farm> Farms { get; set; } = new();
 
-    public bool IsInOfflineProgressPage { get; set; } = false;
+    /// <summary>
+    /// Boost id: number
+    /// </summary>
+    public ConcurrentDictionary<int, int> Boosts { get; set; } = new();
+
+    public int IsInOfflineProgressPage { get; set; } = 0;
+
+    //public List<Contract> ActiveContracts { get; set; } = new();
+    //public List<Contract> AvailableContracts { get; set; } = new();
 
     public int GetCommonResearchLevel(ushort id)
     {
@@ -312,7 +369,11 @@ public class UserEggCoopGameData
     [JsonIgnore, NotMapped]
     public double MsPerTick { get; set; } = 300;
 
-    public bool IsNotLookingAtChannel { get; set; } = false;
+    public int IsNotLookingAtChannel { get; set; } = 0;
+
+    public int CurrentBoostPageNumber { get; set; } = 0;
+
+    public bool IsBuyingBoosts { get; set; } = false; 
 }
 
 public class UserEmbedStateData
@@ -332,8 +393,11 @@ public class UserEmbedState
     [Column("memberid")]
     public long MemberId { get; set; }
 
-    [Column("data", TypeName = "jsonb")]
-    public UserEmbedStateData Data { get; set; }
+    [JsonIgnore, NotMapped]
+    public UserEmbedStateData Data { get; set; } = new();
+
+    [Column("stringdata", TypeName = "TEXT")]
+    public string StringData { get; set; } = "";
 
     /// <summary>
     /// 
@@ -369,7 +433,8 @@ public class UserEmbedState
             state = new UserEmbedState()
             {
                 MemberId = memberId,
-                Data = new()
+                Data = new(),
+                StringData = ""
             };
             state.Data.EggCoopGameData = new();
             DBCache.AddNew(state.MemberId, state);

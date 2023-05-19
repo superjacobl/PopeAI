@@ -56,6 +56,30 @@ public static class Functions
                         num /= 1000;
                         symbol = "o";
                     }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "n";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "d";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "U";
+                    }
+                    if (num > 1000)
+                    {
+                        muit *= 1000;
+                        num /= 1000;
+                        symbol = "D";
+                    }
                 }
             }
             else
@@ -114,6 +138,30 @@ public static class Functions
                     num /= 1000;
                     symbol = "o";
                 }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "n";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "d";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "U";
+                }
+                if (num > 1000)
+                {
+                    muit *= 1000;
+                    num /= 1000;
+                    symbol = "D";
+                }
             }
         else
         {
@@ -160,7 +208,7 @@ public static class Functions
         return (muit, num, symbol);
     }
 
-    public static string Format(decimal Value, bool AddPlusSign = false, bool WholeNum = false, int Rounding = 2, bool NoK = false, string ExtraSymbol = "")
+    public static string Format(decimal Value, bool AddPlusSign = false, bool WholeNum = false, int Rounding = 2, bool NoK = false, string ExtraSymbol = "", bool OnlyNumbers = false)
     {
         var data = GetValues((double)Value, NoK);
         if (WholeNum)
@@ -187,9 +235,11 @@ public static class Functions
         }
     }
 
-    public static string Format(double Value, bool AddPlusSign = false, bool WholeNum = false, int Rounding = 2, bool NoK = false, string ExtraSymbol = "", bool Under1KNoDecimals = false)
+    public static string Format(double Value, bool AddPlusSign = false, bool WholeNum = false, int Rounding = 2, bool NoK = false, string ExtraSymbol = "", bool Under1KNoDecimals = false, bool OnlyNumbers = false)
     {
         var data = GetValues(Value, NoK);
+        if (OnlyNumbers)
+            data = new(1, Value, "");
         if (WholeNum)
         {
             long amount = (long)data.amount;

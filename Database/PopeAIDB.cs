@@ -29,6 +29,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Console;
 using Database.Models.Users;
+using Microsoft.Extensions.Logging;
 
 namespace PopeAI.Database;
 
@@ -50,29 +51,35 @@ public class NpgsqlSqlGenerationLowercasingHelper : NpgsqlSqlGenerationHelper
 }
 public class PopeAIDB : DbContext
 {
-
+    public static ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
     public static PooledDbContextFactory<PopeAIDB> DbFactory;
 
     public static PooledDbContextFactory<PopeAIDB> GetDbFactory()
     {
-        string ConnectionString = $"Host={ConfigManger.Config.Host};Database={ConfigManger.Config.Database};Username={ConfigManger.Config.Username};Pwd={ConfigManger.Config.Password}";
+        string ConnectionString = $"Host={ConfigManger.Config.Host};Database={ConfigManger.Config.Database};Username={ConfigManger.Config.Username};Pwd={ConfigManger.Config.Password};Include Error Detail=true";
         var options = new DbContextOptionsBuilder<PopeAIDB>()
             .UseNpgsql(ConnectionString, options => {
                 options.EnableRetryOnFailure();
             })
             .ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>()
+            //.UseLoggerFactory(loggerFactory)
+            //.LogTo(Console.WriteLine)
+            //.EnableSensitiveDataLogging()
             .Options;
         return new PooledDbContextFactory<PopeAIDB>(options);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        string ConnectionString = $"Host={ConfigManger.Config.Host};Database={ConfigManger.Config.Database};Username={ConfigManger.Config.Username};Pwd={ConfigManger.Config.Password}";
+        string ConnectionString = $"Host={ConfigManger.Config.Host};Database={ConfigManger.Config.Database};Username={ConfigManger.Config.Username};Pwd={ConfigManger.Config.Password};Include Error Detail=true";
         options.UseNpgsql(ConnectionString, options => {
             options.EnableRetryOnFailure();
         });
         //options.UseLoggerFactory(loggerFactory);  //tie-up DbContext with LoggerFactory object
         options.ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
+        //options.UseLoggerFactory(loggerFactory);
+        //options.LogTo(Console.WriteLine);
+        //options.EnableSensitiveDataLogging();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

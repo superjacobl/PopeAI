@@ -57,7 +57,7 @@ public class EggCoopGame : CommandModuleBase
             else
             {
                 player.MsPerTick = 300;
-                if (!player.IsInOfflineProgressPage)
+                if (player.IsInOfflineProgressPage == 0)
                     await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
             }
         }
@@ -66,13 +66,17 @@ public class EggCoopGame : CommandModuleBase
     [Event(EventType.OnChannelWatching)]
     public void OnChannelWatching(ChannelWatchingContext ctx)
     {
-        var oldctxs = InteractionContexts.Values.Where(x => x.Channel.Id == ctx.Channel.Id).ToList();
+        var oldctxs = InteractionContexts.Values.Where(x => x.Channel is not null && x.Channel.Id == ctx.Channel.Id).ToList();
         foreach (var oldctx in oldctxs) {
             if (!ctx.channelWatchingUpdate.UserIds.Contains(oldctx.Member.UserId)) {
                 // means user is no long watching the channel
-                if (DateTime.UtcNow.Subtract(UserIdsCurrentlyConnected[oldctx.Member.Id]).TotalSeconds > 30) {
-                    InteractionContexts.TryRemove(oldctx.Member.Id, out var _);
-                    UserIdsCurrentlyConnected.TryRemove(oldctx.Member.Id, out var _);
+                if (UserIdsCurrentlyConnected.ContainsKey(oldctx.Member.Id))
+                {
+                    if (DateTime.UtcNow.Subtract(UserIdsCurrentlyConnected[oldctx.Member.Id]).TotalSeconds > 30)
+                    {
+                        InteractionContexts.TryRemove(oldctx.Member.Id, out var _);
+                        UserIdsCurrentlyConnected.TryRemove(oldctx.Member.Id, out var _);
+                    }
                 }
             }
         }
@@ -81,6 +85,10 @@ public class EggCoopGame : CommandModuleBase
     [Command("coop")]
     public async Task UpdateGameScreen(CommandContext ctx)
     {
+        if (ctx.Member.UserId != 12201879245422592)
+        {
+            return;
+        }
         EmbedBuilder embed = new EmbedBuilder().AddPage("Egg Coop Game").AddRow().AddButton("Load The Game").OnClickSendInteractionEvent("EggCoop-Load");
         await ctx.ReplyAsync(embed);
     }
@@ -109,7 +117,8 @@ public class EggCoopGame : CommandModuleBase
         var starting_money = farm.Money;
         var starting_eggs = farm.EggsLaid;
         while (secondstouse > 0) {
-            Game.ProcessTick(player, secondspertick*1000);
+            await Game.ProcessTick(player, secondspertick*1000);
+            secondstouse -= secondspertick;
         }
 
         var text = "";
@@ -120,30 +129,46 @@ public class EggCoopGame : CommandModuleBase
         else
             text = $"{(long)timedifference.TotalDays} days";
 
-        player.IsInOfflineProgressPage = true;
+        player.IsInOfflineProgressPage = 1;
 
         var embed = new EmbedBuilder()
             .AddPage("Processed Time Away!")
                 .AddRow()
                     .AddText($"You were away for about {text}")
                 .AddRow()
-                    .AddText($"+{Functions.Format(starting_chickens-farm.Chickens, Rounding: 2, NoK: true)} chickens")
-                    .AddText($"+${Functions.Format(starting_money-farm.Money, Rounding: 2, NoK: true)}")
-                    .AddText($"+{Functions.Format(starting_eggs-farm.EggsLaid, Rounding: 2, NoK: true)} eggs laid")
+                    .AddText($"+{Functions.Format(farm.Chickens-starting_chickens, Rounding: 2, NoK: true)} chickens")
                 .AddRow()
-                    .AddButton("Okay").OnClick(HeaderClicks[0]);
-        await ctx.ReplyAsync(embed);
+                    .AddText($"+${Functions.Format(farm.Money-starting_money, Rounding: 2, NoK: true)}")
+                .AddRow()
+                    .AddText($"{Functions.Format(farm.EggsLaid-starting_eggs, Rounding: 2, NoK: true)} eggs laid")
+                .AddRow()
+                    .AddButton("Okay").OnClick(OnOkayFromOfflineTime);
+        await ctx.UpdateEmbedForUser(embed);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask OnOkayFromOfflineTime(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        player.IsInOfflineProgressPage = 0;
+        player.CurrentEmbedMenuPageNum = 0;
+        await HeaderClicks[0](ctx);
     }
 
     public static async ValueTask<bool> CheckOfflineTime(InteractionContext ctx)
     {
         var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
-        if (DateTime.UtcNow.Subtract(state.Data.EggCoopGameData.CurrentFarm.LastUpdated).TotalMinutes >= 1) {
+        if (DateTime.UtcNow.Subtract(state.Data.EggCoopGameData.CurrentFarm.LastUpdated).TotalMinutes >= 1)
+        {
             await ProcessOfflineTime(ctx);
             return true;
         }
         else
+        {
+            state.Data.EggCoopGameData.IsInOfflineProgressPage = 0;
             return false;
+        }
     }
 
     public static void LoadStartup(InteractionContext ctx)
@@ -216,6 +241,26 @@ public class EggCoopGame : CommandModuleBase
     }
 
     [EmbedMenuFunc]
+    public static async ValueTask GetBaconScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        if (!await CheckOfflineTime(ctx))
+            await ctx.SendTargetedEmbedUpdateForUser(await GetBaconScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetGoalsScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        if (!await CheckOfflineTime(ctx))
+            await ctx.SendTargetedEmbedUpdateForUser(await GetGoalsScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
     public static async ValueTask GetPrestigeScreenAsync(InteractionContext ctx)
     {
         if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
@@ -223,6 +268,198 @@ public class EggCoopGame : CommandModuleBase
 
         if (!await CheckOfflineTime(ctx))
             await ctx.UpdateEmbedForUser(await GetPrestigeScreen(ctx), ctx.Member.UserId);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask GetBoostsScreenAsync(InteractionContext ctx)
+    {
+        if (UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            UserIdsCurrentlyConnected[ctx.Member.UserId] = DateTime.UtcNow;
+
+        if (!await CheckOfflineTime(ctx))
+            await ctx.UpdateEmbedForUser(await GetBoostsScreen(ctx), ctx.Member.UserId);
+    }
+
+    public static async ValueTask<EmbedBuilder> GetBoostsScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 5;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Boosts");
+
+        AddHeader(embed, state);
+
+        Color  colorforback = player.CurrentBoostPageNumber > 0 ? new Color(0, 0, 0) : new Color(50, 0, 0);
+        var currentnum = player.CurrentBoostPageNumber;
+        var totalnum = (int)(Math.Ceiling(GameData.BoostData.Count / (double)8)) - 1;
+        Color colorforfront = currentnum < totalnum ? new Color(0, 0, 0) : new Color(50, 0, 0);
+
+        embed
+            .AddRow()
+                .SetId("change-page-and-type-row")
+                .WithStyles(new FlexJustifyContent(JustifyContent.SpaceBetween), new FlexDirection(Direction.Row))
+                .WithRow()
+                    .SetId("change-page-buttons")
+                    .AddButtonWithNoText()
+                        .SetId("back-button")
+                        .OnClick(PrevBoostpage)
+                        .WithStyles(new BackgroundColor(colorforback))
+                        .AddText("&#60;")
+                    .Close()
+                    .AddButtonWithNoText()
+                        .SetId("forward-button")
+                        .OnClick(NextBoostpage)
+                        .WithStyles(new BackgroundColor(colorforfront))
+                        .AddText("&#62;")
+                    .Close()
+                .CloseRow()
+                .WithRow()
+                    .SetId("change-buying-boost-row")
+                    .AddButtonWithNoText()
+                        .SetId("change-buying-boost-button")
+                        .OnClick(ChangeIsBuyingBoosts)
+                        .AddText(player.IsBuyingBoosts ? "Use Boosts" : "Buy Boosts")
+                    .Close()
+                 .CloseRow()
+            .AddRow()
+                .WithStyles(FlexDirection.Column)
+                .SetId("embed-body");
+
+        var count = 0;
+        var startingi = player.CurrentBoostPageNumber * 8;
+        var max = player.IsBuyingBoosts ? GameData.BoostData.Count : player.Boosts.Count;
+        for (var i = startingi; i < max; i++)
+        {
+            var boost = player.IsBuyingBoosts ? GameData.BoostData.First(x => x.Id == i) : GameData.BoostData.First(x => x.Id == player.Boosts.Keys.ToList()[i]);
+            var owned = player.Boosts.ContainsKey(boost.Id) ? player.Boosts[boost.Id] : 0;
+            embed.WithRow()
+                .WithStyles(
+                    FlexDirection.Row,
+                    FlexJustifyContent.SpaceBetween,
+                    new FlexAlignItems(AlignItem.Stretch),
+                    new Margin(top: new Size(Unit.Pixels, 8))
+                )
+                .SetId($"embed-row-for-boost-row-{count}")
+                .WithRow()
+                    .WithStyles(
+                        FlexDirection.Column,
+                        FlexJustifyContent.SpaceBetween,
+                        new FlexAlignItems(AlignItem.Stretch),
+                        new FlexAlignSelf(AlignSelf.FlexStart)
+                    )
+                    .SetId($"embed-row-for-boost-info-{count}")
+                    .AddText($"{boost.Name} ({owned}x)").WithStyles(new FontSize(new Size(Unit.Pixels, 16)))
+                        .SetId($"boost-name-{count}")
+                    .WithRow()
+                        .AddText(boost.Description)
+                        .SetId($"boost-description-{count}")
+                    .CloseRow();
+            
+            if (!player.IsBuyingBoosts && player.CurrentFarm.ActiveBoosts.Any(x => x.Id == boost.Id))
+            {
+                embed
+                    .AddProgress()
+                        .SetId($"boost-progress-{count}")
+                        .WithName($"{player.CurrentFarm.ActiveBoosts.First(x => x.Id == boost.Id).SecondsLeft:n0}s/{boost.Duration.TotalSeconds:n0}s")
+                        .SetId($"boost-progress-name-{count}")
+                        .WithProgressBar((int)(player.CurrentFarm.ActiveBoosts.First(x => x.Id == boost.Id).SecondsLeft / boost.Duration.TotalSeconds * 100))
+                            .WithBootStrapClasses(BootstrapBackgroundColorClass.Info)
+                    .Close();
+            }
+            
+                embed
+                .CloseRow()
+                .WithRow()
+                    .WithStyles(new FlexAlignSelf(AlignSelf.FlexEnd))
+                    .AddButtonWithNoText()
+                        .SetId($"boost-button-{count}");
+            if (player.IsBuyingBoosts)
+            {
+                if (player.Bacon >= boost.Price)
+                    embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(0, 175, 0))).OnClick(BuyBoost, boost.Id.ToString());
+                else
+                    embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+                embed.AddText($"{boost.Price} :bacon: ")
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                        .SetId($"boost-button-text-{count}");
+            }
+            else
+            {
+                string text = "";
+                if (!player.CurrentFarm.ActiveBoosts.Any(x => x.Id == boost.Id) && player.Boosts[boost.Id] > 0)
+                {
+                    embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(0, 175, 0))).OnClick(UseBoost, boost.Id.ToString());
+                    text = "Use";
+                }
+                else
+                {
+                    embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+                    text = player.CurrentFarm.ActiveBoosts.Any(x => x.Id == boost.Id) ? "Already Activated" : "Use";
+                }
+                embed.AddText(text)
+                        .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                        .SetId($"boost-button-text-{count}");
+            }
+                embed
+                    .Close()
+                .CloseRow();
+            embed.CloseRow();
+            count += 1;
+            if (count >= 8)
+                break;
+        }
+
+        HandleFoxes(embed, state);
+
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
+        return embed;
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask BuyBoost(InteractionContext ctx)
+    {
+        ushort id = ushort.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
+        var boost = GameData.BoostData.First(x => x.Id == id);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (player.Bacon >= boost.Price)
+        {
+            player.Bacon -= boost.Price;
+            if (!player.Boosts.ContainsKey(boost.Id))
+                player.Boosts[boost.Id] = 0;
+            player.Boosts[boost.Id] += 1;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask UseBoost(InteractionContext ctx)
+    {
+        ushort id = ushort.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
+        var boost = GameData.BoostData.First(x => x.Id == id);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (player.Boosts.ContainsKey(boost.Id) && player.Boosts[boost.Id] > 0)
+        {
+            player.Boosts[boost.Id] -= 1;
+            player.CurrentFarm.ActiveBoosts.Add(new() { Id = boost.Id, SecondsLeft = boost.Duration.TotalSeconds });
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
     }
 
     public static async ValueTask<EmbedBuilder> GetPrestigeScreen(InteractionContext ctx, UserEmbedState? state = null)
@@ -242,7 +479,7 @@ public class EggCoopGame : CommandModuleBase
 
         var breadgain = Game.GetBreadGain(player);
         var breadperhour = (breadgain - player.LastBreadGain) * 3600 * (1000 / player.MsPerTick);
-        var bonus = player.Bread * (0.1 + Game.GetTotalResearchEffectForType(player, ModifierType.BonusPerBread) - 1) * 100;
+        var bonus = player.Bread * (0.1 + Game.GetTotalEffectForType(player, ModifierType.BonusPerBread) - 1) * 100;
 
         embed
         .AddRow()
@@ -257,6 +494,135 @@ public class EggCoopGame : CommandModuleBase
             .AddButton("Prestige").OnClick(Prestige);
 
         HandleFoxes(embed, state);
+        return embed;
+    }
+
+    public static async ValueTask<EmbedBuilder> GetBaconScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 7;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Bacon");
+
+        AddHeader(embed, state);
+
+        if (player.Bread > 100_000)
+        {
+
+            var breadgain = Game.GetBreadGain(player);
+            var breadperhour = (breadgain - player.LastBreadGain) * 3600 * (1000 / player.MsPerTick);
+            var bonus = player.Bread * (0.1 + Game.GetTotalEffectForType(player, ModifierType.BonusPerBread) - 1) * 100;
+
+            embed
+            .AddRow()
+                .SetId("bacon-count-row")
+                .AddText("Current :bacon:", Functions.Format(player.Bread, Rounding: 3, NoK: true)).SetId("bacon-count");
+        }
+
+        else
+        {
+            embed
+                .AddRow().SetId("row-to-unlock-bacon-generator")
+                    .AddText("You need at least 100k :bread: before you can unlock this page!").SetId("need-at-least-100k");
+        }
+
+        HandleFoxes(embed, state);
+
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
+
+        return embed;
+    }
+
+    public static async ValueTask<EmbedBuilder> GetGoalsScreen(InteractionContext ctx, UserEmbedState? state = null)
+    {
+        if (!UserIdsCurrentlyConnected.ContainsKey(ctx.Member.UserId))
+            LoadStartup(ctx);
+        if (state is null)
+            state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+
+        var player = state.Data.EggCoopGameData;
+        player.CurrentEmbedMenuPageNum = 6;
+
+        var embed = new EmbedBuilder()
+            .AddPage($"Egg Coop Game - Goals");
+
+        AddHeader(embed, state);
+
+        embed.AddRow()
+                .WithStyles(FlexDirection.Column)
+                .SetId("embed-body");
+
+        var count = 0;
+        foreach (var item in player.CurrentGoals)
+        {
+            var goal = GameData.GoalData.FirstOrDefault(x => x.Id == item);
+            embed.WithRow()
+                .WithStyles(
+                    FlexDirection.Row,
+                    FlexJustifyContent.SpaceBetween,
+                    new FlexAlignItems(AlignItem.Stretch),
+                    new Margin(top: new Size(Unit.Pixels, 8))
+                )
+                .SetId($"embed-row-for-goal-row-{count}")
+                .WithRow()
+                    .WithStyles(
+                        FlexDirection.Column,
+                        FlexJustifyContent.SpaceBetween,
+                        new FlexAlignItems(AlignItem.Stretch),
+                        new FlexAlignSelf(AlignSelf.FlexStart)
+                    )
+                    .SetId($"embed-row-for-goal-info-{count}")
+                    .AddText(goal.Name).WithStyles(new FontSize(new Size(Unit.Pixels, 16)))
+                        .SetId($"goal-name-{count}")
+                    .WithRow()
+                        .AddText(goal.Description)
+                        .SetId($"goal-description-{count}")
+                    .CloseRow()
+                    .AddProgress()
+                        .SetId($"goal-progress-{count}")
+                        .WithProgressBar((int)(Math.Min(goal.IsCompletedFunc(player),1.0)*100))
+                            .WithBootStrapClasses(BootstrapBackgroundColorClass.Info)
+                    .Close()
+                .CloseRow()
+                .WithRow()
+                    .WithStyles(new FlexAlignSelf(AlignSelf.FlexEnd))
+                    .AddButtonWithNoText()
+                        .SetId($"goal-button-{count}");
+            if (goal.IsCompletedFunc(player) >= 1.0)
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(0, 175, 0))).OnClick(CompleteGoal, goal.Id.ToString());
+            else
+                embed.WithStyles(FlexDirection.Column, new BackgroundColor(new Color(150, 150, 150)));
+            var text = "";
+            if (goal.Reward.Type == RewardType.Bacon)
+                text = $"{Functions.Format(goal.Reward.Amount, WholeNum: true, NoK: true)} :bacon:";
+            else if (goal.Reward.Type == RewardType.Dollars)
+                text = $"${Functions.Format(goal.Reward.Amount, Rounding: 2, NoK: true)}";
+            else if (goal.Reward.Type == RewardType.Bread)
+                text = $"{Functions.Format(goal.Reward.Amount, WholeNum: true, NoK: true)} :bread:";
+            embed.AddText(text)
+                    .WithStyles(new FontSize(new Size(Unit.Pixels, 14)))
+                    .SetId($"goal-button-text-{count}")
+                .Close()
+            .CloseRow();
+            embed.CloseRow();
+            count += 1;
+        }
+
+        HandleFoxes(embed, state);
+
+        embed.CalculateHashOnItemsForSettingHasChanged();
+        embed.CalculateHasChangedForAllItems(state.Data.EmbedItemsHashes);
+
+        state.StoreItemHashes(embed);
         return embed;
     }
 
@@ -291,7 +657,10 @@ public class EggCoopGame : CommandModuleBase
                 .SetId(":bread: Gain")
         .AddRow().SetId("4")
             .AddText("Chickens Gain", Functions.Format(player.CurrentFarm.ChickenGain, Rounding: 3, NoK: true) + "/m")
-                .SetId("Chickens Gain");
+                .SetId("Chickens Gain")
+        .AddRow().SetId("5")
+            .AddText("Laying Rate", Functions.Format(player.CurrentFarm.EggLayingRate * player.CurrentFarm.Chickens * 60, Rounding: 2, NoK: true) + "/m")
+                .SetId("Laying Rate");
 
         HandleFoxes(embed, state);
 
@@ -326,7 +695,7 @@ public class EggCoopGame : CommandModuleBase
 
         embed
             .AddRow()
-                .AddText($"{Functions.Format(player.CurrentFarm.Chickens, WholeNum: true, NoK: true)}/{Functions.Format(player.CurrentFarm.MaxChickens, WholeNum: true, NoK: true)}")
+                .AddText($"{Functions.Format(player.CurrentFarm.Chickens, OnlyNumbers:true)}")
             .AddRow();
         if (progresstodiscovernext <= 99.999) { 
                 embed.AddProgress("Progress to next egg")
@@ -396,6 +765,18 @@ public class EggCoopGame : CommandModuleBase
     }
 
     [EmbedMenuFunc]
+    public static async ValueTask ChangeIsBuyingBoosts(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+        player.IsBuyingBoosts = !player.IsBuyingBoosts;
+        state.Data.EmbedItemsHashes = null;
+        player.CurrentBoostPageNumber = 0;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+
+    [EmbedMenuFunc]
     public static async ValueTask BuyCommonResearch(InteractionContext ctx)
     {
         ushort id = ushort.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
@@ -410,6 +791,25 @@ public class EggCoopGame : CommandModuleBase
             if (!player.CurrentFarm.ResearchesCompleted.ContainsKey(id))
                 player.CurrentFarm.ResearchesCompleted[id] = 0;
             player.CurrentFarm.ResearchesCompleted[id] += 1;
+        }
+
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask CompleteGoal(InteractionContext ctx)
+    {
+        int id = int.Parse(ctx.Event.ElementId.Split("::MENU$-")[0]);
+        var goal = GameData.GoalData.First(x => x.Id == id);
+
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (goal.IsCompletedFunc(player) >= 1 && !player.GoalsDone.Contains(goal.Id))
+        {
+            player.CurrentGoals.Remove(goal.Id);
+            player.GoalsDone.Add(goal.Id);
+            goal.Reward.Execute(player);
         }
 
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
@@ -544,6 +944,32 @@ public class EggCoopGame : CommandModuleBase
             if (player.CurrentFarm.CurrentBaconResearchPageNumber < Math.Ceiling(GameData.BaconResearchData.Count / (double)ItemsPerResearchPage))
                 player.CurrentFarm.CurrentBaconResearchPageNumber += 1;
         }
+        state.Data.EmbedItemsHashes = null;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask PrevBoostpage(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (player.CurrentBoostPageNumber > 0)
+            player.CurrentBoostPageNumber -= 1;
+
+        state.Data.EmbedItemsHashes = null;
+        await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
+    }
+
+    [EmbedMenuFunc]
+    public static async ValueTask NextBoostpage(InteractionContext ctx)
+    {
+        var state = await UserEmbedState.GetFromMemberIdAsync(ctx.Member.Id);
+        var player = state.Data.EggCoopGameData;
+
+        if (player.CurrentBoostPageNumber < Math.Ceiling(GameData.BoostData.Count / (double)8))
+            player.CurrentBoostPageNumber += 1;
+
         state.Data.EmbedItemsHashes = null;
         await HeaderClicks[player.CurrentEmbedMenuPageNum](ctx);
     }
@@ -712,6 +1138,10 @@ public class EggCoopGame : CommandModuleBase
 
         embed
             .AddRow()
+                .AddText($"Capacity: {Functions.Format(player.CurrentFarm.MaxChickens, OnlyNumbers:true)}")
+                    .WithStyles(new Margin(left: new Size(Unit.Auto), right: new Size(Unit.Auto)))
+                    .SetId("max-chickens")
+            .AddRow()
                 .WithStyles(FlexDirection.Column)
                 .SetId("embed-body");
 
@@ -725,7 +1155,7 @@ public class EggCoopGame : CommandModuleBase
                     FlexDirection.Row,
                     FlexJustifyContent.SpaceBetween,
                     new FlexAlignItems(AlignItem.Stretch),
-                    new Margin(top: new Size(Unit.Pixels, 8))
+                    new Margin(top: new Size(Unit.Pixels, id == 0 ? 0 : 8))
                 )
                 .SetId($"row-for-house-{id}")
                 .WithRow()
@@ -798,9 +1228,6 @@ public class EggCoopGame : CommandModuleBase
         return embed;
     }
 
-    private static List<string> HeaderItems = "Home,Research,Habitats,Stats,Prestige".Split(",").ToList();
-    private static List<Func<InteractionContext, ValueTask>> HeaderClicks = new() { GetGameScreenAsync, GetResearchScreenAsync, GetHabitatsScreenAsync, GetStatsScreenAsync, GetPrestigeScreenAsync };
-
     public static EmbedBuilder HandleFoxes(EmbedBuilder embed, UserEmbedState state)
     {
         var player = state.Data.EggCoopGameData;
@@ -872,6 +1299,9 @@ public class EggCoopGame : CommandModuleBase
         }
         return embed;
     }
+
+    private static List<string> HeaderItems = "Home,Research,Habitats,Stats,Prestige,Boosts,Goals,Bacon".Split(",").ToList();
+    private static List<Func<InteractionContext, ValueTask>> HeaderClicks = new() { GetGameScreenAsync, GetResearchScreenAsync, GetHabitatsScreenAsync, GetStatsScreenAsync, GetPrestigeScreenAsync, GetBoostsScreenAsync, GetGoalsScreenAsync, GetBaconScreenAsync };
 
     public static EmbedBuilder AddHeader(EmbedBuilder embed, UserEmbedState state)
     {

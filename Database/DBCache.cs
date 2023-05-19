@@ -1,4 +1,5 @@
 ﻿using Database.Models.Users;
+using System.Text.Json;
 
 namespace PopeAI.Database.Caching;
 
@@ -150,7 +151,10 @@ public class DBCache
             Put(_obj.PlanetId, _obj);
         }
         foreach (var _obj in dbctx.UserEmbedStates.Where(x => UserIds.Contains(x.MemberId)))
+        {
+            _obj.Data = JsonSerializer.Deserialize<UserEmbedStateData>(_obj.StringData);
             Put(_obj.MemberId, _obj);
+        }
 
         //foreach (var user in UsersToCache)
         //{
@@ -175,7 +179,10 @@ public class DBCache
         }
         foreach (var item in GetAll<UserEmbedState>())
         {
-            dbctx.Entry(item).Property(b => b.Data).IsModified = true;
+            dbctx.Entry(item).Property(b => b.StringData).IsModified = true;
+            var text = JsonSerializer.Serialize(item.Data);
+            item.StringData = text;
+            //Console.WriteLine(text);
         }
         await dbctx.SaveChangesAsync();
     }
