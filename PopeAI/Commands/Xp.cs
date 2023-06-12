@@ -1,4 +1,5 @@
 using Database.Managers;
+using PopeAI.Commands.Banking;
 using PopeAI.Database.Models.Planets;
 using System.Collections.Concurrent;
 
@@ -30,7 +31,9 @@ public class Xp : CommandModuleBase
             return;
         }
 
-        var user = await DBUser.GetAsync(ctx.Member.Id);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+
+		var user = await DBUser.GetAsync(ctx.Member.Id);
 
         if (user == null)
         {
@@ -46,7 +49,8 @@ public class Xp : CommandModuleBase
         await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);
         await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
 
-        user.NewMessage(ctx.Message);
+		if (info is not null)
+			user.NewMessage(ctx.Message, info);
 
         await user.UpdateDB();
 
@@ -56,7 +60,11 @@ public class Xp : CommandModuleBase
     [Command("xp")]
     [Summary("Gives the user who sent the command their xp.")]
     public async Task SendXp(CommandContext ctx)
-    {
+	{
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+        if (info is null || !info.HasEnabled(ModuleType.Xp))
+            return;
+
         var user = await DBUser.GetAsync(ctx.Member.Id, true);
 
         var embed = new EmbedBuilder().AddPage($"{ctx.Member.Nickname}'s xp")
@@ -78,6 +86,10 @@ public class Xp : CommandModuleBase
     [Summary("Returns the leaderboard of the users with the most xp.")]
     public async Task Leaderboard(CommandContext ctx)
     {
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Xp))
+			return;
+
 		using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
         List<DBUser> users = await dbctx.Users
@@ -138,6 +150,10 @@ public class Xp : CommandModuleBase
 	[Summary("Returns the leaderboard of the users with the most xp.")]
 	public async Task LeaderboardDetailed(CommandContext ctx)
 	{
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Xp))
+			return;
+
 		using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 		List<DBUser> users = await dbctx.Users
 			.Where(x => x.PlanetId == ctx.Planet.Id)

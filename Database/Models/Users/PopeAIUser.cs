@@ -132,7 +132,7 @@ public class DBUser : DBItem<DBUser>
         return item;
     }
 
-    public void NewMessage(PlanetMessage msg)
+    public void NewMessage(PlanetMessage msg, PlanetInfo? info)
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
@@ -143,12 +143,21 @@ public class DBUser : DBItem<DBUser>
             }
             decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3 * bonus);
             xpgain = Math.Max(0.2m, xpgain);
-            MessageXp += xpgain;
-            int CoinGain = (int)Math.Max(Math.Round(xpgain*2),0);
-            Coins += CoinGain;
-            StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
-            ActiveMinutes += 1;
-            PointsThisMinute = 0;
+            
+            if (info.HasEnabled(ModuleType.Xp))
+                MessageXp += xpgain;
+
+            if (info.HasEnabled(ModuleType.Coins))
+            {
+                int CoinGain = (int)Math.Max(Math.Round(xpgain * 2), 0);
+                Coins += CoinGain;
+                StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
+            }
+
+            if (info.HasEnabled(ModuleType.Xp) || info.HasEnabled(ModuleType.Coins))
+                ActiveMinutes += 1;
+                PointsThisMinute = 0;
+
             LastSentMessage = DateTime.UtcNow;
         }
 

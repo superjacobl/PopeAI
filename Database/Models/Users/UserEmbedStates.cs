@@ -70,11 +70,19 @@ public class Modifier
 {
     public ModifierType Type { get; set; }
     public double Value { get; set; }
+    public Func<UserEggCoopGameData, double> ValueFunc { get; set; }
     public EffectType effectType { get; set; }
 
-    public Modifier(ModifierType type, double value) {
+    public Modifier(ModifierType type, double value = 0.0, Func<UserEggCoopGameData, double> valuefunc = null) {
         Type = type;
         Value = value;
+        ValueFunc = valuefunc;
+    }
+
+    public double GetValue(UserEggCoopGameData player)
+    {
+        if (Value >= 0.001) return Value;
+        return ValueFunc(player);
     }
 }
 

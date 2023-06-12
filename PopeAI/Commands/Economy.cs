@@ -21,7 +21,7 @@ public class Economy : CommandModuleBase
             .AddRow()
                 .AddText("Element Combining", "Currently being rewritten!")
             .AddRow()
-                .AddText("Planet", "/stats messages, /stats coins")
+                .AddText("Planet", "/stats messages, /stats coins, /settings")
             .AddRow()
                 .AddText("MyStats", "/mystats messages, /mystats xp");
 				//.AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount");
@@ -32,7 +32,11 @@ public class Economy : CommandModuleBase
     [Alias("h")]
     public async Task Hourly(CommandContext ctx)
     {
-        await using var user = await DBUser.GetAsync(ctx.Member.Id, true);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
+		await using var user = await DBUser.GetAsync(ctx.Member.Id, true);
         int minutesleft = (user.LastHourly.AddHours(1).Subtract(DateTime.UtcNow)).Minutes;
         if (minutesleft <= 0) {
             await DailyTaskManager.DidTask(DailyTaskType.Hourly_Claims, ctx.Member.Id, ctx);
@@ -53,7 +57,11 @@ public class Economy : CommandModuleBase
     [Alias("r")]
     public async Task ViewRichest(CommandContext ctx)
     {
-        using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
+		using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
         List<DBUser> users = dbctx.Users
             .Where(x => x.PlanetId ==  ctx.Planet.Id)
             .OrderByDescending(x => x.Coins)
@@ -77,7 +85,11 @@ public class Economy : CommandModuleBase
     [Alias("c")]
     public async Task coins(CommandContext ctx)
     {
-        var user = await DBUser.GetAsync(ctx.Member.Id, true);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
+		var user = await DBUser.GetAsync(ctx.Member.Id, true);
         ctx.ReplyAsync($"{ctx.Member.Nickname}'s coins: {user.Coins}");
     }
 
@@ -98,7 +110,11 @@ public class Economy : CommandModuleBase
     [Alias("send")]
     public async Task PayAsync(CommandContext ctx, PlanetMember member, int amount)
     {
-        await using var fromUser = await DBUser.GetAsync(ctx.Member.Id);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
+		await using var fromUser = await DBUser.GetAsync(ctx.Member.Id);
         await using var toUser = await DBUser.GetAsync(member.Id);
         
         if (amount > fromUser.Coins) {
@@ -119,7 +135,11 @@ public class Economy : CommandModuleBase
     [Alias("send")]
     public async Task PayAsync(CommandContext ctx, int amount, PlanetMember member)
     {
-        await using var fromUser = await DBUser.GetAsync(ctx.Member.Id);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+        
+		await using var fromUser = await DBUser.GetAsync(ctx.Member.Id);
         await using var toUser = await DBUser.GetAsync(member.Id);
         
         if (amount > fromUser.Coins) {
@@ -146,6 +166,10 @@ public class Economy : CommandModuleBase
     [Command("dice")]
     public async Task GetDiceAsync(CommandContext ctx)
 	{
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
 		EmbedBuilder embed = new EmbedBuilder().AddPage("Dice Game")
             .AddRow()
                 .AddButton("Load Embed")
@@ -156,7 +180,7 @@ public class Economy : CommandModuleBase
     [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId:"Dice-Load")]
 	public async Task OnDiceLoad(InteractionContext ctx)
 	{
-        await using var user = await DBUser.GetAsync(ctx.Member.Id);
+        await using var user = await DBUser.GetAsync(ctx.Member.Id, _readonly: true);
 		ctx.UpdateEmbedForUser(await GetDiceEmbedAsync(ctx, user), ctx.Member.UserId);
 	}
 
@@ -259,15 +283,23 @@ public class Economy : CommandModuleBase
     } 
 
     [Command("gamblerates")]
-    public Task GambleInfo(CommandContext ctx)
+    public async Task GambleInfo(CommandContext ctx)
     {
-        string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 2.86x bet |\n| Blue  | 35%    | 2.86x bet |\n| Green | 20%    | 5x bet   |\n| Black | 10%     | 10x bet  |";
-        return ctx.ReplyAsync(content);
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
+		string content = "| Color | Chance | Reward   |\n|-------|--------|----------|\n| Red   | 35%    | 2.86x bet |\n| Blue  | 35%    | 2.86x bet |\n| Green | 20%    | 5x bet   |\n| Black | 10%     | 10x bet  |";
+        ctx.ReplyAsync(content);
     }
 
     [Command("gamble")]
     public async Task GetGambleAsync(CommandContext ctx)
 	{
+		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
+		if (info is null || !info.HasEnabled(ModuleType.Coins))
+			return;
+
 		EmbedBuilder embed = new EmbedBuilder().AddPage("Gambling Game").AddRow().AddButton("Load Embed").OnClickSendInteractionEvent("Gamble-Load");
 		ctx.ReplyAsync(embed);
 	}
@@ -275,7 +307,7 @@ public class Economy : CommandModuleBase
     [Interaction(EmbedIteractionEventType.ItemClicked, interactionElementId:"Gamble-Load")]
 	public async Task OnGambleLoad(InteractionContext ctx)
 	{
-        await using var user = await DBUser.GetAsync(ctx.Member.Id);
+        await using var user = await DBUser.GetAsync(ctx.Member.Id, _readonly: true);
         try {
 		    await ctx.UpdateEmbedForUser(GetGambleEmbed(ctx, user), ctx.Member.UserId);
         }

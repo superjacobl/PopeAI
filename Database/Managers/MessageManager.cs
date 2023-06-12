@@ -39,7 +39,11 @@ public static class MessageManager
             {
                 info = new()
                 {
-                    PlanetId = message.PlanetId
+                    PlanetId = message.PlanetId,
+                    Modules = new() {
+                        ModuleType.Xp,
+                        ModuleType.Coins
+                    }
                 };
                 DBCache.AddNew(info.PlanetId, info);
                 dbctx.PlanetInfos.Add(info);

@@ -165,6 +165,8 @@ public class DBCache
         //  }
         foreach (var _obj in dbctx.PlanetInfos)
         {
+            if (_obj.Modules is null)
+                _obj.Modules = new();
             Put(_obj.PlanetId, _obj);
         }
         //#endif

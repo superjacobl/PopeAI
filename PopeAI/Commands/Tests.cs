@@ -243,6 +243,39 @@ namespace PopeAI.Commands.Tests
 	    [Group("embed")]
         public class TestModule : CommandModuleBase
         {
+            [Command("media")]
+            public async Task EmbedMediaTest(CommandContext ctx) 
+            {
+                var url = "https://cdn.valour.gg/content/Profile/12201879245422592/4a0419b8f298d6da533e791c6697eae82ea98081b2fba1d12841ef4603140c7c.png";
+                // "comment" out because not gonna work till images working in embeds get's pushed to live
+                var notgonnaupdatetillvalourupdate = """
+                var embed = new EmbedBuilder().AddPage()
+                    .AddRow()
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                    .AddRow()
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", "https://cdn.valour.gg/content/Profile/12447386915569664/8acc088af65693faafdd57b8fd86ee06f8c2b74df690930351f5acdedddf26f6.png")
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                    .AddRow()
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null))
+                        .AddMedia(0, 0, "image/png", "test.png", url)
+                            .WithStyles(new Width(new Size(Unit.Pixels, 32)), new Height(new Size(Unit.Pixels, 32)), new Margin(null, new Size(Unit.Pixels, 0), null, null));
+               
+                return ctx.ReplyAsync(embed); 
+                """;
+            }
+
             [Command("list")]
             public Task EmbedListTest(CommandContext ctx)
             {

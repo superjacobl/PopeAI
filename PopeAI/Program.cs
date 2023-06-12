@@ -74,9 +74,9 @@ class Program
         await DBCache.Load();
 
         ValourNetClient.AddPrefix("/");
-        //ValourNetClient.ExecuteMessagesInParallel = true;
+        ValourNetClient.ExecuteMessagesInParallel = true;
         ValourNetClient.ExecuteInteractionsInParallel = true;
-        //ValourNetClient.BaseUrl = "http://localhost:5000/";
+        ValourNetClient.BaseUrl = "http://localhost:5000/";
         
         StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
