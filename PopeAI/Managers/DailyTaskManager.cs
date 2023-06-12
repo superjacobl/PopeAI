@@ -117,13 +117,12 @@ public static class DailyTaskManager
         if (tasks.Count > 0)
         {
             foreach (var _task in tasks)
-                DBCache.AddNew(_task.Id, _task, false);
+                DBCache.AddNew(_task.Id, _task);
         }
     }
     
     public static async Task UpdateDailyTasks()
     {
-        return;
         // only replace dailytasks if the day is different
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 
@@ -149,16 +148,16 @@ public static class DailyTaskManager
 
         foreach (var user in users)
         {
-            DBCache.AddNew(user.Id, user);
+            DBCache.Put(user.Id, user);
         }
 
-        foreach (var user in users)
-        {
-            foreach(var task in user.DailyTasks)
-            {
-                DBCache.AddNew(task.Id, task);
-            }
-        }
+        //foreach (var user in users)
+        //{
+        //    foreach(var task in user.DailyTasks)
+        //    {
+        //        DBCache.AddNew(task.Id, task);
+        //    }
+       // }
 
         await PopeAIDB.botTime.UpdateDB(false);
 

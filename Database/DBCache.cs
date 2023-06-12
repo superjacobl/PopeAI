@@ -146,7 +146,7 @@ public class DBCache
         {
             Put(_obj.Id, _obj);
         }
-        foreach (var _obj in dbctx.CurrentStats.Where(x => x.MessagesSent > 0))
+        foreach (var _obj in dbctx.CurrentStats.Where(x => x.DailyMessagesSent > 0))
         {
             Put(_obj.PlanetId, _obj);
         }
@@ -174,6 +174,9 @@ public class DBCache
 
     public static async Task SaveAsync()
     {
+        while (StatManager.DoingStatsUpdate)
+            await Task.Delay(10);
+
         while (ItemQueue.Count > 0)
         {
             if (ItemQueue.TryDequeue(out var item))

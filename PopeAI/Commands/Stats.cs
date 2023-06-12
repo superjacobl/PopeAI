@@ -15,18 +15,60 @@ public class Stats : CommandModuleBase
         [Summary("Shows available commands.")]
         public Task StatsHelp(CommandContext ctx)
         {
-            return ctx.ReplyAsync("Available Commands: /stats messages, /stats coins");
+            return ctx.ReplyAsync("Available Commands: /stats messages, /stats coins, /stats totalmessages");
         }
 
-        [Command("coins")]
+		[Command("totalmessages")]
+		public async Task StatsTotalMessages(CommandContext ctx)
+		{
+			await using var user = await DBUser.GetAsync(ctx.Member.Id, true);
+			using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
+			var stats = await dbctx.Stats
+				.Where(x => x.PlanetId == ctx.Planet.Id && x.StatType == StatType.Hourly)
+				.OrderByDescending(x => x.Time)
+				.Take(7*24)
+				.ToListAsync();
+
+			List<int> data = new();
+			List<DateTime> protoxaxisdata = new();
+
+			var last = stats.First().Time;
+			foreach (var stat in stats)
+			{
+				data.Add(stat.TotalMessagesSent);
+				protoxaxisdata.Add(stat.Time);
+			}
+
+			data.Reverse();
+			data.Add((await CurrentStat.GetAsync(ctx.Planet.Id, _readonly: true)).TotalMessagesSent);
+
+			protoxaxisdata.Reverse();
+			if (last.Day == DateTime.UtcNow.Day)
+				protoxaxisdata.Add(last.AddDays(1));
+			else
+				protoxaxisdata.Add(DateTime.UtcNow);
+
+			List<string> xaxisdata = new();
+			double muit = ((double)protoxaxisdata.Count()) / 5;
+			for (int i = 0; i < 5; i++)
+			{
+				int x = (int)(i * muit);
+				long lerped = Stats.linear(x, 0, protoxaxisdata.Count, protoxaxisdata[0].Ticks, protoxaxisdata.Last().Ticks);
+				var date = new DateTime(lerped);
+				xaxisdata.Add(String.Format("{0:M/d/yyyy} {0:t}", date));
+			}
+			await Stats.PostLineGraph(ctx, xaxisdata, data, $"{ctx.Planet.Name}'s Total Messages Over Time", true);
+		}
+
+		[Command("coins")]
         [Summary("Shows available commands.")]
         public async Task StatsMessages(CommandContext ctx)
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             List<Stat> stats = await dbctx.Stats
-                .Where(x => x.PlanetId == ctx.Planet.Id)
+                .Where(x => x.PlanetId == ctx.Planet.Id && x.StatType == StatType.Daily)
                 .OrderByDescending(x => x.Time)
-                .Take(7)
+                .Take(7*24)
                 .ToListAsync();
             List<int> data = new();
 			List<string> xaxisdata = new();
@@ -37,7 +79,7 @@ public class Stats : CommandModuleBase
 				xaxisdata.Add(stat.Time.ToString("MMM dd"));
 			}
             data.Reverse();
-            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).NewCoins);
+            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).DailyNewCoins);
 			xaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
@@ -52,9 +94,8 @@ public class Stats : CommandModuleBase
         {
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             List<Stat> stats = await dbctx.Stats
-                .Where(x => x.PlanetId == ctx.Planet.Id)
-                .OrderByDescending(x => x.Time)
-                .Take(7)
+                .Where(x => x.PlanetId == ctx.Planet.Id && x.StatType == StatType.Daily)
+                .Take(7*24)
                 .ToListAsync();
             List<int> data = new();
             List<string> xaxisdata = new();
@@ -65,7 +106,7 @@ public class Stats : CommandModuleBase
                 xaxisdata.Add(stat.Time.ToString("MMM dd"));
 			}
             data.Reverse();
-            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).MessagesSent);
+            data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).DailyMessagesSent);
             xaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
 				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
@@ -161,10 +202,28 @@ public class Stats : CommandModuleBase
 		return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
 	}
 
+	static public long linear(long x, long x0, long x1, long y0, long y1)
+	{
+		if ((x1 - x0) == 0)
+		{
+			return (y0 + y1) / 2;
+		}
+		return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+	}
+
+	static public double linear(double x, double x0, double x1, double y0, double y1)
+	{
+		if ((x1 - x0) == 0)
+		{
+			return (y0 + y1) / 2;
+		}
+		return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+	}
+
 	public static async Task PostLineGraph(CommandContext ctx, List<string> xaxisdata, List<int> xdata, string graphname = "", bool startfrommin = false)
 	{
 		int height = 250;
-		int width = 360;
+		int width = 365;
 		var embed = new EmbedBuilder()
 			.AddPage(graphname)
 				.WithStyles(
@@ -188,27 +247,31 @@ public class Stats : CommandModuleBase
 			muit = 175 / (double)maxvalue;
 
 		// each "x" is 7px wide and ~14px high
-		int neededxvalues = (width-70) / 7;
+		double neededxvalues = (width-70) / 7;
 
-		List<int> newxdata = new();
-		int i = 0;
-		int eachdataequalsi = (int)Math.Floor((double)neededxvalues / (double)(xdata.Count-1));
+		List<double> newxdata = new();
+		double i = 0;
+		double eachdataequalsi = (double)neededxvalues / (double)(xdata.Count-1);
 
 		// if xdata contains less than *neededxvalues*, then we need to fill in the data
 		if (xdata.Count < neededxvalues)
 		{
 			i = 1;
 			int dataindex = 1;
-			int prevdatavalue = xdata[0];
+			double prevdatavalue = xdata[0];
 			for (int j = 0; j < neededxvalues; j++)
 			{
-				if (i > eachdataequalsi && dataindex+1 <= xdata.Count-1)
+				if (i >= eachdataequalsi && dataindex+1 <= xdata.Count-1)
 				{
-					i = 1;
+					i = 0;
 					prevdatavalue = xdata[dataindex];
 					dataindex += 1;
 				}
-				int value = linear(j, (dataindex - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
+
+				double progressToNextValue = i / eachdataequalsi;
+				double value = prevdatavalue * (1 - progressToNextValue);
+				value += xdata[dataindex] * (progressToNextValue);
+				//double value = linear((double)j, (((double)dataindex) - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
 				newxdata.Add(value);
 				i += 1;
 			}

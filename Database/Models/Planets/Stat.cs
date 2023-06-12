@@ -1,5 +1,11 @@
 namespace PopeAI.Database.Models.Planets;
 
+public enum StatType
+{
+    Daily = 0,
+    Hourly = 1
+}
+
 [Index(nameof(PlanetId))]
 [Index(nameof(Time))]
 public class Stat
@@ -21,4 +27,5 @@ public class Stat
 	public int TotalMessagesUsersSent { get; set; }
 	public int TotalMessagesSent { get; set; }
 	public DateTime Time { get; set; }
+    public StatType StatType { get; set; }
 }

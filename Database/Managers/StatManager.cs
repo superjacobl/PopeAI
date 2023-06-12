@@ -8,6 +8,7 @@ public static class StatManager
     public static readonly IdManager idManager = new();
 
     public static BotStat selfstat;
+    public static bool DoingStatsUpdate = false;
 
     public static async ValueTask AddStat(CurrentStatType type, int value, long PlanetId)
     {
@@ -20,63 +21,109 @@ public static class StatManager
         switch (type)
         {
             case CurrentStatType.Coins:
-                current.NewCoins += value;
+                current.DailyNewCoins += value;
                 current.TotalCoins += value;
-                break;
+				current.HourlyNewCoins += value;
+				break;
             case CurrentStatType.UserMessage:
-                current.MessagesUsersSent += value;
-                current.MessagesSent += value;
+                current.DailyMessagesUsersSent += value;
+                current.DailyMessagesSent += value;
                 current.TotalMessagesUsersSent += value;
                 current.TotalMessagesSent += value;
-                break;
+				current.HourlyMessagesUsersSent += value;
+				current.HourlyMessagesSent += value;
+				break;
             case CurrentStatType.Message:
-                current.MessagesSent += value;
+                current.DailyMessagesSent += value;
                 current.TotalMessagesSent += value;
-                break;
+				current.HourlyMessagesSent += value;
+				break;
         }
         await current.UpdateDB();
     }
 
     public static async Task CheckStats()
     {
-        await selfstat.UpdateDB(false);
+        DoingStatsUpdate = true;
+		await selfstat.UpdateDB(false);
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-        if (DateTime.UtcNow > PopeAIDB.botTime.LastStatUpdate.AddHours(24))
+		int idsgenerated = 0;
+		if (DateTime.UtcNow > PopeAIDB.botTime.LastPlanetStatUpdate.AddHours(1))
         {
             DBCache.DeleteAll<CurrentStat>();
-			int idsgenerated = 0;
-			foreach (CurrentStat currentstat in dbctx.CurrentStats.Where(x => x.MessagesSent != 0))
+            foreach (CurrentStat currentstat in DBCache.dbctx.CurrentStats.Where(x => x.DailyMessagesSent != 0))
             {
                 Stat stat = new()
                 {
                     Id = idManager.Generate(),
                     PlanetId = currentstat.PlanetId,
-                    NewCoins = currentstat.NewCoins,
-                    MessagesUsersSent = currentstat.MessagesUsersSent,
-                    MessagesSent = currentstat.MessagesSent,
+                    NewCoins = currentstat.HourlyNewCoins,
+                    MessagesUsersSent = currentstat.HourlyMessagesUsersSent,
+                    MessagesSent = currentstat.HourlyMessagesSent,
                     TotalCoins = currentstat.TotalCoins,
                     TotalMessagesSent = currentstat.TotalMessagesSent,
                     TotalMessagesUsersSent = currentstat.TotalMessagesUsersSent,
-                    Time = DateTime.UtcNow
+                    Time = DateTime.UtcNow,
+                    StatType = StatType.Hourly
                 };
                 dbctx.Add(stat);
-                currentstat.NewCoins = 0;
-                currentstat.MessagesSent = 0;
-                currentstat.MessagesUsersSent = 0;
+
+                currentstat.HourlyNewCoins = 0;
+                currentstat.HourlyMessagesSent = 0;
+                currentstat.HourlyMessagesUsersSent = 0;
                 currentstat.LastStatUpdate = DateTime.UtcNow;
-				DBCache.Put(currentstat.PlanetId, currentstat);
+                DBCache.Put(currentstat.PlanetId, currentstat);
 
                 idsgenerated += 1;
-				// stop snowflake ids from running out of seq ids
-				if (idsgenerated >= 255)
+                // stop snowflake ids from running out of seq ids
+                if (idsgenerated >= 255)
                 {
                     idsgenerated = 0;
                     await Task.Delay(1);
                 }
             }
-            
-            // do userstats now
-            var currentdateonly = DateOnly.FromDateTime(DateTime.UtcNow);
+
+			PopeAIDB.botTime.LastPlanetStatUpdate = DateTime.UtcNow;
+			await PopeAIDB.botTime.UpdateDB(false);
+		}
+
+		if (DateTime.UtcNow > PopeAIDB.botTime.LastStatUpdate.AddHours(24))
+		{
+			DBCache.DeleteAll<CurrentStat>();
+			foreach (CurrentStat currentstat in DBCache.dbctx.CurrentStats.Where(x => x.DailyMessagesSent != 0))
+			{
+				Stat stat = new()
+				{
+					Id = idManager.Generate(),
+					PlanetId = currentstat.PlanetId,
+					NewCoins = currentstat.DailyNewCoins,
+					MessagesUsersSent = currentstat.DailyMessagesUsersSent,
+					MessagesSent = currentstat.DailyMessagesSent,
+					TotalCoins = currentstat.TotalCoins,
+					TotalMessagesSent = currentstat.TotalMessagesSent,
+					TotalMessagesUsersSent = currentstat.TotalMessagesUsersSent,
+					Time = DateTime.UtcNow,
+					StatType = StatType.Daily
+				};
+				dbctx.Add(stat);
+
+				currentstat.DailyNewCoins = 0;
+				currentstat.DailyMessagesSent = 0;
+				currentstat.DailyMessagesUsersSent = 0;
+				currentstat.LastStatUpdate = DateTime.UtcNow;
+				DBCache.Put(currentstat.PlanetId, currentstat);
+
+				idsgenerated += 1;
+				// stop snowflake ids from running out of seq ids
+				if (idsgenerated >= 255)
+				{
+					idsgenerated = 0;
+					await Task.Delay(1);
+				}
+			}
+
+			// do userstats now
+			var currentdateonly = DateOnly.FromDateTime(DateTime.UtcNow);
             var PrevStats = await dbctx.UserStats.Where(x => x.Date.AddDays(1) > currentdateonly).ToListAsync();
             var newstats = new List<UserStat>();
             foreach(var user in DBCache.GetAll<DBUser>())
@@ -142,5 +189,6 @@ public static class StatManager
             await selfstat.UpdateDB(false);
         }
         await dbctx.SaveChangesAsync();
-    }
+        DoingStatsUpdate = false;
+	}
 }
