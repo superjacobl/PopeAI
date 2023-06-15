@@ -124,7 +124,6 @@ public static class DailyTaskManager
     public static async Task UpdateDailyTasks()
     {
         return;
-        DBCache.PauseSavingToDb = true;
 
 		// only replace dailytasks if the day is different
         if (PopeAIDB.botTime.LastDailyTasksUpdate.AddDays(1) > DateTime.UtcNow)
