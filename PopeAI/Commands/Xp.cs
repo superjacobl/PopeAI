@@ -44,6 +44,7 @@ public class Xp : CommandModuleBase
 
         if (DateOnly.FromDateTime(DateTime.UtcNow).DayNumber - user.LastUpdatedDailyTasks.DayNumber >= 1) {
             DailyTaskManager.UpdateTasks(user);
+            user.LastUpdatedDailyTasks = DateOnly.FromDateTime(DateTime.UtcNow);
         }
 
         await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);

@@ -124,8 +124,6 @@ class Program
         }
         Console.WriteLine("Done!");
 
-        UpdateHourly();
-
         MessageManager.Run();
 
         await MessageQueueForChannelConversationsManager.StartAsync();
@@ -137,7 +135,9 @@ class Program
             try
             {
                 await DBCache.SaveAsync();
-            }
+				await StatManager.CheckStats();
+				await DailyTaskManager.UpdateDailyTasks();
+			}
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
@@ -146,25 +146,6 @@ class Program
             #if !DEBUG
             await Valour.Api.Items.Item.UpdateAsync(ValourClient.Self);
             #endif
-            #if DEBUG
-            await Task.Delay(1000);
-            #else
-            await Task.Delay(60000);
-            #endif
-        }
-    }
-
-    static async Task UpdateHourly() {
-        while (true) {
-            try
-            {
-                await StatManager.CheckStats();
-                await DailyTaskManager.UpdateDailyTasks();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
             #if DEBUG
             await Task.Delay(1000);
             #else

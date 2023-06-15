@@ -8,7 +8,6 @@ public static class StatManager
     public static readonly IdManager idManager = new();
 
     public static BotStat selfstat;
-    public static bool DoingStatsUpdate = false;
 
     public static async ValueTask AddStat(CurrentStatType type, int value, long PlanetId)
     {
@@ -44,7 +43,6 @@ public static class StatManager
 
     public static async Task CheckStats()
     {
-        DoingStatsUpdate = true;
 		await selfstat.UpdateDB(false);
         using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
 		int idsgenerated = 0;
@@ -189,6 +187,5 @@ public static class StatManager
             await selfstat.UpdateDB(false);
         }
         await dbctx.SaveChangesAsync();
-        DoingStatsUpdate = false;
 	}
 }

@@ -174,9 +174,6 @@ public class DBCache
 
     public static async Task SaveAsync()
     {
-        while (StatManager.DoingStatsUpdate)
-            await Task.Delay(10);
-
         while (ItemQueue.Count > 0)
         {
             if (ItemQueue.TryDequeue(out var item))
