@@ -57,10 +57,10 @@ public static class GameData
 
     public static List<Research> BaconResearchData = new()
     {
-        new Research("Bacon Int. Hatcheries", 0, 50, (x => (x * 3.5 + 1) * 20), new() { new(ModifierType.ChickenProductionPerHabFactor, 0.05) }, 0, "Increases internal hatchery rate by 5%"),
+        new Research("Bacon Int. Hatcheries", 0, 50, (x => (x * 3 + 1) * 20), new() { new(ModifierType.ChickenProductionPerHabFactor, 0.075) }, 0, "Increases internal hatchery rate by 7.5%"),
         new Research("Bread Food", 0, 140, (x => (x * 0.06 + 1) * 400), new() { new(ModifierType.BonusPerBread, 0.01) }, 1, "Increases bonus per bread by +1%"),
         new Research("Bread Bread Bread", 0, 50, (x => (x * 75) + 400), new() { new(ModifierType.BreadGain, 0.1) }, 2, "Increases bread gain by +10%"),
-        new Research("Better Eggs", 0, 150, (x => (x * 7.5) + 20), new() { new(ModifierType.EggValue, 0.01) }, 3, "Increases egg value by 1%")
+        new Research("Better Eggs", 0, 150, (x => (x * 5) + 20), new() { new(ModifierType.EggValue, 0.02) }, 3, "Increases egg value by 2%")
     };
 
     public static List<House> HouseData = new()
