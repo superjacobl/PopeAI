@@ -46,7 +46,7 @@ public static class GameData
         new Research("Shell Fortification", 5, 75, (x => Math.Pow(1.23, x) * 12_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 0.15) }, 13, "Increase egg value by 15%"),
         new Research("Even Bigger Eggs", 5, 6, (x => Math.Pow(400, x) * 26_000_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 1) }, 15, "Doubles egg value", EffectType.Multiplicative),
         new Research("Internal Hatchery Expansion", 6, 40, (x => Math.Pow(1.85, x) * 375_000_000_000_000_000.0), new() { new(ModifierType.ChickenProductionPerHab, 25) }, 16, "Each hab produces 25 more chickens per minute"),
-        new Research("Genetic Purification", 6, 200, (x => Math.Pow(1.29, x) * 100_000_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 0.10) }, 17, "Increase egg value by 10%"),
+        new Research("Genetic Purification", 6, 200, (x => Math.Pow(1.2875, x) * 100_000_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 0.10) }, 17, "Increase egg value by 10%"),
         new Research("Time Compression", 6, 40, (x => Math.Pow(2.6, x) * 500_000_000_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 0.10) }, 18, "Increase egg laying rate by 10%"),
         new Research("Graviton Coating", 7, 9, (x => Math.Pow(250, x) * 70_000_000_000_000_000_000_000_000_000.0), new() { new(ModifierType.EggValue, 1) }, 19, "Doubles egg value", EffectType.Multiplicative),
         new Research("Machine Learning Incubators", 7, 400, (x => Math.Pow(1.087, x) * 1.25e23), new() { new(ModifierType.ChickenProductionPerHab, 5) }, 20, "Each hab produces 5 more chickens per minute"),
