@@ -132,11 +132,11 @@ public static class Game
         // 0.18
         // 0.19
         var breadtogain = Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 12)), 0.16) - Math.Pow(ten6, 0.16));
-        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 21)), 0.175) - Math.Pow(Math.Pow(10, 6), 0.175));
-        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 30)), 0.195) - Math.Pow(Math.Pow(10, 15), 0.1915));
-        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 39)), 0.2125) - Math.Pow(Math.Pow(10, 24), 0.205));
-        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 48)), 0.225) - Math.Pow(Math.Pow(10, 33), 0.215));
-        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 60)), 0.2425) - Math.Pow(Math.Pow(10, 42), 0.23));
+        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 21)), 0.1675) - Math.Pow(Math.Pow(10, 6), 0.1675));
+        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 30)), 0.18) - Math.Pow(Math.Pow(10, 15), 0.18));
+        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 39)), 0.2) - Math.Pow(Math.Pow(10, 24), 0.2));
+        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 48)), 0.215) - Math.Pow(Math.Pow(10, 33), 0.215));
+        breadtogain += Math.Max(0, Math.Pow(ten6 * Math.Min(player.TotalPrestigeEarnings, Math.Pow(10, 60)), 0.23) - Math.Pow(Math.Pow(10, 42), 0.23));
         breadtogain *= GetTotalEffectForType(player, ModifierType.BreadGain);
         return breadtogain;
     }
