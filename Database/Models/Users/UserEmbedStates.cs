@@ -232,11 +232,11 @@ public class Fox
         {
             var value = rnd.Next(1, 1001);
             var amount = 0.0;
-            if (value <= 250) amount = 16;
-            else if (value <= 850) amount = 28;
-            else if (value <= 949) amount = 48;
-            else if (value <= 990) amount = 96;
-            else amount = 196;
+            if (value <= 250) amount = 28;
+            else if (value <= 850) amount = 52;
+            else if (value <= 949) amount = 96;
+            else if (value <= 990) amount = 162;
+            else amount = 312;
 
             reward = new(RewardType.Bacon, amount);
         }
