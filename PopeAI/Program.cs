@@ -76,9 +76,12 @@ class Program
         ValourNetClient.AddPrefix("/");
         ValourNetClient.ExecuteMessagesInParallel = true;
         ValourNetClient.ExecuteInteractionsInParallel = true;
-        //ValourNetClient.BaseUrl = "http://localhost:5000/";
-        
-        StatManager.selfstat = await BotStat.GetAsync(1);
+#if DEBUG
+        ValourNetClient.OnlyRunCommandsIfFromThisUserId = 12201879245422592;
+#endif
+		//ValourNetClient.BaseUrl = "http://localhost:5000/";
+
+		StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
 
         int worker = 0;
@@ -143,14 +146,14 @@ class Program
                 Console.WriteLine(ex.ToString());
             }
             ValourClient.Self.Status = $"Storing {StatManager.selfstat.StoredMessages} messages";
-            #if !DEBUG
+#if !DEBUG
             await Valour.Api.Items.Item.UpdateAsync(ValourClient.Self);
-            #endif
-            #if DEBUG
+#endif
+#if DEBUG
             await Task.Delay(1000);
-            #else
+#else
             await Task.Delay(60000);
-            #endif
+#endif
         }
     }
 }

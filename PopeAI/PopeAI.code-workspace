@@ -7,5 +7,7 @@
 			"path": "..\\..\\Valour.Net\\Valour.Net"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"dotnet.defaultSolution": "c:\\Users\\Jacob\\Desktop\\Github\\PopeAI\\PopeAI.sln"
+	}
 }

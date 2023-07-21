@@ -50,7 +50,7 @@ public class Dev : CommandModuleBase
         foreach(var role in await _member.GetRolesAsync()) {
             embed.AddRow()
                 .AddText(text: role.Name)
-                    .WithStyles(new TextColor(new Color(role.GetColorHex().Replace("#", ""))))
+                    .WithStyles(new TextColor(new Color(role.Color)))
                 .AddText(text: role.Id.ToString());
         }
         await ctx.ReplyAsync(embed);
