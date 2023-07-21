@@ -147,7 +147,7 @@ class Program
             }
             ValourClient.Self.Status = $"Storing {StatManager.selfstat.StoredMessages} messages";
 #if !DEBUG
-            await Valour.Api.Items.Item.UpdateAsync(ValourClient.Self);
+            await Valour.Api.Items.LiveModel.UpdateAsync(ValourClient.Self);
 #endif
 #if DEBUG
             await Task.Delay(1000);
