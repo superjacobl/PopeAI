@@ -56,6 +56,26 @@ public class Dev : CommandModuleBase
         await ctx.ReplyAsync(embed);
     }
 
+    [Command("dbtext")]
+    public static async Task DatabaseInfoAsTextAynsc(CommandContext ctx)
+    {
+        if (ctx.Member.UserId != 12201879245422592)
+        {
+            return;
+        }
+        //string query = $"select (data_length + index_length) as Size, COUNT(Id), ((data_length + index_length)/COUNT(Id)) as avg_row_size from popeai.Messages, information_schema.tables where table_name = 'messages';";
+        string query = $"SELECT pg_total_relation_size('messages');";
+        long bytes = PopeAIDB.RawSqlQuery<List<long>>(query, x => new List<long> { Convert.ToInt64(x[0]) }).First().First();
+
+        var content = "PopeAI's Database Info:";
+        BotStat stat = StatManager.selfstat;
+        content += $"\nMessage Table Size: {FormatManager.Format(bytes, FormatType.Bytes)}";
+        content += $"\nMessages Stored: {FormatManager.Format(StatManager.selfstat.StoredMessages, FormatType.Commas)}";
+        var secondpart = FormatManager.Format(bytes / StatManager.selfstat.StoredMessages, FormatType.Commas) + " bytes";
+        content += $"\nAvg Message Size: {secondpart}";
+        ctx.ReplyAsync(content);
+    }
+
     [Command("database")]
     [Alias("db")]
     public static async Task DatabaseInfoAynsc(CommandContext ctx) 
