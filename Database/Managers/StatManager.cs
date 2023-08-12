@@ -83,6 +83,7 @@ public static class StatManager
 
 			PopeAIDB.botTime.LastPlanetStatUpdate = DateTime.UtcNow;
 			await PopeAIDB.botTime.UpdateDB(false);
+			await dbctx.SaveChangesAsync();
 		}
 
 		if (DateTime.UtcNow > PopeAIDB.botTime.LastStatUpdate.AddHours(24))

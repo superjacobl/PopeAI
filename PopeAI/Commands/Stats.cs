@@ -55,7 +55,7 @@ public class Stats : CommandModuleBase
 				int x = (int)(i * muit);
 				long lerped = Stats.linear(x, 0, protoxaxisdata.Count, protoxaxisdata[0].Ticks, protoxaxisdata.Last().Ticks);
 				var date = new DateTime(lerped);
-				xaxisdata.Add(String.Format("{0:M/d/yyyy} {0:t}", date));
+				xaxisdata.Add(String.Format("{0:M/d/yy} {0:t}", date));
 			}
 			await Stats.PostLineGraph(ctx, xaxisdata, data, $"{ctx.Planet.Name}'s Total Messages Over Time", true);
 		}
@@ -254,7 +254,7 @@ public class Stats : CommandModuleBase
 		double eachdataequalsi = (double)neededxvalues / (double)(xdata.Count-1);
 
 		// if xdata contains less than *neededxvalues*, then we need to fill in the data
-		if (xdata.Count < neededxvalues)
+		if (xdata.Count < neededxvalues || true)
 		{
 			i = 1;
 			int dataindex = 1;
@@ -275,10 +275,6 @@ public class Stats : CommandModuleBase
 				newxdata.Add(value);
 				i += 1;
 			}
-		}
-		else
-		{
-			newxdata.AddRange(xdata.Select(x => (double)x));
 		}
 
 		Console.WriteLine(String.Join(", ", xdata));
