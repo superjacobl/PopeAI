@@ -254,25 +254,79 @@ public class Stats : CommandModuleBase
 		double eachdataequalsi = (double)neededxvalues / (double)(xdata.Count-1);
 
 		// if xdata contains less than *neededxvalues*, then we need to fill in the data
-		if (xdata.Count < neededxvalues || true)
+		if (false)
 		{
-			i = 1;
+			if (xdata.Count < neededxvalues)
+			{
+				i = 1;
+				int dataindex = 1;
+				double prevdatavalue = xdata[0];
+				for (int j = 0; j < neededxvalues; j++)
+				{
+					if (i >= eachdataequalsi && dataindex + 1 <= xdata.Count - 1)
+					{
+						i = 0;
+						prevdatavalue = xdata[dataindex];
+						dataindex += 1;
+					}
+
+					double progressToNextValue = i / eachdataequalsi;
+					double value = prevdatavalue * (1 - progressToNextValue);
+					value += xdata[dataindex] * (progressToNextValue);
+					//double value = linear((double)j, (((double)dataindex) - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
+					newxdata.Add(value);
+					i += 1;
+				}
+			}
+		}
+		if (xdata.Count < neededxvalues)
+		{
+			i = 0.0;
 			int dataindex = 1;
+			int prevdataindex = 0;
 			double prevdatavalue = xdata[0];
 			for (int j = 0; j < neededxvalues; j++)
 			{
-				if (i >= eachdataequalsi && dataindex+1 <= xdata.Count-1)
+				dataindex = (int)Math.Ceiling(i);
+				if (dataindex - prevdataindex > 1)
 				{
-					i = 0;
 					prevdatavalue = xdata[dataindex];
-					dataindex += 1;
+					prevdataindex += 1;
 				}
 
-				double progressToNextValue = i / eachdataequalsi;
+				double progressToNextValue = i - (double)prevdataindex;
 				double value = prevdatavalue * (1 - progressToNextValue);
 				value += xdata[dataindex] * (progressToNextValue);
 				//double value = linear((double)j, (((double)dataindex) - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
 				newxdata.Add(value);
+				i += 1 / eachdataequalsi;
+			}
+		}
+		else
+		{
+			i = 1;
+			int dataindex = 1;
+			double prevdatavalue = xdata[0];
+			double datapoints = 0.0;
+			double totalvalue = 0.0;
+			foreach (var value in xdata)
+			{
+				if (i >= (1/eachdataequalsi))
+				{
+					i -= 1 / eachdataequalsi;
+					datapoints += 1.0 - i;
+					totalvalue += (1.0 - i) * value;
+					newxdata.Add(totalvalue / datapoints);
+					datapoints = i;
+					totalvalue = i * value;
+					// i = 1;
+				}
+				else
+				{
+					datapoints += 1.0;
+					totalvalue += value;
+				}
+
 				i += 1;
 			}
 		}
