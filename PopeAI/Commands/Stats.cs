@@ -276,6 +276,10 @@ public class Stats : CommandModuleBase
 				i += 1;
 			}
 		}
+		else
+		{
+			newxdata.AddRange(xdata.Select(x => (double)x));
+		}
 
 		Console.WriteLine(String.Join(", ", xdata));
 		Console.WriteLine("NewxData: "+String.Join(", ", newxdata));
