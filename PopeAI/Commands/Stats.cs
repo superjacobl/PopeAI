@@ -68,7 +68,7 @@ public class Stats : CommandModuleBase
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id && x.StatType == StatType.Daily)
                 .OrderByDescending(x => x.Time)
-                .Take(7*24)
+                .Take(14)
                 .ToListAsync();
             List<int> data = new();
 			List<string> xaxisdata = new();
@@ -95,7 +95,7 @@ public class Stats : CommandModuleBase
             using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
             List<Stat> stats = await dbctx.Stats
                 .Where(x => x.PlanetId == ctx.Planet.Id && x.StatType == StatType.Daily)
-                .Take(7*24)
+                .Take(14)
                 .ToListAsync();
             List<int> data = new();
             List<string> xaxisdata = new();
