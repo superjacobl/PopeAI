@@ -331,6 +331,9 @@ public class Stats : CommandModuleBase
 			}
 		}
 
+		Console.WriteLine(xdata.Count);
+		Console.WriteLine(newxdata.Count);
+		Console.WriteLine(1 / eachdataequalsi);
 		Console.WriteLine(String.Join(", ", xdata));
 		Console.WriteLine("NewxData: "+String.Join(", ", newxdata));
 
