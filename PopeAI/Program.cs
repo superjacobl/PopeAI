@@ -78,8 +78,9 @@ class Program
         ValourNetClient.ExecuteInteractionsInParallel = true;
 #if DEBUG
         ValourNetClient.OnlyRunCommandsIfFromThisUserId = 12201879245422592;
+        ValourNetClient.BaseUrl = "http://localhost:5000/";
 #endif
-		ValourNetClient.BaseUrl = "http://localhost:5000/";
+
 
 		StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
