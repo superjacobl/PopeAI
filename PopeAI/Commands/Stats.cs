@@ -278,7 +278,7 @@ public class Stats : CommandModuleBase
 		}
 
 		Console.WriteLine(String.Join(", ", xdata));
-		Console.WriteLine(String.Join(", ", newxdata));
+		Console.WriteLine("NewxData: "+String.Join(", ", newxdata));
 
 		//newxdata.Reverse();
 		i = 0;
