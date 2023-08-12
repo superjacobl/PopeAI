@@ -76,15 +76,15 @@ public class Stats : CommandModuleBase
 			foreach (Stat stat in stats)
             {
                 data.Add(stat.NewCoins);
-				xaxisdata.Add(stat.Time.ToString("MMM dd"));
+				xaxisdata.Add(stat.Time.ToString("m/dd"));
 			}
             data.Reverse();
             data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).DailyNewCoins);
 			xaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
-				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+				xaxisdata.Add(last.AddDays(1).ToString("m/dd"));
 			else
-				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
+				xaxisdata.Add(DateTime.UtcNow.ToString("m/dd"));
 			await PostBarGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name} daily coin gain");
         }
 
@@ -103,15 +103,15 @@ public class Stats : CommandModuleBase
 			foreach (Stat stat in stats)
             {
                 data.Add(stat.MessagesSent);
-                xaxisdata.Add(stat.Time.ToString("MMM dd"));
+                xaxisdata.Add(stat.Time.ToString("m dd"));
 			}
             data.Reverse();
             data.Add((await CurrentStat.GetAsync(ctx.Planet.Id)).DailyMessagesSent);
             xaxisdata.Reverse();
 			if (last.Day == DateTime.UtcNow.Day)
-				xaxisdata.Add(last.AddDays(1).ToString("MMM dd"));
+				xaxisdata.Add(last.AddDays(1).ToString("m/dd"));
 			else
-				xaxisdata.Add(DateTime.UtcNow.ToString("MMM dd"));
+				xaxisdata.Add(DateTime.UtcNow.ToString("m/dd"));
             await PostBarGraph(ctx, xaxisdata, data, $"Graph of {ctx.Planet.Name}'s messages");
         }
     }
