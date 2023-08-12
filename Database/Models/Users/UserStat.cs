@@ -5,6 +5,7 @@ namespace PopeAI.Database.Models.Users;
 public class UserStat : DBItem<UserStat>
 {
 	// bytes per record
+	// does NOT include index
 	// long 2x     = 16
 	// int 5x      = 20
 	// decimal 1x  = 16

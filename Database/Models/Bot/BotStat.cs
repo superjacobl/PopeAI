@@ -5,11 +5,12 @@ public class BotStat : DBItem<BotStat>
 {
     [Key]
     public long Id { get; set; }
-
     public DateTime Time { get; set; }
-    
-    public long MessagesSent { get; set; }
 
+    /// <summary>
+    /// Messages sent by ALL users (including PopeAI) during this hour
+    /// </summary>
+    public long MessagesSent { get; set; }
     public long MessagesSentSelf { get; set; }
     public long StoredMessages { get; set; }
     public long StoredMessageTotalSize { get; set; }
@@ -25,22 +26,10 @@ public class BotStat : DBItem<BotStat>
     public long TimeTakenTotal { get; set; }
 
     [NotMapped]
-    public long AvgTime
-    {
-        get
-        {
-            return TimeTakenTotal / Commands;
-        }
-    }
+    public long AvgTime => TimeTakenTotal / Commands;
 
     [NotMapped]
-    public long AvgStoredMessageSize
-    {
-        get
-        {
-            return StoredMessageTotalSize / StoredMessages;
-        }
-    }
+    public long AvgStoredMessageSize => StoredMessageTotalSize / StoredMessages;
 
     public BotStat(long id, DateTime time, long messagessent, long storedMessages, long storedMessageTotalSize, long commands, long timeTakenTotal, long messagessentself)
     {

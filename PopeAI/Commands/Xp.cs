@@ -77,8 +77,8 @@ public class Xp : CommandModuleBase
             .AddRow()
                 .AddText("Total Xp", Functions.Format(user.Xp));
 
-		embed.CurrentPage.FooterStyles = new() { new Width(new Size(Unit.Pixels, 225)) };
-		embed.CurrentPage.Footer = $"Ad: Youtube is the world's leading video sharing website, checkout it out now at https://youtube.com";
+		//embed.CurrentPage.FooterStyles = new() { new Width(new Size(Unit.Pixels, 225)) };
+		//embed.CurrentPage.Footer = $"Ad: Youtube is the world's leading video sharing website, checkout it out now at https://youtube.com";
 
 		ctx.ReplyAsync(embed);
 

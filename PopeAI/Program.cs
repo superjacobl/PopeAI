@@ -79,7 +79,7 @@ class Program
 #if DEBUG
         ValourNetClient.OnlyRunCommandsIfFromThisUserId = 12201879245422592;
 #endif
-		//ValourNetClient.BaseUrl = "http://localhost:5000/";
+		ValourNetClient.BaseUrl = "http://localhost:5000/";
 
 		StatManager.selfstat = await BotStat.GetAsync(1);
         PopeAIDB.botTime = await BotTime.GetAsync(1);
