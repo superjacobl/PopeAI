@@ -290,7 +290,7 @@ public class Stats : CommandModuleBase
 				dataindex = (int)Math.Ceiling(i);
 				if (dataindex - prevdataindex > 1)
 				{
-					prevdatavalue = xdata[prevdataindex];
+					prevdatavalue = xdata[prevdataindex+1];
 					prevdataindex += 1;
 				}
 
