@@ -48,7 +48,7 @@ public class ChannelConversation
             ConversationType = ConversationType.Large;
         else if (participating >= 10 && msgs_in_last_5_minutes >= 100)
             ConversationType = ConversationType.Medium;
-        else if (participating >= 3 && msgs_in_last_5_minutes >= 20) // change back to 3 and 20
+        else if (participating >= 3 && msgs_in_last_5_minutes >= 20)
             ConversationType = ConversationType.Small;
         else
             ConversationType = ConversationType.None;
@@ -215,7 +215,8 @@ public static class MessageQueueForChannelConversationsManager
                 };
                 entry.Add(pair);
                 if (entry.Count >= 6)
-                    entry.RemoveAt(5);
+                    entry.RemoveAt(0);
+                    //entry.RemoveAt(5);
                 foreach (var item in entry.ToList())
                 {
                     if (CurrentMinute-item.Minutes > 5)

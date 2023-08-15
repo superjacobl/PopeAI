@@ -1,6 +1,9 @@
 using System.Text.Json;
 using System.Diagnostics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Valour.Net.EmbedMenu;
+using System.Text.Json.Serialization;
+using Valour.Net.Client.MessageHelper;
 
 
 /*
@@ -323,7 +326,42 @@ namespace PopeAI.Commands.Tests
                 return ctx.ReplyAsync(Embed);
             }
 
-            [Command("input")]
+            [Command("time")]
+            public Task EmbedTimeEdittingMessageTest(CommandContext ctx)
+            {
+                var embed = new EmbedBuilder()
+                    .AddPage()
+                        .AddRow()
+                            .AddText("Time", DateTime.UtcNow.ToString())
+                        .AddRow()
+                            .AddButton("Update")
+                                .OnClick(UpdatedEmbedTimeTest);
+				return ctx.ReplyAsync(embed);
+			}
+
+            [EmbedMenuFunc]
+			public static async ValueTask UpdatedEmbedTimeTest(InteractionContext ctx)
+            {
+				var embed = new EmbedBuilder()
+					.AddPage()
+						.AddRow()
+							.AddText("Time", DateTime.UtcNow.ToString())
+						.AddRow()
+							.AddButton("Update")
+								.OnClick(UpdatedEmbedTimeTest);
+                var msg = await PlanetMessage.FindAsync(ctx.Event.MessageId, ctx.Channel.Id, ctx.Planet.Id);
+				JsonSerializerOptions options = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault };
+				msg.EmbedData = JsonSerializer.Serialize(embed.embed, options);
+                msg.embedParsed = true;
+				var result = await msg.EditMessageAsync();
+                Console.WriteLine(result.Message);
+                Console.WriteLine(result.Success);
+
+
+				//MessageHelpers.GenerateForPost(message);
+			}
+
+			[Command("input")]
             public Task EmbedInputTest(CommandContext ctx)
             {
                 var Embed = new EmbedBuilder()

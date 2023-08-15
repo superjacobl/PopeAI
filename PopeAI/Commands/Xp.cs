@@ -56,6 +56,7 @@ public class Xp : CommandModuleBase
         await user.UpdateDB();
 
         MessageQueueForChannelConversationsManager.AddToQueue(ctx.Message);
+        MessageVCRewardManager.AddToQueue(ctx.Message);
     }
 
     [Command("xp")]

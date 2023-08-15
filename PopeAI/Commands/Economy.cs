@@ -276,10 +276,10 @@ public class Economy : CommandModuleBase
             AlreadyDoing.TryRemove(ctx.Member.Id, out _);
         });
 
-        Task.Run(async () => {
-            await Task.Delay(5000);
-            AlreadyDoing.TryRemove(ctx.Member.Id, out _);
-        });
+        //Task.Run(async () => {
+        //    await Task.Delay(5000);
+        //    AlreadyDoing.TryRemove(ctx.Member.Id, out _);
+        //});
     } 
 
     [Command("gamblerates")]
