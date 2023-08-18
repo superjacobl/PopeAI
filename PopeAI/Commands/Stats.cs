@@ -368,7 +368,7 @@ public class Stats : CommandModuleBase
 		i = 0;
 		foreach (var value in newxdata)
 		{
-			int x = (int)(i * 7 + 50);
+			int x = (int)(i * 6 + 50);
 			if (x > 340)
 				x = 340;
 			int y = 0;
