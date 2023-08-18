@@ -214,8 +214,8 @@ public static class MessageQueueForChannelConversationsManager
                     Messages = 0
                 };
                 entry.Add(pair);
-                if (entry.Count >= 6)
-                    entry.RemoveAt(0);
+                //if (entry.Count >= 6)
+                    //entry.RemoveAt(0);
                     //entry.RemoveAt(5);
                 foreach (var item in entry.ToList())
                 {
