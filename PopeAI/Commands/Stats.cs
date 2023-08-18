@@ -248,8 +248,8 @@ public class Stats : CommandModuleBase
 		else
 			muit = 175 / (double)maxvalue;
 
-		// each "x" is 7px wide and ~14px high
-		double neededxvalues = ((double)(width-70)) / ((double)7);
+		// each "x" is 6px wide and ~14px high
+		double neededxvalues = ((double)(width-70)) / ((double)6);
 
 		List<double> newxdata = new();
 		double i = 0;
@@ -384,7 +384,8 @@ public class Stats : CommandModuleBase
 			embed
 				.AddText("x")
 					.WithStyles(
-						new Position(left: new Size(Unit.Pixels, x), top: new Size(Unit.Pixels, y))
+						new Position(left: new Size(Unit.Pixels, x), top: new Size(Unit.Pixels, y)),
+						new FontSize(new Size(Unit.Pixels, 12))
 					);
 			i += 1;
 		}
