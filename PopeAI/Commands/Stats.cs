@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using MathNet.Numerics;
+using MathNet.Numerics.Interpolation;
 
 namespace PopeAI.Commands.Stats;
 
@@ -304,30 +306,45 @@ public class Stats : CommandModuleBase
 		}
 		else
 		{
-			i = 1;
-			int dataindex = 1;
-			double prevdatavalue = xdata[0];
-			double datapoints = 0.0;
-			double totalvalue = 0.0;
-			foreach (var value in xdata)
+			List<double> ydata = new();
+			for (int j = 0; j < xdata.Count; j++)
 			{
-				if (i >= (1/eachdataequalsi))
-				{
-					i -= 1 / eachdataequalsi;
-					datapoints += 1.0 - i;
-					totalvalue += (1.0 - i) * value;
-					newxdata.Add(totalvalue / datapoints);
-					datapoints = i;
-					totalvalue = i * value;
-					// i = 1;
-				}
-				else
-				{
-					datapoints += 1.0;
-					totalvalue += value;
-				}
+				ydata.Add(j);
+			}
+			var spline = Interpolate.Linear(xdata.Select(x => (double)x).ToList(), ydata);
+			for (int j = 0;j < (int)neededxvalues; j++)
+			{
+				double y = ((double)j) * (1 / eachdataequalsi);
+				newxdata.Add(spline.Interpolate(y));
+			}
 
-				i += 1;
+			if (false)
+			{
+				i = 1;
+				int dataindex = 1;
+				double prevdatavalue = xdata[0];
+				double datapoints = 0.0;
+				double totalvalue = 0.0;
+				foreach (var value in xdata)
+				{
+					if (i >= (1 / eachdataequalsi))
+					{
+						i -= 1 / eachdataequalsi;
+						datapoints += 1.0 - i;
+						totalvalue += (1.0 - i) * value;
+						newxdata.Add(totalvalue / datapoints);
+						datapoints = i;
+						totalvalue = i * value;
+						// i = 1;
+					}
+					else
+					{
+						datapoints += 1.0;
+						totalvalue += value;
+					}
+
+					i += 1;
+				}
 			}
 		}
 
