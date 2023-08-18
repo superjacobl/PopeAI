@@ -249,7 +249,7 @@ public class Stats : CommandModuleBase
 			muit = 175 / (double)maxvalue;
 
 		// each "x" is 7px wide and ~14px high
-		double neededxvalues = (width-70) / 7;
+		double neededxvalues = ((double)(width-70)) / ((double)7);
 
 		List<double> newxdata = new();
 		double i = 0;
@@ -355,7 +355,7 @@ public class Stats : CommandModuleBase
 
 		Console.WriteLine(xdata.Count);
 		Console.WriteLine(newxdata.Count);
-		Console.WriteLine(Math.Round(1.0 / eachdataequalsi, 6));
+		Console.WriteLine(Math.Round(((double)1) / eachdataequalsi, 6));
 		Console.WriteLine(String.Join(", ", xdata));
 		Console.WriteLine("NewxData: "+String.Join(", ", newxdata));
 
