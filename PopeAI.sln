@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database", "Database\Databa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing", "Testing\Testing.csproj", "{DDF9F9D2-8C0B-4174-A34F-8BC43F8ABAF6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Valour.Net", "..\Valour.Net\Valour.Net\Valour.Net.csproj", "{BCF6BAD8-F604-41CE-8CCE-947553CCBBD3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{DDF9F9D2-8C0B-4174-A34F-8BC43F8ABAF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDF9F9D2-8C0B-4174-A34F-8BC43F8ABAF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDF9F9D2-8C0B-4174-A34F-8BC43F8ABAF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BCF6BAD8-F604-41CE-8CCE-947553CCBBD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BCF6BAD8-F604-41CE-8CCE-947553CCBBD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BCF6BAD8-F604-41CE-8CCE-947553CCBBD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BCF6BAD8-F604-41CE-8CCE-947553CCBBD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
