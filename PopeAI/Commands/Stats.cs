@@ -290,9 +290,10 @@ public class Stats : CommandModuleBase
 			}
 			var spline = Interpolate.Linear(ydata, xdata.Select(x => (double)x).ToList());
 			var max_y = 0.0;
+			double _muit = ((double)xdata.Count) / neededxvalues;
 			for (int j = 0; j < (int)neededxvalues; j++)
 			{
-				double y = ((double)j) * (((double)1) / eachdataequalsi);
+				double y = ((double)j) * _muit;
 				max_y = y;
 				newxdata.Add(spline.Interpolate(y));
 			}
