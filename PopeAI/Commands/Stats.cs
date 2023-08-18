@@ -289,11 +289,14 @@ public class Stats : CommandModuleBase
 				ydata.Add(j);
 			}
 			var spline = Interpolate.Linear(ydata, xdata.Select(x => (double)x).ToList());
+			var max_y = 0.0;
 			for (int j = 0; j < (int)neededxvalues; j++)
 			{
-				double y = ((double)j) * (1.0 / eachdataequalsi);
+				double y = ((double)j) * (((double)1) / eachdataequalsi);
+				max_y = y;
 				newxdata.Add(spline.Interpolate(y));
 			}
+			Console.WriteLine($"Highest Y: {max_y}");
 		}
 		else
 		{
