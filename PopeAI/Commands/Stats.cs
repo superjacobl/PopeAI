@@ -360,6 +360,7 @@ public class Stats : CommandModuleBase
 		Console.WriteLine(xdata.Count);
 		Console.WriteLine(newxdata.Count);
 		Console.WriteLine(Math.Round(((double)1) / eachdataequalsi, 6));
+		Console.WriteLine(Math.Round(((double)xdata.Count) / neededxvalues, 6));
 		Console.WriteLine(String.Join(", ", xdata));
 		Console.WriteLine("NewxData: "+String.Join(", ", newxdata));
 
