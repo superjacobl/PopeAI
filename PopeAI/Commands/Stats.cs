@@ -281,69 +281,74 @@ public class Stats : CommandModuleBase
 				}
 			}
 		}
-		if (xdata.Count < neededxvalues)
-		{
-			i = 0.00000001;
-			int dataindex = 1;
-			int prevdataindex = 0;
-			double prevdatavalue = xdata[0];
-			for (int j = 0; j < neededxvalues; j++)
-			{
-				dataindex = (int)Math.Ceiling(i);
-				if (dataindex - prevdataindex > 1)
-				{
-					prevdatavalue = xdata[prevdataindex+1];
-					prevdataindex += 1;
-				}
-
-				double progressToNextValue = i - (double)prevdataindex;
-				double value = prevdatavalue * (1 - progressToNextValue);
-				value += xdata[dataindex] * (progressToNextValue);
-				//double value = linear((double)j, (((double)dataindex) - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
-				newxdata.Add(value);
-				i += 1 / eachdataequalsi;
-			}
-		}
-		else
+		if (true)
 		{
 			List<double> ydata = new();
 			for (int j = 0; j < xdata.Count; j++)
 			{
 				ydata.Add(j);
 			}
-			var spline = Interpolate.Linear(xdata.Select(x => (double)x).ToList(), ydata);
-			for (int j = 0;j < (int)neededxvalues; j++)
+			var spline = Interpolate.Linear(ydata, xdata.Select(x => (double)x).ToList());
+			for (int j = 0; j < (int)neededxvalues; j++)
 			{
-				double y = ((double)j) * (1 / eachdataequalsi);
+				double y = ((double)j) * (1.0 / eachdataequalsi);
 				newxdata.Add(spline.Interpolate(y));
 			}
-
-			if (false)
+		}
+		else
+		{
+			if (xdata.Count < neededxvalues)
 			{
-				i = 1;
+				i = 0.00000001;
 				int dataindex = 1;
+				int prevdataindex = 0;
 				double prevdatavalue = xdata[0];
-				double datapoints = 0.0;
-				double totalvalue = 0.0;
-				foreach (var value in xdata)
+				for (int j = 0; j < neededxvalues; j++)
 				{
-					if (i >= (1 / eachdataequalsi))
+					dataindex = (int)Math.Ceiling(i);
+					if (dataindex - prevdataindex > 1)
 					{
-						i -= 1 / eachdataequalsi;
-						datapoints += 1.0 - i;
-						totalvalue += (1.0 - i) * value;
-						newxdata.Add(totalvalue / datapoints);
-						datapoints = i;
-						totalvalue = i * value;
-						// i = 1;
-					}
-					else
-					{
-						datapoints += 1.0;
-						totalvalue += value;
+						prevdatavalue = xdata[prevdataindex + 1];
+						prevdataindex += 1;
 					}
 
-					i += 1;
+					double progressToNextValue = i - (double)prevdataindex;
+					double value = prevdatavalue * (1 - progressToNextValue);
+					value += xdata[dataindex] * (progressToNextValue);
+					//double value = linear((double)j, (((double)dataindex) - 1) * eachdataequalsi, dataindex * eachdataequalsi, prevdatavalue, xdata[dataindex]);
+					newxdata.Add(value);
+					i += 1 / eachdataequalsi;
+				}
+			}
+			else
+			{
+				if (false)
+				{
+					i = 1;
+					int dataindex = 1;
+					double prevdatavalue = xdata[0];
+					double datapoints = 0.0;
+					double totalvalue = 0.0;
+					foreach (var value in xdata)
+					{
+						if (i >= (1 / eachdataequalsi))
+						{
+							i -= 1 / eachdataequalsi;
+							datapoints += 1.0 - i;
+							totalvalue += (1.0 - i) * value;
+							newxdata.Add(totalvalue / datapoints);
+							datapoints = i;
+							totalvalue = i * value;
+							// i = 1;
+						}
+						else
+						{
+							datapoints += 1.0;
+							totalvalue += value;
+						}
+
+						i += 1;
+					}
 				}
 			}
 		}
