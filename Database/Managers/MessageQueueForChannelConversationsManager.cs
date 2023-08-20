@@ -233,6 +233,7 @@ public static class MessageQueueForChannelConversationsManager
                     if (CurrentMinute-item.Minutes <= 5)
 						new_entry_list.Add(item);
                 }
+                conversation.MessagesSentPerMinuteByDBUserIdLast5Minutes[user.Id] = new_entry_list;
             }
             conversation.MessagesSentPerMinuteByDBUserIdLast5Minutes[user.Id].First(x => x.Minutes == CurrentMinute).Messages += 1;
             QueueConsumerIsRunning = false;
