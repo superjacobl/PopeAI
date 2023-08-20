@@ -114,7 +114,7 @@ public class Elemental : CommandModuleBase
         }
 
         if (suggestion is not null) {
-            ctx.ReplyAsync("There's already a recipe that uses the elements: {text}! Use /vote to decide if that recipe should be added!");
+            ctx.ReplyAsync($"There's already a recipe that uses the elements: {text}! Use /vote to decide if that recipe should be added!");
         }
 
         FailedCombinations.Remove(ctx.Member.UserId, out _);
@@ -304,9 +304,13 @@ public class Elemental : CommandModuleBase
                     dbctx.Suggestions.Remove(suggestion);
 
                     await dbctx.SaveChangesAsync();
-                    
-                    UserInvItem _item = new(idManager.Generate(), suggestion.UserId, combination.Result);
-                    dbctx.Add(_item);
+
+                    var invitem_ = await dbctx.UserInvItems.FirstOrDefaultAsync(x => x.UserId == ctx.Member.UserId && x.Element == combination.Result);
+                    if (invitem_ is null)
+                    {
+                        UserInvItem _item = new(idManager.Generate(), suggestion.UserId, combination.Result);
+                        dbctx.Add(_item);
+                    }
 
                     element.Found += 1;
 
@@ -525,7 +529,7 @@ public class Elemental : CommandModuleBase
             }
 
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
-            decimal amount = 1+(combination.Difficulty/6);
+            decimal amount = 1+(((decimal)combination.Difficulty)/6.0m);
             if (element3 != null) {
                 amount *= 1.5m;
             }
