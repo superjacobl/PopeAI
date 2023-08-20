@@ -53,6 +53,12 @@ public class ChannelConversation
         else
             ConversationType = ConversationType.None;
 
+        if (lasttype != ConversationType)
+        {
+            Console.WriteLine($"participating: {participating}");
+			Console.WriteLine($"msgs_in_last_5_minutes: {msgs_in_last_5_minutes}");
+		}
+        
         if (ConversationType != lasttype)
         {
             if (ConversationType == ConversationType.None)
@@ -144,13 +150,17 @@ public static class MessageQueueForChannelConversationsManager
             var conversation = ChannelConversations[channelid];
             foreach (var pair in conversation.MessagesSentPerMinuteByDBUserIdLast5Minutes.ToList())
             {
-                foreach (var entry in pair.Value.ToList())
+                List<EntryData> new_entry_list = new();
+
+				foreach (var entry in pair.Value)
                 {
-                    if (CurrentMinute - entry.Minutes >= 5)
-                        pair.Value.Remove(entry);
+                    if (CurrentMinute - entry.Minutes <= 5)
+						new_entry_list.Add(entry);
+
+						//pair.Value.Remove(entry);
                 }
 
-                if (pair.Value.Count == 0)
+                if (new_entry_list.Count == 0)
                 {
                     conversation.DBUserCurrentlyParticipating.Remove(conversation.DBUserCurrentlyParticipating.First(x => x.Id == pair.Key));
                     conversation.MessagesSentPerMinuteByDBUserIdLast5Minutes.Remove(pair.Key);
@@ -215,14 +225,13 @@ public static class MessageQueueForChannelConversationsManager
                 };
                 entry.Add(pair);
                 //if (entry.Count >= 6)
-                    //entry.RemoveAt(0);
-                    //entry.RemoveAt(5);
+                //entry.RemoveAt(0);
+                //entry.RemoveAt(5);
+                List<EntryData> new_entry_list = new();
                 foreach (var item in entry.ToList())
                 {
-                    if (CurrentMinute-item.Minutes > 5)
-                    {
-                        entry.Remove(item);
-                    }
+                    if (CurrentMinute-item.Minutes <= 5)
+						new_entry_list.Add(item);
                 }
             }
             conversation.MessagesSentPerMinuteByDBUserIdLast5Minutes[user.Id].First(x => x.Minutes == CurrentMinute).Messages += 1;
