@@ -253,8 +253,8 @@ public class Elemental : CommandModuleBase
 
             int votes = suggestion.Ayes+suggestion.Nays;
 
-            // min of 2 votes
-            if (votes >= 2) {
+            // min of 3 votes
+            if (votes >= 3) {
                 bool approved = false;
                 if (suggestion.Nays != 0) {
                     // need 2/3 vote to approve
@@ -531,7 +531,7 @@ public class Elemental : CommandModuleBase
             }
             user.ElementalXp += amount;
 
-            ctx.ReplyAsync($"You found {combination.Result}! You earn {Math.Round(amount,0)}xp!");
+            ctx.ReplyAsync($"You found {combination.Result}! You earn {Math.Round(amount,1)}xp!");
 
             await DailyTaskManager.DidTask(DailyTaskType.Combined_Elements, ctx.Member.Id, ctx);
 
