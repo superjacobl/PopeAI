@@ -12,6 +12,7 @@ namespace PopeAI.Commands.Unscramble
         [Summary("Unscramble a given word!")]
         public async Task GetUnscrambleAsync(CommandContext ctx)
         {
+            ctx.ReplyAsync("The Unscramble game has been disabled, but will be reenabled soon.");
             EmbedBuilder embed = new EmbedBuilder()
                 .AddPage("Unscramble Game")
                     .AddRow()
@@ -33,6 +34,8 @@ namespace PopeAI.Commands.Unscramble
             string scrambed = ScrambleWord(pickedword);
             ScrambledWords[ctx.Member.Id] = pickedword;
             EmbedBuilder embed = new EmbedBuilder().AddPage("Unscramble Game").AddRow();
+            embed.AddText("The Unscramble game has been disabled, but will be reenabled soon.");
+            return embed;
             if (user is null)
                 return embed;
 
@@ -53,7 +56,7 @@ namespace PopeAI.Commands.Unscramble
         public async Task UnscrambleFormSubmitted(InteractionContext ctx)
         {
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
-            if (user is null)
+            if (user is null || true)
                 return;
 
             if (!ScrambledWords.ContainsKey(ctx.Member.Id))
