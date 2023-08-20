@@ -20,7 +20,7 @@ namespace PopeAI.Commands.Unscramble
             if (ifwon) 
             {
                 int reward = UnscrambleChannelGame.rnd.Next(1*PlayersIdsToMemberIds.Count, 3*PlayersIdsToMemberIds.Count);
-                decimal xpreward = 0.35m*((decimal)PlayersIdsToMemberIds.Count);
+                decimal xpreward = 0.25m*((decimal)PlayersIdsToMemberIds.Count);
                 await using var user = await DBUser.GetAsync(ctx.Member.Id);
 
                 user.Coins += reward;

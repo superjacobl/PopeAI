@@ -32,8 +32,11 @@ namespace PopeAI.Commands.Unscramble
             string pickedword = words[rnd.Next(0, words.Count())];
             string scrambed = ScrambleWord(pickedword);
             ScrambledWords[ctx.Member.Id] = pickedword;
-            EmbedBuilder embed = new EmbedBuilder().AddPage("Unscramble Game")
-                .AddRow()
+            EmbedBuilder embed = new EmbedBuilder().AddPage("Unscramble Game").AddRow();
+            if (user is null)
+                return embed;
+
+            embed
                     .AddText(text: $"Your Coins: {user.Coins}")
                 .AddRow()
                     .AddForm("Unscramble")
@@ -50,6 +53,9 @@ namespace PopeAI.Commands.Unscramble
         public async Task UnscrambleFormSubmitted(InteractionContext ctx)
         {
             await using var user = await DBUser.GetAsync(ctx.Member.Id);
+            if (user is null)
+                return;
+
             if (!ScrambledWords.ContainsKey(ctx.Member.Id))
             {
                 var embed = await GetUnscrambleEmbedAsync(ctx, user);
