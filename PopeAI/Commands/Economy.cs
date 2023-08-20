@@ -19,12 +19,13 @@ public class Economy : CommandModuleBase
             .AddRow()
                 .AddText("Daily Tasks", "/tasks")
             .AddRow()
-                .AddText("Element Combining", "Currently being rewritten!")
+			    .AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount")
+                //.AddText("Element Combining", "Currently being rewritten!")
             .AddRow()
                 .AddText("Planet", "/stats messages, /stats coins, /stats totalmessages, /settings")
             .AddRow()
                 .AddText("MyStats", "/mystats messages, /mystats xp");
-				//.AddText("Element Combining", "/suggest <result>, /c or /combine <element 1> <element 2> <optional element 3>, /inv, /vote, /element count, /element mycount");
+			
 		return ctx.ReplyAsync(embed);
     } 
 
