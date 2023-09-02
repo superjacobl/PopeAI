@@ -376,15 +376,18 @@ public class Elemental : CommandModuleBase
 
     [Command("creatcombination")]
     [Alias("cc")]
-    public static async Task CreatCombinationAynsc3Elements(CommandContext ctx, string element1, string element2, string element3, string result) {
+    public static async Task CreatCombinationAynsc3Elements(CommandContext ctx, string element1, string element2, string element3, string result)
+    {
         await CreateCombinationAsync(ctx, element1, element2, element3, result);
     }
 
     [Command("creatcombination")]
     [Alias("cc")]
-    public static async Task CreatCombinationAsync2Elements(CommandContext ctx, string element1, string element2, string result) {
+    public static async Task CreatCombinationAsync2Elements(CommandContext ctx, string element1, string element2, string result)
+    {
         await CreateCombinationAsync(ctx, element1, element2, "", result);
     }
+
     public static async Task CreateCombinationAsync(CommandContext ctx, string element1, string element2, string element3, string result) 
     {
         if (ctx.Member.UserId != 735182334984193) {
