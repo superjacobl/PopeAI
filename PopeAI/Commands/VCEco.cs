@@ -10,6 +10,14 @@ public class VCEco : CommandModuleBase
 	{
 		var result = await EcoAccount.FindGlobalIdByNameAsync((await ctx.Member.GetUserAsync()).NameAndTag);
 		var ecoaccount = await EcoAccount.FindAsync(result.AccountId, ISharedPlanet.ValourCentralId);
-		ctx.ReplyAsync($"{ctx.Member.Nickname}'s Valour Credits: ¢{ecoaccount.BalanceValue}");
+		await ctx.ReplyAsync($"{ctx.Member.Nickname}'s Valour Credits: ¢{ecoaccount.BalanceValue}");
+	}
+
+	[Command("vcbal")]
+	public async Task VCBalAsync(CommandContext ctx, PlanetMember member)
+	{
+		var result = await EcoAccount.FindGlobalIdByNameAsync((await member.GetUserAsync()).NameAndTag);
+		var ecoaccount = await EcoAccount.FindAsync(result.AccountId, ISharedPlanet.ValourCentralId);
+		await ctx.ReplyAsync($"{member.Nickname}'s Valour Credits: ¢{ecoaccount.BalanceValue}");
 	}
 }
