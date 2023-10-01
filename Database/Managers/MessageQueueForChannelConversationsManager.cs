@@ -124,7 +124,7 @@ public static class MessageQueueForChannelConversationsManager
 
     public static void AddToQueue(PlanetMessage msg)
     {
-        MessageQueue.Add(msg);
+        //MessageQueue.Add(msg);
     }
 
     public static async void CheckConversationsForNonActiveOnes(object? state)
