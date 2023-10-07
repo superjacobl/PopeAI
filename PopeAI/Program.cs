@@ -79,7 +79,7 @@ class Program
         };
 
 		ValourNetClient.AddPrefix("/");
-        ValourNetClient.ExecuteMessagesInParallel = true;
+        ValourNetClient.ExecuteMessagesInParallel = false;
         ValourNetClient.ExecuteInteractionsInParallel = true;
 #if DEBUG
         ValourNetClient.OnlyRunCommandsIfFromThisUserId = 12201879245422592;
