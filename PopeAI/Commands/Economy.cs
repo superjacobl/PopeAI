@@ -33,7 +33,6 @@ public class Economy : CommandModuleBase
     [Alias("h")]
     public async Task Hourly(CommandContext ctx)
     {
-        Console.WriteLine($"{ctx.Member.Nickname}: hourly");
 		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
 		if (info is null || !info.HasEnabled(ModuleType.Coins))
 			return;
