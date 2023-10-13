@@ -138,19 +138,15 @@ public class DBUser : DBItem<DBUser>
         {
             var bonus = MessageQueueForChannelConversationsManager.GetBonus(MessageQueueForChannelConversationsManager.GetChannelConversationType(msg.ChannelId));
             if (PointsThisMinute <= 5)
-            {
                 PointsThisMinute += 5;
-            }
-            Console.WriteLine($"{UserId}: PointsThisMinute += 5");
-            Console.WriteLine($"PointsThisMinute: {PointsThisMinute})");
-            Console.WriteLine($"bonus: {bonus})");
+            if (PointsThisMinute <= 0)
+                PointsThisMinute = 5;
+
             decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3 * bonus);
             xpgain = Math.Max(0.2m, xpgain);
-            Console.WriteLine($"{UserId}: Math.Max(0.2m, xpgain)");
             
             if (info.HasEnabled(ModuleType.Xp))
                 MessageXp += xpgain;
-            Console.WriteLine($"{UserId}: MessageXp += xpgain");
 
             if (info.HasEnabled(ModuleType.Coins))
             {
@@ -159,12 +155,9 @@ public class DBUser : DBItem<DBUser>
                 StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
             }
 
-            Console.WriteLine($"{UserId}: StateManager.AddStat");
-
             if (info.HasEnabled(ModuleType.Xp) || info.HasEnabled(ModuleType.Coins))
                 ActiveMinutes += 1;
                 PointsThisMinute = 0;
-            Console.WriteLine($"{UserId}: Reset ActiveMinutes & PointsThisMinute");
 
             LastSentMessage = DateTime.UtcNow;
         }
