@@ -142,6 +142,8 @@ public class DBUser : DBItem<DBUser>
                 PointsThisMinute += 5;
             }
             Console.WriteLine($"{UserId}: PointsThisMinute += 5");
+            Console.WriteLine($"PointsThisMinute: {PointsThisMinute})");
+            Console.WriteLine($"bonus: {bonus})");
             decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3 * bonus);
             xpgain = Math.Max(0.2m, xpgain);
             Console.WriteLine($"{UserId}: Math.Max(0.2m, xpgain)");

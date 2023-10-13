@@ -50,19 +50,13 @@ public class Xp : CommandModuleBase
         await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);
         await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
 
-        Console.WriteLine($"{ctx.Member.Nickname} ({ctx.Member.UserId}): Updated user's tasks");
-
-        if (info is not null)
+		if (info is not null)
 			user.NewMessage(ctx.Message, info);
 
-        Console.WriteLine($"{ctx.Member.Nickname}: user.NewMessage");
         await user.UpdateDB();
-        Console.WriteLine($"{ctx.Member.Nickname}: user.UpdateDB");
 
         MessageQueueForChannelConversationsManager.AddToQueue(ctx.Message);
-        Console.WriteLine($"{ctx.Member.Nickname}: MessageQueueForChannelConversationsManager.AddToQueue");
         MessageVCRewardManager.AddToQueue(ctx.Message);
-        Console.WriteLine($"{ctx.Member.Nickname}: DONE");
     }
 
     [Command("xp")]
