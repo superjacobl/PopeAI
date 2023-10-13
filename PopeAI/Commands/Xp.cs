@@ -19,10 +19,8 @@ public class Xp : CommandModuleBase
     {
         // put this message in queue for storage
         MessageManager.AddToQueue(ctx.Message);
-        Console.WriteLine($"{ctx.Member.Nickname}: MessageManager");
 
         await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
-        Console.WriteLine($"{ctx.Member.Nickname}: StatManager");
 
         if (ctx.Message.AuthorUserId == long.Parse(ConfigManger.Config.BotId))
         {
@@ -34,10 +32,8 @@ public class Xp : CommandModuleBase
         }
 
 		var info = await PlanetInfo.GetAsync(ctx.Planet.Id, _readonly: true);
-        Console.WriteLine($"{ctx.Member.Nickname}: Get PlanetInfo");
 
-        var user = await DBUser.GetAsync(ctx.Member.Id);
-        Console.WriteLine($"{ctx.Member.Nickname}: Get DBUser");
+		var user = await DBUser.GetAsync(ctx.Member.Id);
 
         if (user == null)
         {
@@ -50,7 +46,6 @@ public class Xp : CommandModuleBase
             DailyTaskManager.UpdateTasks(user);
             user.LastUpdatedDailyTasks = DateOnly.FromDateTime(DateTime.UtcNow);
         }
-        Console.WriteLine($"{ctx.Member.Nickname}: Updated User's Tasks");
 
         await StatManager.AddStat(CurrentStatType.UserMessage, 1, ctx.Member.PlanetId);
         await DailyTaskManager.DidTask(DailyTaskType.Messages, ctx.Member.Id, ctx, user);
@@ -62,6 +57,7 @@ public class Xp : CommandModuleBase
 
         MessageQueueForChannelConversationsManager.AddToQueue(ctx.Message);
         MessageVCRewardManager.AddToQueue(ctx.Message);
+        Console.WriteLine($"{ctx.Member.Nickname}: DONE");
     }
 
     [Command("xp")]
