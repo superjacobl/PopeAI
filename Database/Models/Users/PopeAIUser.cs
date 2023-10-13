@@ -141,11 +141,14 @@ public class DBUser : DBItem<DBUser>
             {
                 PointsThisMinute += 5;
             }
+            Console.WriteLine($"{UserId}: PointsThisMinute += 5");
             decimal xpgain = (decimal)((Math.Log10(PointsThisMinute) - 1) * 3 * bonus);
             xpgain = Math.Max(0.2m, xpgain);
+            Console.WriteLine($"{UserId}: Math.Max(0.2m, xpgain)");
             
             if (info.HasEnabled(ModuleType.Xp))
                 MessageXp += xpgain;
+            Console.WriteLine($"{UserId}: MessageXp += xpgain");
 
             if (info.HasEnabled(ModuleType.Coins))
             {
@@ -154,9 +157,12 @@ public class DBUser : DBItem<DBUser>
                 StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
             }
 
+            Console.WriteLine($"{UserId}: StateManager.AddStat");
+
             if (info.HasEnabled(ModuleType.Xp) || info.HasEnabled(ModuleType.Coins))
                 ActiveMinutes += 1;
                 PointsThisMinute = 0;
+            Console.WriteLine($"{UserId}: Reset ActiveMinutes & PointsThisMinute");
 
             LastSentMessage = DateTime.UtcNow;
         }
@@ -176,7 +182,8 @@ public class DBUser : DBItem<DBUser>
             Points += 150;
         }
 
-        PointsThisMinute += Points;
+        if (PointsThisMinute < 10000)
+            PointsThisMinute += Points;
         TotalChars += Content.Length;
         TotalPoints += Points;
 
