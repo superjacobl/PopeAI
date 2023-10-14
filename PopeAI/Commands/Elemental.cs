@@ -256,10 +256,13 @@ public class Elemental : CommandModuleBase
             // min of 3 votes
             if (votes >= 3) {
                 bool approved = false;
+                var total = suggestion.Nays + suggestion.Ayes;
+                var ratio = 0.00;
+                if (total > 0)
+                    ratio = (double)suggestion.Ayes / (double)total;
+
                 if (suggestion.Nays != 0) {
                     // need 2/3 vote to approve
-                    var total = suggestion.Nays+suggestion.Ayes;
-                    var ratio = (double)suggestion.Ayes/(double)total;
                     if (ratio > 0.66) {
                         approved = true;
                     }
@@ -323,6 +326,28 @@ public class Elemental : CommandModuleBase
                     }
 
                     ctx.ReplyAsync($"Enought votes were reached ({suggestion.Ayes}-{suggestion.Nays}) for [{text}] to be accepted!");
+                }
+                else if (total >= 5 && ratio <= 0.33)
+                {
+                    List<SuggestionVote> _votes = await dbctx.SuggestionVotes.Where(x => x.SuggestionId == suggestion.Id).ToListAsync();
+
+                    dbctx.SuggestionVotes.RemoveRange(_votes);
+
+                    dbctx.Suggestions.Remove(suggestion);
+
+                    await dbctx.SaveChangesAsync();
+
+                    string text = "";
+                    if (suggestion.Element3 == null)
+                    {
+                        text = $"{suggestion.Element1} + {suggestion.Element2} = {suggestion.Result}";
+                    }
+                    else
+                    {
+                        text = $"{suggestion.Element1} + {suggestion.Element2} + {suggestion.Element3} = {suggestion.Result}";
+                    }
+
+                    ctx.ReplyAsync($"Due to receiving {total} votes and 2/3 (or greater) having voted no ({suggestion.Ayes}-{suggestion.Nays}), [{text}] has been rejected!");
                 }
             }
 
