@@ -18,7 +18,7 @@ public class Xp : CommandModuleBase
     public async Task OnMessage(CommandContext ctx)
     {
         // put this message in queue for storage
-        MessageManager.AddToQueue(ctx.Message);
+        //MessageManager.AddToQueue(ctx.Message);
 
         await StatManager.AddStat(CurrentStatType.Message, 1, ctx.Member.PlanetId);
 

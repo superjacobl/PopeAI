@@ -349,10 +349,10 @@ namespace PopeAI.Commands.Tests
 						.AddRow()
 							.AddButton("Update")
 								.OnClick(UpdatedEmbedTimeTest);
-                var msg = await PlanetMessage.FindAsync(ctx.Event.MessageId, ctx.Channel.Id, ctx.Planet.Id);
+                var msg = await Message.FindAsync(ctx.Event.MessageId, ctx.Channel.Id);
 				JsonSerializerOptions options = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault };
 				msg.EmbedData = JsonSerializer.Serialize(embed.embed, options);
-                msg.embedParsed = true;
+                msg.SetEmbedParsed(true);
 				var result = await msg.EditMessageAsync();
                 Console.WriteLine(result.Message);
                 Console.WriteLine(result.Success);

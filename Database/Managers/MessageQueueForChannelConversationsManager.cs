@@ -79,7 +79,7 @@ public class ChannelConversation
 public static class MessageQueueForChannelConversationsManager
 {
     public static ConcurrentDictionary<long, ChannelConversation> ChannelConversations = new();
-    public static BlockingCollection<PlanetMessage> MessageQueue = new(new ConcurrentQueue<PlanetMessage>());
+    public static BlockingCollection<Message> MessageQueue = new(new ConcurrentQueue<Message>());
     public static bool CurrentlyCheckingConversationsForNotActiveOnes = false;
     public static bool QueueConsumerIsRunning = true;
 
@@ -122,9 +122,9 @@ public static class MessageQueueForChannelConversationsManager
         return Task.CompletedTask;
     }
 
-    public static void AddToQueue(PlanetMessage msg)
+    public static void AddToQueue(Message msg)
     {
-        //MessageQueue.Add(msg);
+        MessageQueue.Add(msg);
     }
 
     public static async void CheckConversationsForNonActiveOnes(object? state)
@@ -198,14 +198,14 @@ public static class MessageQueueForChannelConversationsManager
                     DBUserCurrentlyParticipating = new(),
                     MessagesSentPerMinuteByDBUserIdLast5Minutes = new(),
                     ConversationType = ConversationType.None,
-                    PlanetId = msg.PlanetId
+                    PlanetId = (long)msg.PlanetId
                 };
                 ChannelConversations.TryAdd(msg.ChannelId, newconversation);
             }
 
             var conversation = ChannelConversations[msg.ChannelId];
 
-            var user = await DBUser.GetAsync(msg.AuthorMemberId, true);
+            var user = await DBUser.GetAsync((long)msg.AuthorMemberId, true);
             if (user is null) continue;
             
             if (!conversation.DBUserCurrentlyParticipating.Any(x => x.Id == msg.AuthorMemberId))

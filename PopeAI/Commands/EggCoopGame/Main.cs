@@ -8,7 +8,6 @@ using Valour.Net.EmbedMenu;
 using System.Threading;
 using Valour.Net.CommandHandling;
 using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
-using PopeAI.Commands.Search;
 using IdGen;
 using System.IO;
 using Valour.Api.Models.Messages.Embeds;

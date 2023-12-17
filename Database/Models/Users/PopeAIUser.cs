@@ -132,7 +132,7 @@ public class DBUser : DBItem<DBUser>
         return item;
     }
 
-    public void NewMessage(PlanetMessage msg, PlanetInfo? info)
+    public void NewMessage(Message msg, PlanetInfo? info)
     {
         if (LastSentMessage.AddSeconds(60) < DateTime.UtcNow)
         {
@@ -152,7 +152,7 @@ public class DBUser : DBItem<DBUser>
             {
                 int CoinGain = (int)Math.Max(Math.Round(xpgain * 2), 0);
                 Coins += CoinGain;
-                StatManager.AddStat(CurrentStatType.Coins, CoinGain, msg.PlanetId);
+                StatManager.AddStat(CurrentStatType.Coins, CoinGain, (long)msg.PlanetId);
             }
 
             if (info.HasEnabled(ModuleType.Xp) || info.HasEnabled(ModuleType.Coins))
@@ -172,7 +172,7 @@ public class DBUser : DBItem<DBUser>
         Points += (short)Content.Length;
 
         // if there is media then add 150 points
-        if (msg.AttachmentsData.Contains("https://cdn.valour.gg/content/"))
+        if (msg.AttachmentsData is not null && msg.AttachmentsData.Contains("https://cdn.valour.gg/content/"))
         {
             Points += 150;
         }

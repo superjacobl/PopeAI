@@ -16,7 +16,7 @@ namespace Database.Managers;
 public static class MessageVCRewardManager
 {
     public static Random Rng = new Random();
-    public static BlockingCollection<PlanetMessage> MessageQueue = new(new ConcurrentQueue<PlanetMessage>());
+    public static BlockingCollection<Message> MessageQueue = new(new ConcurrentQueue<Message>());
     public static Dictionary<long, long> LastWinnerByPlanetId = new();
     public static EcoAccount BotEcoAccountForVC = null;
     public static Dictionary<long, long> UserIdToVCEcoAccountId = new();
@@ -46,7 +46,7 @@ public static class MessageVCRewardManager
         //return Task.CompletedTask;
     }
 
-    public static void AddToQueue(PlanetMessage msg)
+    public static void AddToQueue(Message msg)
     {
         MessageQueue.Add(msg);
     }
@@ -103,11 +103,11 @@ public static class MessageVCRewardManager
 			//if (Rng.Next(1, 201) >= 1)
 			if (Rng.Next(1, 201) == 1)
             {
-				if (!LastWinnerByPlanetId.ContainsKey(msg.PlanetId))
-                    LastWinnerByPlanetId[msg.PlanetId] = 0;
+				if (!LastWinnerByPlanetId.ContainsKey((long)msg.PlanetId))
+                    LastWinnerByPlanetId[(long)msg.PlanetId] = 0;
 
                 // same user can not get reward twice in a row per planet
-                if (LastWinnerByPlanetId[msg.PlanetId] == msg.AuthorUserId)
+                if (LastWinnerByPlanetId[(long)msg.PlanetId] == msg.AuthorUserId)
 					continue;
 
 				var user = await User.FindAsync(msg.AuthorUserId);
@@ -147,8 +147,8 @@ public static class MessageVCRewardManager
                 var tran_result = await Transaction.SendTransactionAsync(tran);
 
                 Console.WriteLine($"VC Reward Drop of {amount}");
-				ValourNetClient.PostMessage(msg.ChannelId, msg.PlanetId, $":tada: {user.Name}, you have received random VC Drop of {amount}! (0.5% chance of this happening per message sent)");
-                LastWinnerByPlanetId[msg.PlanetId] = msg.AuthorUserId;
+				ValourNetClient.PostMessage(msg.ChannelId, (long)msg.PlanetId, $":tada: {user.Name}, you have received random VC Drop of {amount}! (0.5% chance of this happening per message sent)");
+                LastWinnerByPlanetId[(long)msg.PlanetId] = msg.AuthorUserId;
 			}
         }
     }

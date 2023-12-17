@@ -10,7 +10,6 @@ global using System.Collections.Generic;
 global using System.Linq.Expressions;
 global using PopeAI.Database.Models.Elements;
 global using PopeAI.Database.Managers;
-global using PopeAI.Database.Models.Messaging;
 global using Microsoft.EntityFrameworkCore;
 global using PopeAI.Database.Annotations;
 global using PopeAI.Database.Models.Bot;
@@ -85,13 +84,6 @@ public class PopeAIDB : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<PopeAI.Database.Models.Messaging.Message>()
-            .HasGeneratedTsVectorColumn(
-                p => p.SearchVector,
-                "english",
-                p => new { p.Content })  // Included properties
-            .HasIndex(p => p.SearchVector)
-            .HasMethod("GIN"); // Index method
     }
 
     public static string GenerateSQL()
@@ -147,7 +139,6 @@ public class PopeAIDB : DbContext
     public DbSet<Stat> Stats { get; set; }
     public DbSet<Help> Helps { get; set; }
     public DbSet<DailyTask> DailyTasks { get; set; }
-    public DbSet<PopeAI.Database.Models.Messaging.Message> Messages { get; set; }
     public DbSet<PlanetInfo> PlanetInfos { get; set; }
     public DbSet<Element> Elements { get; set; }
     public DbSet<Combination> Combinations { get; set; }

@@ -109,7 +109,7 @@ namespace PopeAI.Commands.Unscramble
                 }
                 if (DateTime.UtcNow.Subtract(game.LastTimeSomeoneInputed).TotalSeconds > 60) {
                     Games.Remove(game.MessageId);
-                    var message = await PlanetMessage.FindAsync(game.MessageId, game.ChannelId, game.PlanetId);
+                    var message = await Message.FindAsync(game.MessageId, game.ChannelId);
                     message.DeleteAsync();
                 }
             }

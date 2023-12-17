@@ -5,70 +5,37 @@ namespace PopeAI.Database.Managers;
 
 public static class MessageManager
 {
-    static public ConcurrentQueue<PlanetMessage> messageQueue = new();
+    static public ConcurrentQueue<Message> messageQueue = new();
     
     public static ConcurrentBag<long> MessagesFromHistoryIds = new();
     public static PopeAIDB dbctx = null;
     public static DateTime TimeSinceLastSave = DateTime.UtcNow;
 
-    public static async ValueTask<TaskResult> SaveMessage(PlanetMessage message)
+    public static async ValueTask<TaskResult> SaveMessage(Message message)
     {
         try
         {
-            PopeAI.Database.Models.Messaging.Message msg = new()
-            {
-                Id = message.Id,
-                AuthorId = message.AuthorUserId,
-                MemberId = message.AuthorMemberId,
-                Content = message.Content,
-                TimeSent = message.TimeSent,
-                ChannelId = message.ChannelId,
-                PlanetId = message.PlanetId,
-                EmbedData = message.EmbedData,
-                MentionsData = message.MentionsData,
-                ReplyToId = message.ReplyToId
-            };
-            msg.Hash = msg.GetHash();
-
-            string result = BitConverter.ToString(msg.Hash).Replace("-", string.Empty).Replace("A", "a").Replace("B", "b").Replace("C", "c").Replace("D", "d").Replace("E", "e").Replace("F", "f");
-
-            dbctx.Messages.Add(msg);
-
-            var info = await PlanetInfo.GetAsync(msg.PlanetId);
+            var info = await PlanetInfo.GetAsync((long)message.PlanetId, _readonly: true);
             if (info == null)
             {
                 info = new()
                 {
-                    PlanetId = message.PlanetId,
+                    PlanetId = (long)message.PlanetId,
                     Modules = new() {
                         ModuleType.Xp,
                         ModuleType.Coins
                     }
                 };
                 DBCache.AddNew(info.PlanetId, info);
-                dbctx.PlanetInfos.Add(info);
-                await dbctx.SaveChangesAsync();
             }
 
-            msg.PlanetIndex = info.MessagesStored;
-            info.MessagesStored += 1;
-
-            await info.UpdateDB();
-
             StatManager.selfstat.StoredMessages += 1;
-            if (msg.AuthorId == ValourClient.Self.Id)
+            if (message.AuthorUserId == ValourClient.Self.Id)
             {
                 StatManager.selfstat.MessagesSentSelf += 1;
             }
 
-            // if message queue is getting too long, then stop saving
-            if (messageQueue.Count < 10 || (DateTime.UtcNow-TimeSinceLastSave).TotalSeconds > 10)
-            {
-                await dbctx.SaveChangesAsync();
-                TimeSinceLastSave = DateTime.UtcNow;
-            }
-
-            return new TaskResult(true, result);
+            return new TaskResult(true, "");
         }
         catch (Exception ex)
         {
@@ -77,7 +44,7 @@ public static class MessageManager
         return new TaskResult(false, "");
     }
 
-    public static void AddToQueue(PlanetMessage msg)
+    public static void AddToQueue(Message msg)
     {
         StatManager.selfstat.MessagesSent += 1;
         if (msg.Content.Length > 8)
@@ -101,18 +68,11 @@ public static class MessageManager
                 continue;
             }
 
-            bool dequeued = messageQueue.TryDequeue(out PlanetMessage msg);
+            bool dequeued = messageQueue.TryDequeue(out Message msg);
 
             if (!dequeued)
             {
                 continue;
-            }
-
-            if (MessagesFromHistoryIds.Contains(msg!.Id)) {
-                using var dbctx = PopeAIDB.DbFactory.CreateDbContext();
-                if (await dbctx.Messages.FirstOrDefaultAsync(x => x.Id == msg.Id) is not null) {
-                    continue;
-                }
             }
 
 			TaskResult result = await SaveMessage(msg!);

@@ -28,7 +28,6 @@ global using PopeAI.Database.Models.Bot;
 global using PopeAI.Bot.Managers;
 global using PopeAI.Database.Models.Planets;
 global using Microsoft.AspNetCore;
-global using PopeAI.Database.Models.Messaging;
 global using System.IO;
 
 using System.Net.Http;
@@ -103,35 +102,6 @@ class Program
         };
 
 		await ValourNetClient.Start(ConfigManger.Config.Email,ConfigManger.Config.BotPassword);
-
-        Console.WriteLine("Getting Messages from all channels");
-        if (false) {
-            Task.Delay(2000);
-            foreach(var planet in ValourCache.GetAll<Planet>())
-            {
-                foreach(var channel in await planet.GetChannelsAsync()) {
-                    Console.WriteLine(channel.Name);
-                    List<PlanetMessage> msgs = null;
-                    var _msgs = await channel.GetLastMessagesAsync(1);
-                    if (_msgs.Count == 0) {
-                        continue;
-                    }
-                    long index = _msgs.First().Id;
-                    while (msgs is null || msgs.Count > 0) {
-                        msgs = await channel.GetMessagesAsync(index, 64);
-                        foreach(var msg in msgs) {
-                            MessageManager.MessagesFromHistoryIds.Add(msg.Id);
-                            msg.TimeSent = DateTime.SpecifyKind(msg.TimeSent, DateTimeKind.Utc);
-                            //MessageManager.AddToQueue(msg);
-                        }
-                        if (msgs.Count > 0) {
-                            index = msgs.First().Id-1;
-                        }
-                    }
-                }
-            }
-        }
-        Console.WriteLine("Done!");
 
         MessageManager.Run();
 
