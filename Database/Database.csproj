@@ -24,9 +24,9 @@
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="true">
-		<PackageReference Include="Valour.Api" Version="0.2.3" />
-		<PackageReference Include="Valour.Shared" Version="0.2.3" />
-		<PackageReference Include="Valour.Net" Version="0.7.1" />
+		<PackageReference Include="Valour.Api" Version="0.3.0" />
+		<PackageReference Include="Valour.Shared" Version="0.3.0" />
+		<PackageReference Include="Valour.Net" Version="0.8.0.1" />
 	</ItemGroup>
 
   <ItemGroup Condition="false">
