@@ -1,4 +1,4 @@
-﻿global using Valour.Api.Models;
+﻿global using Valour.Sdk.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

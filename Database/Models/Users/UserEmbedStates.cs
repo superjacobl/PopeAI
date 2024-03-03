@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Valour.Api.Models;
-using Valour.Api.Models.Messages.Embeds;
+using Valour.Sdk.Models;
+using Valour.Sdk.Models.Messages.Embeds;
 
 namespace Database.Models.Users;
 

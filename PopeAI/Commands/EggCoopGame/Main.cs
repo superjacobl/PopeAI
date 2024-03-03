@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Valour.Net.EmbedMenu;
 using System.Threading;
 using Valour.Net.CommandHandling;
-using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
+using Valour.Sdk.Models.Messages.Embeds.Styles.Bootstrap;
 using IdGen;
 using System.IO;
-using Valour.Api.Models.Messages.Embeds;
+using Valour.Sdk.Models.Messages.Embeds;
 
 namespace Valour_Bot.Commands.EggCoopGame;
 

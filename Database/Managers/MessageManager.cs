@@ -1,5 +1,5 @@
 ﻿using Valour.Shared;
-using Valour.Api.Client;
+using Valour.Sdk.Client;
 
 namespace PopeAI.Database.Managers;
 

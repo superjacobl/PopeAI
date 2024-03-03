@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Valour.Net.Client;
 using Valour.Shared;
 using Valour.Net.PlanetEconomy;
-using Valour.Api.Models.Economy;
+using Valour.Sdk.Models.Economy;
 using Valour.Shared.Models;
-using Valour.Api.Client;
+using Valour.Sdk.Client;
 
 namespace Database.Managers;
 

@@ -1,6 +1,6 @@
 using PopeAI.Database.Managers;
 using Valour.Net.EmbedMenu;
-using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
+using Valour.Sdk.Models.Messages.Embeds.Styles.Bootstrap;
 
 namespace PopeAI.Commands.Elemental;
 

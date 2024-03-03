@@ -1,10 +1,10 @@
-﻿global using Valour.Api.Models;
-global using Valour.Api.Models.Messages.Embeds;
-global using Valour.Api.Models.Messages.Embeds.Items;
-global using Valour.Api.Models.Messages.Embeds.Styles;
-global using Valour.Api.Models.Messages.Embeds.Styles.Basic;
-//global using Valour.Api.Models.Messages.Embeds.Styles.Bootstrap;
-global using Valour.Api.Models.Messages.Embeds.Styles.Flex;
+﻿global using Valour.Sdk.Models;
+global using Valour.Sdk.Models.Messages.Embeds;
+global using Valour.Sdk.Models.Messages.Embeds.Items;
+global using Valour.Sdk.Models.Messages.Embeds.Styles;
+global using Valour.Sdk.Models.Messages.Embeds.Styles.Basic;
+//global using Valour.Sdk.Models.Messages.Embeds.Styles.Bootstrap;
+global using Valour.Sdk.Models.Messages.Embeds.Styles.Flex;
 global using Valour.Shared.Authorization;
 global using System.Net.Http.Json;
 global using Valour.Net.Client;
@@ -18,7 +18,7 @@ global using Microsoft.EntityFrameworkCore;
 global using Valour.Net.CommandHandling;
 global using Valour.Net.CommandHandling.Attributes;
 global using System.Collections.Concurrent;
-global using Valour.Api.Client;
+global using Valour.Sdk.Client;
 global using PopeAI.Database.Models.Users;
 global using PopeAI.Database.Managers;
 global using PopeAI.Database.Models.Elements;
@@ -124,7 +124,7 @@ class Program
             }
             ValourClient.Self.Status = $"Storing {StatManager.selfstat.StoredMessages} messages";
 #if !DEBUG
-            await Valour.Api.Items.LiveModel.UpdateAsync(ValourClient.Self);
+            await Valour.Sdk.Items.LiveModel.UpdateAsync(ValourClient.Self);
 #endif
 #if DEBUG
             await Task.Delay(1000);

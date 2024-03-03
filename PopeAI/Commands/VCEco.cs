@@ -1,5 +1,5 @@
-﻿using Valour.Api.Models.Economy;
-using Valour.Api.Models;
+﻿using Valour.Sdk.Models.Economy;
+using Valour.Sdk.Models;
 using Valour.Shared.Models;
 
 namespace PopeAI.Commands;
